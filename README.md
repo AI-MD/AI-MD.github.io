@@ -21,3 +21,13 @@
 #### 교재
 
 | 밑바닥부터 시작하는 딥러닝        | [<img src="./scratch.jpg" width="130" height="160">](http://book.naver.com/bookdb/book_detail.nhn?bid=11492334)     |  딥러닝의 바이블 
+
+
+### 스터디Q&A
+
+협업 Tool인 Trello를 사용합니다. [여기] (https://trello.com/b/RxvPHaIu/amd-study) 확인 
+현재는 public 상태입니다. 
+해당 Tool이 괜찮으시면 Team으로 변경하여 각자 공부하시다 이해가 안가는 내용(교재 및 강의)을 올리는 용도로 사용하려고 합니다.
+아는 분이 게시다면 답을 달거나 해당 내용을 오프에서 이야기를 진행해보려고합니다. 
+
+
