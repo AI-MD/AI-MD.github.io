@@ -10,6 +10,9 @@
 - 주제 : OT 및 자기소개, 스터디 세부방향 설정 
 - 스터디 진도 계획은 [링크](https://docs.google.com/spreadsheets/d/18ZAsjk50pqVO-FpwMCKkG89_KoknF36Uit4KAwEZ3rM/edit#gid=1995798400) 확인
 
+### 모임주기
+ - 주1회 (수강신청기간 & 중간,기말시험주간과 1주전에는 모임을 쉬는방향...)
+
 ### 스터디 강의&교재 병행
 
 #### 강의
