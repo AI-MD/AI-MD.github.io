@@ -4,14 +4,13 @@
 
 - 건의 사항, 추가 정보는 [이슈 등록](https://github.com/OpenCVDL/OpenCVDL.github.io/issues) 에 등록해주세요!
 
-## 공 지 사 항
-- 제 1회 AMD 스터디
+## 제 1회 AMD 스터디
 - 일시 : 2018.08.9 목요일 PM 7~9
 - 장소 : 강원대 정문 '어컵오브티'
 - 주제 : OT 및 자기소개, 스터디 세부방향 설정 
 - 스터디 진도 계획은 [링크](https://docs.google.com/spreadsheets/d/18ZAsjk50pqVO-FpwMCKkG89_KoknF36Uit4KAwEZ3rM/edit#gid=1995798400) 확인
 
-## 스터디 강의&교재 병행
+### 스터디 강의&교재 병행
 
 #### 강의
   - **모두의 딥러닝** [링크](http://hunkim.github.io/ml/) 
@@ -23,7 +22,7 @@
 | 밑바닥부터 시작하는 딥러닝        | [<img src="./scratch.jpg" width="130" height="160">](http://book.naver.com/bookdb/book_detail.nhn?bid=11492334)     |  딥러닝의 바이블 
 
 
-### 스터디Q&A
+##### 스터디Q&A
 
 협업 Tool인 Trello를 사용합니다. [여기](https://trello.com/b/RxvPHaIu/amd-study) 확인 
 현재는 public 상태입니다. 
