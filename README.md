@@ -22,7 +22,7 @@
 | 밑바닥부터 시작하는 딥러닝        | [<img src="./scratch.jpg" width="130" height="160">](http://book.naver.com/bookdb/book_detail.nhn?bid=11492334)     |  딥러닝의 바이블 
 
 
-##### 스터디Q&A
+### 스터디Q&A
 
 협업 Tool인 Trello를 사용합니다. [여기](https://trello.com/b/RxvPHaIu/amd-study) 확인 
 현재는 public 상태입니다. 
