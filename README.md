@@ -5,7 +5,7 @@
 - 건의 사항, 추가 정보는 [이슈 등록](https://github.com/OpenCVDL/OpenCVDL.github.io/issues) 에 등록해주세요!
 
 ## 제 1회 AMD 스터디
-- 일시 : 2018.08.9 목요일 PM 7~9
+- 일시 : 2018.08.9 목요일  7~9
 - 장소 : 강원대 정문 '어컵오브티'
 - 주제 : OT 및 자기소개, 스터디 세부방향 설정 
 - 스터디 진도 계획은 [링크](https://docs.google.com/spreadsheets/d/18ZAsjk50pqVO-FpwMCKkG89_KoknF36Uit4KAwEZ3rM/edit#gid=1995798400) 확인
