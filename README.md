@@ -20,4 +20,4 @@
   
 #### 교재
 
-| 밑바닥부터 시작하는 딥러닝        | [<img src="./scratch.jpg" width="130" height="160">](http://book.naver.com/bookdb/book_detail.nhn?bid=11492334)     |   
+| 밑바닥부터 시작하는 딥러닝        | [<img src="./scratch.jpg" width="130" height="160">](http://book.naver.com/bookdb/book_detail.nhn?bid=11492334)     |  딥러닝의 바이블 
