@@ -7,7 +7,7 @@
 ## 선수 혹은 함께 보면 좋은 내용 
 - 파이썬 : [파이썬도장](https://dojang.io/course/view.php?id=3) ,[머신러닝을 위한 파이썬](https://www.edwith.org/aipython)
 - 수학 : [확률과 통계 ,이상화교수](http://www.kocw.net/home/search/kemView.do?kemId=1056974) ,[선형대수, 이상화교수](http://www.kocw.net/home/search/kemView.do?kemId=977757)
-[인공지능을 위한 선형대수,주재걸](https://www.edwith.org/linearalgebra4ai) [강의자료](https://docs.google.com/spreadsheets/d/18ZAsjk50pqVO-FpwMCKkG89_KoknF36Uit4KAwEZ3rM/edit#gid=1995798400) 확인
+[인공지능을 위한 선형대수,주재걸](https://www.edwith.org/linearalgebra4ai) [자료](https://github.com/OpenCVDL/OpenCVDL.github.io/blob/master/files/머신러닝을_위한_선형대수.zip) 확인
 
 ## 제 1회 AIMD 스터디
 - 일시 : 2018.8.9 목요일 저녁 7~9
