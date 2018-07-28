@@ -5,9 +5,9 @@
 - 건의 사항, 추가 정보는 [이슈 등록](https://github.com/AI-MD/AI-MD.github.io/issues) 에 등록해주세요!
 
 ## 선수 혹은 함께 보면 좋은 내용 
-- 파이썬 : [파이썬도장](https://dojang.io/course/view.php?id=3) , [파이썬 자료구조](https://www.edwith.org/python-data),[머신러닝을 위한 파이썬](https://www.edwith.org/aipython)
-- 수학 : [확률과 통계 ,이상화교수](http://www.kocw.net/home/search/kemView.do?kemId=1056974) ,[선형대수, 이상화교수](http://www.kocw.net/home/search/kemView.do?kemId=977757)
-[인공지능을 위한 선형대수,주재걸](https://www.edwith.org/linearalgebra4ai) [자료](https://github.com/OpenCVDL/OpenCVDL.github.io/blob/master/files/머신러닝을_위한_선형대수.zip) 확인
+- 파이썬 : [파이썬도장](https://dojang.io/course/view.php?id=3) / [파이썬 자료구조](https://www.edwith.org/python-data) / [머신러닝을 위한 파이썬](https://www.edwith.org/aipython)
+- 수학 : [확률과 통계 ,이상화교수](http://www.kocw.net/home/search/kemView.do?kemId=1056974) / [선형대수, 이상화교수](http://www.kocw.net/home/search/kemView.do?kemId=977757)
+/ [인공지능을 위한 선형대수,주재걸](https://www.edwith.org/linearalgebra4ai) / [자료](https://github.com/OpenCVDL/OpenCVDL.github.io/blob/master/files/머신러닝을_위한_선형대수.zip) 확인
 
  - **Python 모듈 설명 모음** [링크](http://awesome-python.com/)
 
