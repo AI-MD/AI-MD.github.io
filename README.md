@@ -11,11 +11,6 @@
 
  - **Python 모듈 설명 모음** [링크](http://awesome-python.com/)
 
-## 제 1회 AIMD 스터디
-- 일시 : 2018.8.9 목요일 저녁 7~9
-- 장소 :'어컵오브티'
-- 주제 : OT 및 자기소개, 스터디 세부방향 설정 
-- 스터디 진도 계획은 [링크](https://docs.google.com/spreadsheets/d/18ZAsjk50pqVO-FpwMCKkG89_KoknF36Uit4KAwEZ3rM/edit#gid=1995798400) 확인
 
 ### 모임주기
  - 주1회 (수강신청기간 & 중간,기말시험주간과 1주전에는 모임을 쉬는방향...)
