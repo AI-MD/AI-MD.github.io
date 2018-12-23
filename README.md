@@ -44,5 +44,4 @@
 
 
 ## 참고도서 
-- [처음배우는 딥러닝수학](http://www.hanbit.co.kr/store/books/look.php?p_code=B6703128448) : 수학이 약하신분
-- [신경망 첫걸음](http://www.hanbit.co.kr/store/books/look.php?p_code=B1910379076) : 신경망이 처음이신분
+.. 
