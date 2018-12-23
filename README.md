@@ -18,6 +18,7 @@
 ### 모임주기
  - 주1회 (1월 2일부터 수요일 저녁 7시~9시)
 
+### 일정 (https://docs.google.com/spreadsheets/d/1ORZCFVd9_aQ-zWL0d2vsS6un9JiyaGrsgDaGFe0hYP0/edit#gid=0)
 
 ### 스터디 강의&교재 병행
 
