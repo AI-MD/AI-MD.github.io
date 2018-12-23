@@ -6,14 +6,17 @@
 
 ## 선수 혹은 함께 보면 좋은 내용 
 - 파이썬 : [파이썬도장](https://dojang.io/course/view.php?id=3) / [파이썬자료구조](https://www.edwith.org/python-data) / [머신러닝을 위한 파이썬](https://www.edwith.org/aipython)
-- 수학 : [확률과 통계- 이상화교수](http://www.kocw.net/home/search/kemView.do?kemId=1056974) / [선형대수-이상화교수](http://www.kocw.net/home/search/kemView.do?kemId=977757)
+- 수학 :
+/ [확률과 통계- 하버드강의](https://www.edwith.org/harvardprobability) 
+/ [선형대수 기초- 칸 아카데미](https://www.edwith.org/linear-algebra)
+/ [선형대수-이상화교수](http://www.kocw.net/home/search/kemView.do?kemId=977757)
 / [인공지능을 위한 선형대수-주재걸](https://www.edwith.org/linearalgebra4ai) / [자료](https://github.com/OpenCVDL/OpenCVDL.github.io/blob/master/files/머신러닝을_위한_선형대수.zip) 확인
 
  - **Python 모듈 설명 모음** [링크](http://awesome-python.com/)
 
 
 ### 모임주기
- - 주1회 (수강신청기간 & 중간,기말시험주간과 1주전에는 모임을 쉬는방향...)
+ - 주1회 (수요일 저녁 7시~9시)
 
 
 ### 스터디 강의&교재 병행
