@@ -19,9 +19,11 @@
  - 주1회 (1월 2일부터 수요일 저녁 7시~9시)
 
 ### 일정
-|  <center>Header1</center> |  <center>Header2</center> |  <center>Header3</center> |
+|  <center>주차</center> |  <center>내용</center> |  <center>참고</center> |
 |:--------|:--------:|--------:|
-|**cell 1x1** | <center>cell 1x2 </center> |*cell 1x3* |
+|**1주차(1/2)** | <center>파이썬,numpy, 밑바닥부터 시작하는 딥러닝 1~2장 
+(개별적으로 공부) 
+모두를 위한 딥러닝 1~4세션(선형회귀) </center> |*cell 1x3* |
 |**cell 2x1** | <center>cell 2x2 </center> |*cell 2x3* |
 |**cell 3x1** | <center>cell 3x2 </center> |*cell 3x3* |
 
