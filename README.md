@@ -19,6 +19,12 @@
  - 주1회 (1월 2일부터 수요일 저녁 7시~9시)
 
 ### 일정
+|  <center>Header1</center> |  <center>Header2</center> |  <center>Header3</center> |
+|:--------|:--------:|--------:|
+|**cell 1x1** | <center>cell 1x2 </center> |*cell 1x3* |
+|**cell 2x1** | <center>cell 2x2 </center> |*cell 2x3* |
+|**cell 3x1** | <center>cell 3x2 </center> |*cell 3x3* |
+
 [링크](https://docs.google.com/spreadsheets/d/1ORZCFVd9_aQ-zWL0d2vsS6un9JiyaGrsgDaGFe0hYP0/edit#gid=0)
 
 ### 스터디 강의&교재 병행
