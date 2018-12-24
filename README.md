@@ -21,7 +21,7 @@
 ### 일정
 |  <center>주차</center> |  <center>내용</center> |  <center>참고</center> |
 |:--------|:--------:|--------:|
-|**1주차(1/2)** | <center>파이썬,numpy, 밑바닥부터 시작하는 딥러닝 1~2장 (개별적으로 공부) <br/> 모두를 위한 딥러닝 1~4세션 (선형회귀) </center>|*cell 1x3* |
+|**1주차(1/2)** | <center>파이썬,numpy, 밑바닥부터 시작하는 딥러닝 1,2장 (개별적으로 공부) <br/> 모두를 위한 딥러닝 1,4세션 (선형회귀) </center>|*cell 1x3* |
 |**cell 2x1** | <center>cell 2x2 </center> |*cell 2x3* |
 |**cell 3x1** | <center>cell 3x2 </center> |*cell 3x3* |
 
