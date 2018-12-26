@@ -4,15 +4,7 @@
 
 - 건의 사항, 추가 정보는 [이슈 등록](https://github.com/AI-MD/AI-MD.github.io/issues) 에 등록해주세요!
 
-## 선수 혹은 함께 보면 좋은 내용 
-- 파이썬 : [파이썬도장](https://dojang.io/course/view.php?id=3) / [파이썬자료구조](https://www.edwith.org/python-data) / [머신러닝을 위한 파이썬](https://www.edwith.org/aipython)
-- 수학 :
-/ [확률과 통계- 하버드강의](https://www.edwith.org/harvardprobability) 
-/ [선형대수 기초- 칸 아카데미](https://www.edwith.org/linear-algebra)
-/ [선형대수-이상화교수](http://www.kocw.net/home/search/kemView.do?kemId=977757)
-/ [인공지능을 위한 선형대수-주재걸](https://www.edwith.org/linearalgebra4ai) / [자료](https://github.com/OpenCVDL/OpenCVDL.github.io/blob/master/files/머신러닝을_위한_선형대수.zip) 확인
 
- - **Python 모듈 설명 모음** [링크](http://awesome-python.com/)
 
 
 ### 모임주기
@@ -53,7 +45,15 @@
 트렐로가 괜찮으시면 Team으로 변경하여 각자 공부하시다 이해가 안가는 내용(교재 및 강의)을 올리는 용도로 사용하려고 합니다.
 아는 분이 게시다면 답을 달거나 해당 내용을 오프에서 이야기를 진행해보려고합니다. 
 
+## 함께 보면 좋은 내용 
+- 파이썬 : [파이썬도장](https://dojang.io/course/view.php?id=3) / [파이썬자료구조](https://www.edwith.org/python-data) / [머신러닝을 위한 파이썬](https://www.edwith.org/aipython)
+- 수학 :
+/ [확률과 통계- 하버드강의](https://www.edwith.org/harvardprobability) 
+/ [선형대수 기초- 칸 아카데미](https://www.edwith.org/linear-algebra)
+/ [선형대수-이상화교수](http://www.kocw.net/home/search/kemView.do?kemId=977757)
+/ [인공지능을 위한 선형대수-주재걸](https://www.edwith.org/linearalgebra4ai) / [자료](https://github.com/OpenCVDL/OpenCVDL.github.io/blob/master/files/머신러닝을_위한_선형대수.zip) 확인
 
+ - **Python 모듈 설명 모음** [링크](http://awesome-python.com/)
 
 ## 참고도서 
 .. 
