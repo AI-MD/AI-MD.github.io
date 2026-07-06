@@ -91,6 +91,19 @@
   .loading{display:flex;align-items:center;justify-content:center;gap:10px;padding:60px;color:var(--sub)}
   .sp{width:26px;height:26px;border:3px solid var(--line);border-top:3px solid var(--amber);border-radius:50%;animation:spin .8s linear infinite}
   .more{display:block;text-align:center;padding:14px;font-size:12.5px;font-weight:700;color:var(--amber);text-decoration:none}
+  /* 모바일: 헤더 줄바꿈으로 카테고리 탭과 겹치던 문제 해결 — 스티키 해제 + 헤더 컴팩트 */
+  @media (max-width:640px){
+    header{position:static}
+    .catbar{position:static}
+    .hin{height:auto;min-height:52px;padding:8px 0;gap:8px;flex-wrap:wrap}
+    .logo .s{display:none}
+    .logo .t{font-size:15px}
+    .upd{font-size:10px;max-width:150px}
+    .srcbtn{padding:6px 9px;font-size:11px}
+    .cattabs{padding:9px 0}
+    main{padding:12px 14px 48px}
+    .grid{grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:11px}
+  }
 </style>
 </head>
 <body>
