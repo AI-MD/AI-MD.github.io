@@ -239,7 +239,7 @@ document.getElementById("cattabs").onclick=e=>{const b=e.target.closest(".cattab
 document.getElementById("grid").onclick=e=>{const c=e.target.closest(".card");if(c){const p=DATA.products.find(x=>x.sku===c.dataset.sku);if(p)detail(p);}};
 document.getElementById("srcbtn").href=REPO;
 
-fetch("data.json").then(r=>r.json()).then(d=>{
+fetch("data.json?t="+Date.now(),{cache:"no-store"}).then(r=>r.json()).then(d=>{
   DATA=d;
   document.getElementById("upd").textContent="갱신 "+new Date(d.updated_at).toLocaleString("ko-KR",{month:"2-digit",day:"2-digit",hour:"2-digit",minute:"2-digit"});
   const ss=document.getElementById("store");d.branches.forEach(b=>{const o=document.createElement("option");o.value=b.store_id;o.textContent=b.name;ss.appendChild(o);});
