@@ -521,11 +521,14 @@ function initAuth(){
   };
   document.head.appendChild(s);
 }
-function displayName(){const md=(USER&&USER.user_metadata)||{};return md.nickname||md.name||(USER&&USER.email&&USER.email.split("@")[0])||"회원";}
+function displayName(){const md=(USER&&USER.user_metadata)||{};return md.nickname||"회원";}  // 실명(name) 절대 노출 안 함
+let _nickPrompted=false;
 function refreshAuthUI(){
   const b=document.getElementById("loginbtn"); if(!b)return;
-  if(USER){b.innerHTML="🙋 "+displayName().slice(0,8)+"님";b.onclick=showAccount;}
-  else {b.innerHTML="🙋 로그인";b.onclick=showLogin;}
+  if(USER){
+    b.innerHTML="🙋 "+displayName().slice(0,8)+"님"; b.onclick=showAccount;
+    if(!((USER.user_metadata||{}).nickname) && !_nickPrompted){_nickPrompted=true; setTimeout(()=>{if(!document.getElementById("ov"))showAccount();},600);}  // 닉네임 없으면 설정 유도
+  } else {b.innerHTML="🙋 로그인"; b.onclick=showLogin;}
 }
 const BENEFITS=[
   ["💬","카카오톡으로 직접 알림","앱 설치 없이 '나에게 보내기'로 특가·재입고를 카톡으로"],
