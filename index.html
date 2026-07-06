@@ -182,7 +182,7 @@
 <main><div class="wrap"><div class="rc" id="rc"></div><div class="grid" id="grid"><div class="loading"><div class="sp"></div> 데이터 불러오는 중…</div></div><div id="more" style="text-align:center;margin:22px 0"></div></div></main>
 </div><!-- /viewLiquor -->
 <section id="viewColkage" hidden><main><div class="wrap">
-  <div class="warn">🍷 <b>서울·수도권 콜키지프리 식당</b> — 내 술을 가져가 마실 수 있는 곳(카카오맵 평점 3.5+). 주 1회 갱신 · ⚠ <b>콜키지 정책은 매장 사정으로 바뀔 수 있으니 방문 전 전화 확인</b> 권장.</div>
+  <div class="warn">🍷 <b>서울·수도권 콜키지프리 식당</b> — 내 술을 가져가 마실 수 있는 곳(카카오맵 평점 3.5+). 주 3회 갱신 · ⚠ <b>콜키지 정책은 매장 사정으로 바뀔 수 있으니 방문 전 전화 확인</b> 권장.</div>
   <div class="crow">
     <div class="search" style="flex:1;min-width:160px"><span>🔍</span><input id="cq" placeholder="식당·지역 검색 (예: 강남, 스시)…" /></div>
     <select id="cregion"><option value="">전체 지역</option></select>
@@ -198,7 +198,7 @@
   <div id="learnBody"></div>
 </div></main></section>
 <section id="viewPick" hidden><main><div class="wrap">
-  <div class="warn">🌟 <b>주락 픽</b> · 트레이더스엔 없는 <b>애호가의 명주</b>를 데일리샷 <b>최저가·평점</b>으로 큐레이션 — 주 1회 갱신, <b>가격은 판매처·시점에 따라 다를 수 있어요.</b></div>
+  <div class="warn">🌟 <b>주락 픽</b> · 트레이더스엔 없는 <b>애호가의 명주</b>를 데일리샷 <b>최저가·평점</b>으로 큐레이션 — 주 3회 갱신, <b>가격은 판매처·시점에 따라 다를 수 있어요.</b></div>
   <div class="crow">
     <div class="search" style="flex:1;min-width:160px"><span>🔍</span><input id="pq" placeholder="명주 검색 (예: 맥캘란, 야마자키)…"></div>
     <select id="pcat"><option value="">전체 종류</option></select>
@@ -210,7 +210,7 @@
 </div></main></section>
 <footer style="text-align:center;padding:20px 16px 40px;color:var(--sub);font-size:12px;border-top:1px solid var(--line)">
   <div style="font-weight:800;color:var(--amberD);margin-bottom:6px">🍶 주락 酒樂 · 합리적으로 사고, 즐겁게 마시다</div>
-  👁 오늘 <b id="vtoday">–</b> · 누적 <b id="vtotal">–</b> 방문 &nbsp;·&nbsp; 🔔 구독자 <b id="vsubs">–</b>명 &nbsp;·&nbsp; 조회 전용 · 주류 재고 하루 1회 · 콜키지프리 주 1회 갱신
+  👁 오늘 <b id="vtoday">–</b> · 누적 <b id="vtotal">–</b> 방문 &nbsp;·&nbsp; 🔔 구독자 <b id="vsubs">–</b>명 &nbsp;·&nbsp; 조회 전용 · 주류 재고 하루 1회 · 콜키지프리 주 3회 갱신
 </footer>
 <div id="modalRoot"></div>
 
@@ -458,6 +458,7 @@ fetch("data.json?t="+Date.now(),{cache:"no-store"}).then(r=>r.json()).then(d=>{
   // 딥링크: ?special=1 → 특가만, ?sku=… → 해당 상품 상세
   const qs=new URLSearchParams(location.search);
   if(qs.get("special")==="1"){state.cat=SPECIAL;state.shown=state.pageSize;}
+  if(qs.get("pick")==="1"){setTimeout(()=>switchView("pick"),100);}
   render();
   const sku=qs.get("sku");
   if(sku){const p=DATA.products.find(x=>x.sku===sku);if(p)detail(p);}
