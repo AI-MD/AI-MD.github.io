@@ -140,6 +140,15 @@
   .benerow .bi{font-size:20px;line-height:1.15}
   .benerow .bt{font-weight:800;font-size:14px}
   .benerow .bd{color:var(--sub);font-size:12.5px;margin-top:2px}
+  /* 🥃 바텐더 추천 */
+  .fab{position:fixed;right:16px;bottom:18px;z-index:200;width:56px;height:56px;border-radius:50%;border:none;
+    background:linear-gradient(135deg,#CE9235,#8C5A16);color:#fff;font-size:26px;cursor:pointer;
+    box-shadow:0 6px 18px rgba(140,90,22,.45);display:flex;align-items:center;justify-content:center}
+  .fab:active{transform:scale(.94)}
+  .recrow{display:flex;gap:11px;align-items:center;padding:11px;border:1px solid var(--line);border-radius:12px;margin:9px 0;cursor:pointer;background:var(--card)}
+  .recrow img{width:48px;height:48px;object-fit:contain;border:1px solid var(--line);border-radius:8px;background:#fff}
+  .recrow .rt{font-weight:800;font-size:13.5px;line-height:1.35;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
+  .recrow .rd{color:var(--sub);font-size:12px;margin-top:2px}
   /* 주류 공부 */
   .lcard{background:var(--card);border:1px solid var(--line);border-radius:14px;margin:12px 0;overflow:hidden}
   .lcard>summary{padding:15px 16px;font-weight:800;font-size:15.5px;cursor:pointer;list-style:none;display:flex;justify-content:space-between;align-items:center}
@@ -215,8 +224,10 @@
 <footer style="text-align:center;padding:20px 16px 40px;color:var(--sub);font-size:12px;border-top:1px solid var(--line)">
   <div style="font-weight:800;color:var(--amberD);margin-bottom:6px">🍶 주락 酒樂 · 합리적으로 사고, 즐겁게 마시다</div>
   👁 오늘 <b id="vtoday">–</b> · 누적 <b id="vtotal">–</b> 방문 &nbsp;·&nbsp; 🔔 구독자 <b id="vsubs">–</b>명 &nbsp;·&nbsp; 조회 전용 · 주류 재고 하루 1회 · 콜키지프리 주 3회 갱신
+  <div style="margin-top:8px"><a href="#" onclick="showPrivacy();return false" style="color:var(--amberD);font-weight:700;text-decoration:none">개인정보 처리방침</a></div>
 </footer>
 <div id="modalRoot"></div>
+<button class="fab" id="fab" onclick="showBartender()" title="바텐더 추천 — 내 취향에 맞는 술">🥃</button>
 
 <script>
 const CAT_ICON={전체:"🍾",위스키:"🥃",와인:"🍷",스파클링:"🥂",브랜디:"🍸","사케·전통주":"🍶",하이볼:"🥤",리큐르:"🍹",진:"🌿",럼:"🥃",데킬라:"🌵",보드카:"❄️",기타:"🍾"};
@@ -305,6 +316,9 @@ function showMore(){state.shown+=state.pageSize;render();}
 
 function detail(p){
   _curP=p;
+  try{const v=JSON.parse(localStorage.getItem("jurak_views")||"[]").filter(x=>x.sku!==p.sku);
+    v.unshift({sku:p.sku,cat:p.category,price:p.price,name:p.name,t:Date.now()});
+    localStorage.setItem("jurak_views",JSON.stringify(v.slice(0,60)));}catch(e){}  // 취향 학습용 조회 이력
   const bName=s=>(BRANCH[s.id]||{}).name||s.id;
   const bAddr=s=>(BRANCH[s.id]||{}).address||"";
   const stores=(p.stores||[]).slice().sort((a,b)=>(a.o-b.o)||((b.q||0)-(a.q||0)));
@@ -720,6 +734,52 @@ document.getElementById("pq").oninput=()=>{pshown=24;renderPick();};
 document.getElementById("pcat").onchange=()=>{pshown=24;renderPick();};
 document.getElementById("psort").onchange=()=>{pshown=24;renderPick();};
 
+// ── 🥃 바텐더 추천 (조회 이력 기반 취향 큐레이션) ─────────────
+function _views(){try{return JSON.parse(localStorage.getItem("jurak_views")||"[]");}catch(e){return[];}}
+function bartenderRecs(){
+  const v=_views(); if(!v.length||!DATA)return null;
+  const cc={},prices=[]; v.forEach(x=>{cc[x.cat]=(cc[x.cat]||0)+1;if(x.price)prices.push(x.price);});
+  const topCat=Object.entries(cc).sort((a,b)=>b[1]-a[1])[0][0];
+  prices.sort((a,b)=>a-b); const mid=prices[Math.floor(prices.length/2)]||0;
+  const seen=new Set(v.map(x=>x.sku));
+  let pool=DATA.products.filter(p=>p.category===topCat&&p.in_stock&&!seen.has(p.sku)&&p.rating);
+  if(pool.length<3)pool=DATA.products.filter(p=>p.category===topCat&&p.in_stock&&!seen.has(p.sku));
+  pool.sort((a,b)=>((b.rating||0)-(a.rating||0))||(Math.abs((a.price||0)-mid)-Math.abs((b.price||0)-mid)));
+  return {topCat,mid,recs:pool.slice(0,4),n:v.length};
+}
+function showPrivacy(){
+  const rows=[
+    ["1. 수집 항목·목적","· 카카오 로그인 시: <b>닉네임</b>(회원 식별·맞춤 추천/알림)<br>· 이메일 구독 시: <b>이메일</b>(특가·재입고 알림 발송)<br>· 조회 이력: <b>브라우저(이 기기)에만</b> 저장, 취향 추천용 — 서버 미전송<br>· 방문 통계: 익명 카운터(개인 식별 안 함)"],
+    ["2. 보관·파기","회원 정보는 안전한 개인 저장소(Supabase)에 저장되며 <b>본인만 접근</b>합니다. <b>로그아웃·회원 탈퇴 시 즉시 삭제</b>되고, 이메일 구독 해지는 회신으로 처리합니다."],
+    ["3. 제3자 제공","<b>제공하지 않습니다.</b>"],
+    ["4. 이용 외부 서비스","카카오(로그인·지도), 데일리샷(가격·평점), OpenStreetMap(지도), ntfy(알림), Supabase(회원 DB)"],
+    ["5. 문의","k2p2048@gmail.com (알림 메일 회신도 가능)"],
+  ];
+  document.getElementById("modalRoot").innerHTML=`<div class="overlay" id="ov" onclick="closeModal()"><div class="modalSm" onclick="event.stopPropagation()">
+    <div class="hero" style="align-items:center"><div style="flex:1"><div class="hname">🔒 개인정보 처리방침</div><div class="sa">주락 酒樂 · 최소 수집 원칙</div></div><button class="close" onclick="closeModal()">✕</button></div>
+    <div style="padding:14px 20px;overflow-y:auto">${rows.map(r=>`<div class="lrow"><span class="lt">${r[0]}</span><span class="ld">${r[1]}</span></div>`).join("")}
+    <div class="sa" style="margin-top:12px;font-size:11.5px">비상업·개인 참고용 서비스입니다. 데이터 권리는 각 사(이마트/트레이더스·데일리샷·카카오)에 있습니다.</div></div></div></div>`;
+}
+function showBartender(){
+  const nm=(typeof displayName==="function"&&USER)?displayName():"";
+  const r=bartenderRecs();
+  let body;
+  if(!r){
+    body=`<div class="sa" style="line-height:1.75">🥃 어서 오세요${nm?", <b>"+esc(nm)+"</b>님":""}!<br>아직 취향을 몰라서요 — <b>상품 몇 개를 눌러 구경</b>하시면 그걸 바탕으로 딱 맞는 술을 골라드릴게요.</div>
+      <button class="distbtn on" style="width:100%;margin-top:14px;border:none;cursor:pointer" onclick="closeModal();goHome()">🍶 둘러보러 가기</button>`;
+  }else{
+    const cards=r.recs.map(p=>`<div class="recrow" onclick="closeModal();detail(DATA.products.find(x=>x.sku==='${p.sku}'))">
+      ${p.image?`<img src="${p.image}" referrerpolicy="no-referrer" onerror="this.style.display='none'">`:`<div style="width:48px;height:48px;text-align:center;line-height:48px;font-size:24px">${CAT_ICON[p.category]||"🍾"}</div>`}
+      <div style="flex:1;min-width:0"><div class="rt">${esc(p.name)}</div>
+      <div class="rd">${p.rating?`★ ${p.rating} · `:""}${won(p.price)}${p.price_diff_percent!=null&&p.price_diff_percent<=-20?' · <b style="color:#B0431F">🔥특가</b>':""}</div></div></div>`).join("");
+    body=`<div class="sa" style="line-height:1.75">🥃 ${nm?"<b>"+esc(nm)+"</b>님, ":""}<b>${esc(r.topCat)}</b>를 즐겨 보시는군요.<br>취향을 살짝 엿보니 — 오늘은 이런 걸 권해드려요 👇</div>${cards}
+      <div class="sa" style="text-align:center;margin-top:10px;font-size:11.5px;color:var(--sub)">최근 조회 ${r.n}건 기반 · 이력은 <b>이 기기에만</b> 저장돼요</div>`;
+  }
+  document.getElementById("modalRoot").innerHTML=`<div class="overlay" id="ov" onclick="closeModal()"><div class="modalSm" onclick="event.stopPropagation()">
+    <div class="hero" style="align-items:center"><div style="flex:1"><div class="hname">🥃 바텐더 추천</div><div class="sa">당신의 취향을 아는 한 잔</div></div><button class="close" onclick="closeModal()">✕</button></div>
+    <div style="padding:16px 20px">${body}</div></div></div>`;
+}
+
 // ── 회원(카카오 로그인) 뼈대 ───────────────────────────────
 // Supabase 프로젝트 값만 채우면 카카오 로그인이 즉시 활성화됩니다(백엔드 연동).
 const AUTH_CFG = { url:"https://hzliwugasthzxamfpwxo.supabase.co", anon:"sb_publishable_mpTkGUSL4hPWbpv5SHyGYg_kHjkg8aP" };   // Supabase URL / publishable(public) key
@@ -742,7 +802,7 @@ let _nickPrompted=false;
 function refreshAuthUI(){
   const b=document.getElementById("loginbtn"); if(!b)return;
   if(USER){
-    b.innerHTML="🙋 "+displayName().slice(0,8)+"님"; b.onclick=showAccount;
+    b.innerHTML="🙋 "+esc(displayName().slice(0,8))+"님"; b.onclick=showAccount;  // XSS 방지 esc
     if(!((USER.user_metadata||{}).nickname) && !_nickPrompted){_nickPrompted=true; setTimeout(()=>{if(!document.getElementById("ov"))showAccount();},600);}  // 닉네임 없으면 설정 유도
   } else {b.innerHTML="🙋 로그인"; b.onclick=showLogin;}
 }
