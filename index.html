@@ -131,11 +131,12 @@
   <div class="search"><span>🔍</span><input id="q" placeholder="주류 검색 (예: 발렌타인, 발베니)…" /></div>
   <select id="store"><option value="">전지점 집계</option></select>
   <select id="sort"><option value="stock_desc">재고 많은순</option><option value="name">이름순</option><option value="price_asc">낮은 가격순</option><option value="price_desc">높은 가격순</option></select>
+  <select id="pageSize"><option value="20">20개씩</option><option value="50" selected>50개씩</option><option value="100">100개씩</option></select>
   <label class="toggle"><div class="track" id="track"><div class="thumb"></div></div><span>재고있는 것만</span></label>
 </div></div></div>
-<main><div class="wrap"><div class="rc" id="rc"></div><div class="grid" id="grid"><div class="loading"><div class="sp"></div> 데이터 불러오는 중…</div></div></div></main>
+<main><div class="wrap"><div class="rc" id="rc"></div><div class="grid" id="grid"><div class="loading"><div class="sp"></div> 데이터 불러오는 중…</div></div><div id="more" style="text-align:center;margin:22px 0"></div></div></main>
 <footer style="text-align:center;padding:20px 16px 40px;color:var(--sub);font-size:12px;border-top:1px solid var(--line)">
-  👁 오늘 <b id="vtoday">–</b> · 누적 <b id="vtotal">–</b> 방문 &nbsp;·&nbsp; 조회 전용 · 하루 2회 갱신
+  👁 오늘 <b id="vtoday">–</b> · 누적 <b id="vtotal">–</b> 방문 &nbsp;·&nbsp; 🔔 구독자 <b id="vsubs">–</b>명 &nbsp;·&nbsp; 조회 전용 · 하루 2회 갱신
 </footer>
 <div id="modalRoot"></div>
 
@@ -145,7 +146,7 @@ const CAT_ORDER=["위스키","와인","스파클링","브랜디","리큐르","�
 const REPO="https://github.com/AI-MD/traders-liquor-tracker";
 const NTFY_TOPIC="traders-liquor-kr-alerts";
 const EMAIL_FORM_URL="";  // 구글폼 주소 입력 시 '이메일 구독' 버튼 활성화
-let DATA=null, state={cat:"전체",q:"",store:"",sort:"stock_desc",inStock:false};
+let DATA=null, state={cat:"전체",q:"",store:"",sort:"stock_desc",inStock:false,pageSize:50,shown:50};
 let USER_LOC=null;                 // 위치 조회 결과 {lat,lng}
 const STORE_COORDS={};             // store_id → {lat,lng}
 const BRANCH={};                   // store_id → 지점정보(name,address,region,lat,lng)
@@ -177,7 +178,7 @@ function card(p){
   const rr=p.rating?`${stars(p.rating)}<span class="rn">${p.rating}</span><span class="rc2">(${p.review_count})</span>`:`<span class="nr">평점 없음</span>`;
   const viv=p.vivino_score?`<span class="vivino">Vivino ${p.vivino_score}</span>`:"";
   return `<button class="card" data-sku="${p.sku}">
-    <div class="cimg">${p.image?`<img src="${p.image}" loading="lazy" onerror="this.style.visibility='hidden'"/>`:`<span class="fb">${CAT_ICON[p.category]||"🍾"}</span>`}
+    <div class="cimg">${p.image?`<img src="${p.image}" loading="lazy" referrerpolicy="no-referrer" onerror="this.onerror=null;this.outerHTML='<span class=&quot;fb&quot;>${CAT_ICON[p.category]||"🍾"}</span>'"/>`:`<span class="fb">${CAT_ICON[p.category]||"🍾"}</span>`}
       <span class="catchip">${CAT_ICON[p.category]||""} ${p.category}</span>
       <span class="stkchip" style="background:${cs.in?"#1F9E5A":"#B9AE9E"}">${cs.in?`재고 ${cs.inv.toLocaleString()}`:"품절"}</span></div>
     <div class="cbody"><div class="cname">${esc(p.name)}</div>
@@ -187,22 +188,35 @@ function card(p){
       <div class="cfoot"><span class="sc">🏬 ${cs.cnt}개 지점 보유</span><span class="dl">상세 · 지점별 →</span></div></div></button>`;
 }
 
+const SPECIAL="🔥특가";
+const isSpecial=p=>p.price_diff_percent!=null&&p.price_diff_percent<=-20&&p.in_stock;
 function render(){
   const s=DATA.stats;
-  // tabs
-  const cats=["전체",...CAT_ORDER.filter(c=>s.by_category[c]),...Object.keys(s.by_category).filter(c=>!CAT_ORDER.includes(c))];
-  document.getElementById("cattabs").innerHTML=cats.map(c=>`<button class="cattab ${state.cat===c?"on":""}" data-cat="${c}">${CAT_ICON[c]||"🍾"} ${c}<span class="c">${c==="전체"?s.total:(s.by_category[c]||0)}</span></button>`).join("");
+  const nSpecial=DATA.products.filter(isSpecial).length;
+  // tabs (🔥특가 우선 노출)
+  const cats=["전체",SPECIAL,...CAT_ORDER.filter(c=>s.by_category[c]),...Object.keys(s.by_category).filter(c=>!CAT_ORDER.includes(c))];
+  document.getElementById("cattabs").innerHTML=cats.map(c=>{
+    const cnt=c==="전체"?s.total:(c===SPECIAL?nSpecial:(s.by_category[c]||0));
+    return `<button class="cattab ${state.cat===c?"on":""}" data-cat="${c}">${c===SPECIAL?"🔥 특가":`${CAT_ICON[c]||"🍾"} ${c}`}<span class="c">${cnt}</span></button>`;
+  }).join("");
   // filter
   let list=DATA.products.slice();
   if(state.q){const q=state.q.toLowerCase();list=list.filter(p=>p.name.toLowerCase().includes(q));}
-  if(state.cat!=="전체")list=list.filter(p=>p.category===state.cat);
+  if(state.cat===SPECIAL)list=list.filter(isSpecial);
+  else if(state.cat!=="전체")list=list.filter(p=>p.category===state.cat);
   if(state.store)list=list.filter(p=>(p.stores||[]).some(x=>x.id===state.store));
   if(state.inStock)list=list.filter(p=>computeStore(p).in);
   const key={stock_desc:p=>-computeStore(p).inv,price_asc:p=>computeStore(p).price||9e9,price_desc:p=>-(computeStore(p).price||0),name:p=>p.name};
   list.sort((a,b)=>{const f=key[state.sort];const x=f(a),y=f(b);return typeof x==="string"?x.localeCompare(y):x-y;});
-  document.getElementById("rc").innerHTML=`총 <b>${list.length}</b>종 · 재고 보유 ${s.in_stock_skus}종 · 총 재고 ${(s.total_inventory||0).toLocaleString()}개`;
-  document.getElementById("grid").innerHTML=list.length?list.map(card).join(""):`<div class="empty"><div style="font-size:44px">🍾</div><div style="margin-top:12px">결과가 없습니다</div></div>`;
+  const shown=list.slice(0,state.shown);
+  document.getElementById("rc").innerHTML=`총 <b>${list.length}</b>종 중 <b>${shown.length}</b>개 표시 · 재고 보유 ${s.in_stock_skus}종`;
+  document.getElementById("grid").innerHTML=list.length?shown.map(card).join(""):`<div class="empty"><div style="font-size:44px">🍾</div><div style="margin-top:12px">결과가 없습니다</div></div>`;
+  const more=document.getElementById("more");
+  if(list.length>shown.length){
+    more.innerHTML=`<button class="distbtn on" style="padding:11px 22px;font-size:14px" onclick="showMore()">더 보기 (${(list.length-shown.length).toLocaleString()}개 더)</button>`;
+  } else { more.innerHTML=""; }
 }
+function showMore(){state.shown+=state.pageSize;render();}
 
 function detail(p){
   const bName=s=>(BRANCH[s.id]||{}).name||s.id;
@@ -270,7 +284,7 @@ function detail(p){
   const viv=p.vivino_score?`<span class="vivino">Vivino ${p.vivino_score}</span>`:"";
   const rr=p.rating?`${stars(p.rating)}<span class="rn">${p.rating}</span><span class="rc2">· 리뷰 ${p.review_count}</span>`:`<span class="nr">평점 없음</span>`;
   document.getElementById("modalRoot").innerHTML=`<div class="overlay" id="ov"><div class="modal" onclick="event.stopPropagation()">
-    <div class="hero"><div class="im">${p.image?`<img src="${p.image}"/>`:`<span style="font-size:40px">${CAT_ICON[p.category]}</span>`}</div>
+    <div class="hero"><div class="im">${p.image?`<img src="${p.image}" referrerpolicy="no-referrer" onerror="this.onerror=null;this.outerHTML='<span style=&quot;font-size:40px&quot;>${CAT_ICON[p.category]}</span>'"/>`:`<span style="font-size:40px">${CAT_ICON[p.category]}</span>`}</div>
       <div style="flex:1;min-width:0"><span class="hcat">${CAT_ICON[p.category]} ${p.category}</span>
         <div class="hname">${esc(p.name)}</div><div class="rr">${rr}${viv}</div>
         <div style="display:flex;align-items:baseline;gap:8px;margin:8px 0"><span class="hprice">${won(p.price)}</span>${p.unit_price_text?`<span class="hunit">${esc(p.unit_price_text)}</span>`:""}</div>
@@ -320,12 +334,14 @@ function subscribeEmail(){
     .catch(()=>{msg.style.color="#D8562F";msg.textContent="잠시 후 다시 시도해 주세요.";});
 }
 
-// events
-document.getElementById("q").oninput=e=>{state.q=e.target.value;render();};
-document.getElementById("store").onchange=e=>{state.store=e.target.value;render();};
-document.getElementById("sort").onchange=e=>{state.sort=e.target.value;render();};
-document.getElementById("track").parentElement.onclick=()=>{state.inStock=!state.inStock;document.getElementById("track").classList.toggle("on",state.inStock);render();};
-document.getElementById("cattabs").onclick=e=>{const b=e.target.closest(".cattab");if(b){state.cat=b.dataset.cat;render();}};
+// events — 필터 변경 시 표시개수 초기화 후 렌더
+const rerender=()=>{state.shown=state.pageSize;render();};
+document.getElementById("q").oninput=e=>{state.q=e.target.value;rerender();};
+document.getElementById("store").onchange=e=>{state.store=e.target.value;rerender();};
+document.getElementById("sort").onchange=e=>{state.sort=e.target.value;rerender();};
+document.getElementById("pageSize").onchange=e=>{state.pageSize=+e.target.value;state.shown=state.pageSize;render();};
+document.getElementById("track").parentElement.onclick=()=>{state.inStock=!state.inStock;document.getElementById("track").classList.toggle("on",state.inStock);rerender();};
+document.getElementById("cattabs").onclick=e=>{const b=e.target.closest(".cattab");if(b){state.cat=b.dataset.cat;rerender();}};
 document.getElementById("grid").onclick=e=>{const c=e.target.closest(".card");if(c){const p=DATA.products.find(x=>x.sku===c.dataset.sku);if(p)detail(p);}};
 
 // 방문자 카운터 (무료·가입불필요 abacus) — 오늘/누적, 날짜키라 매일 자동 리셋
@@ -339,10 +355,13 @@ document.getElementById("grid").onclick=e=>{const c=e.target.closest(".card");if
 fetch("data.json?t="+Date.now(),{cache:"no-store"}).then(r=>r.json()).then(d=>{
   DATA=d;
   document.getElementById("upd").textContent="갱신 "+new Date(d.updated_at).toLocaleString("ko-KR",{month:"2-digit",day:"2-digit",hour:"2-digit",minute:"2-digit"});
+  const vs=document.getElementById("vsubs");if(vs)vs.textContent=(d.subscriber_count||0).toLocaleString();
   const ss=document.getElementById("store");d.branches.forEach(b=>{const o=document.createElement("option");o.value=b.store_id;o.textContent=b.name;ss.appendChild(o);BRANCH[b.store_id]=b;if(b.lat&&b.lng)STORE_COORDS[b.store_id]={lat:b.lat,lng:b.lng};});
+  // 딥링크: ?special=1 → 특가만, ?sku=… → 해당 상품 상세
+  const qs=new URLSearchParams(location.search);
+  if(qs.get("special")==="1"){state.cat=SPECIAL;state.shown=state.pageSize;}
   render();
-  // 딥링크: 알림/메일의 ?sku=… 로 들어오면 해당 상품 상세를 바로 연다
-  const sku=new URLSearchParams(location.search).get("sku");
+  const sku=qs.get("sku");
   if(sku){const p=DATA.products.find(x=>x.sku===sku);if(p)detail(p);}
 }).catch(e=>{document.getElementById("grid").innerHTML=`<div class="empty">데이터를 불러오지 못했습니다. (data.json)</div>`;});
 </script>
