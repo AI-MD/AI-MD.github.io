@@ -133,6 +133,9 @@
   <label class="toggle"><div class="track" id="track"><div class="thumb"></div></div><span>재고있는 것만</span></label>
 </div></div></div>
 <main><div class="wrap"><div class="rc" id="rc"></div><div class="grid" id="grid"><div class="loading"><div class="sp"></div> 데이터 불러오는 중…</div></div></div></main>
+<footer style="text-align:center;padding:20px 16px 40px;color:var(--sub);font-size:12px;border-top:1px solid var(--line)">
+  👁 오늘 <b id="vtoday">–</b> · 누적 <b id="vtotal">–</b> 방문 &nbsp;·&nbsp; 조회 전용 · 하루 2회 갱신
+</footer>
 <div id="modalRoot"></div>
 
 <script>
@@ -310,6 +313,14 @@ document.getElementById("sort").onchange=e=>{state.sort=e.target.value;render();
 document.getElementById("track").parentElement.onclick=()=>{state.inStock=!state.inStock;document.getElementById("track").classList.toggle("on",state.inStock);render();};
 document.getElementById("cattabs").onclick=e=>{const b=e.target.closest(".cattab");if(b){state.cat=b.dataset.cat;render();}};
 document.getElementById("grid").onclick=e=>{const c=e.target.closest(".card");if(c){const p=DATA.products.find(x=>x.sku===c.dataset.sku);if(p)detail(p);}};
+
+// 방문자 카운터 (무료·가입불필요 abacus) — 오늘/누적, 날짜키라 매일 자동 리셋
+(function(){
+  const ns="traders-liquor-web", today=new Date().toISOString().slice(0,10).replace(/-/g,"");
+  const put=(id,v)=>{const e=document.getElementById(id);if(e)e.textContent=(v||0).toLocaleString();};
+  fetch(`https://abacus.jasoncameron.dev/hit/${ns}/total`).then(r=>r.json()).then(d=>put("vtotal",d.value)).catch(()=>{});
+  fetch(`https://abacus.jasoncameron.dev/hit/${ns}/d${today}`).then(r=>r.json()).then(d=>put("vtoday",d.value)).catch(()=>{});
+})();
 
 fetch("data.json?t="+Date.now(),{cache:"no-store"}).then(r=>r.json()).then(d=>{
   DATA=d;
