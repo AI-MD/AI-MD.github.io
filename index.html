@@ -230,6 +230,8 @@
 <button class="fab" id="fab" onclick="showBartender()" title="바텐더 추천 — 내 취향에 맞는 술">🥃</button>
 
 <script>
+// 저장소 초기화: ?reset=1 접속 시 로그인 세션·팝업기록·조회이력 모두 삭제(쿠키 지우기 대용)
+if(new URLSearchParams(location.search).get("reset")==="1"){try{localStorage.clear();sessionStorage.clear();}catch(e){}location.replace(location.origin+location.pathname);}
 const CAT_ICON={전체:"🍾",위스키:"🥃",와인:"🍷",스파클링:"🥂",브랜디:"🍸","사케·전통주":"🍶",하이볼:"🥤",리큐르:"🍹",진:"🌿",럼:"🥃",데킬라:"🌵",보드카:"❄️",기타:"🍾"};
 const CAT_ORDER=["위스키","와인","스파클링","브랜디","리큐르","진","럼","데킬라","보드카","사케·전통주","하이볼","기타"];
 const REPO="https://github.com/AI-MD/traders-liquor-tracker";
