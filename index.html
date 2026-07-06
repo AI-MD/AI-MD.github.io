@@ -140,6 +140,7 @@ const CAT_ICON={전체:"🍾",위스키:"🥃",와인:"🍷",스파클링:"🥂"
 const CAT_ORDER=["위스키","와인","스파클링","브랜디","리큐르","진","럼","데킬라","보드카","사케·전통주","하이볼","기타"];
 const REPO="https://github.com/AI-MD/traders-liquor-tracker";
 const NTFY_TOPIC="traders-liquor-kr-alerts";
+const EMAIL_FORM_URL="";  // 구글폼 주소 입력 시 '이메일 구독' 버튼 활성화
 let DATA=null, state={cat:"전체",q:"",store:"",sort:"stock_desc",inStock:false};
 let USER_LOC=null;                 // 위치 조회 결과 {lat,lng}
 const STORE_COORDS={};             // store_id → {lat,lng}
@@ -293,7 +294,11 @@ function showAlert(){
         <div class="topicbox" onclick="copyTopic()"><span id="topicval">${T}</span><span class="copy">복사</span></div>
       </div>
       <div class="alstep"><b>③</b> 끝! 알림이 뜨면 눌러서 페이지로 이동돼요.</div>
-      <div class="sa" style="margin-top:14px">💻 <b>PC</b>는 앱 없이 → <a href="https://ntfy.sh/${T}" target="_blank" style="color:var(--amberD);font-weight:700">ntfy.sh/${T}</a> 에서 <b>Subscribe</b> → 브라우저 알림 허용<br><span style="color:#B9AE9E">(웹에서 계정을 물으면 건너뛰고 앱 사용을 권장합니다)</span></div>
+      <div class="sa" style="margin-top:14px">💻 <b>PC</b>는 앱 없이 → <a href="https://ntfy.sh/app" target="_blank" style="color:var(--amberD);font-weight:700">ntfy.sh/app</a> 열기 → <b>+ Subscribe</b> → 토픽 <b>${T}</b> 입력 → 브라우저 알림 허용<br><span style="color:#B9AE9E">(주소창에 토픽을 직접 붙이면 404가 날 수 있어요. 반드시 <b>ntfy.sh/app</b> 에서 추가하세요.)</span></div>
+      <div style="margin-top:16px;padding-top:14px;border-top:1px solid var(--line)">
+        <div class="sl" style="margin-bottom:6px">📧 앱이 부담되면 — 이메일로 받기</div>
+        ${EMAIL_FORM_URL?`<a class="distbtn on" style="text-decoration:none;padding:8px 14px;display:inline-block" href="${EMAIL_FORM_URL}" target="_blank">📧 이메일 구독하기</a>`:`<div class="sa">이메일 구독은 곧 열립니다. 우선 ntfy 앱을 이용해 주세요.</div>`}
+      </div>
     </div></div></div>`;
 }
 function copyTopic(){const t=NTFY_TOPIC;navigator.clipboard&&navigator.clipboard.writeText(t);const c=document.querySelector(".copy");if(c){c.textContent="복사됨!";setTimeout(()=>c.textContent="복사",1500);}}
