@@ -521,9 +521,10 @@ function initAuth(){
   };
   document.head.appendChild(s);
 }
+function displayName(){const md=(USER&&USER.user_metadata)||{};return md.nickname||md.name||(USER&&USER.email&&USER.email.split("@")[0])||"회원";}
 function refreshAuthUI(){
   const b=document.getElementById("loginbtn"); if(!b)return;
-  if(USER){const nm=(USER.user_metadata&&USER.user_metadata.name)||USER.email||"회원";b.innerHTML="🙋 "+nm.slice(0,6)+"님";b.onclick=showAccount;}
+  if(USER){b.innerHTML="🙋 "+displayName().slice(0,8)+"님";b.onclick=showAccount;}
   else {b.innerHTML="🙋 로그인";b.onclick=showLogin;}
 }
 const BENEFITS=[
@@ -572,13 +573,30 @@ function kakaoLogin(){
   SUPA.auth.signInWithOAuth({provider:"kakao",options:{redirectTo:location.origin+location.pathname,scopes:KAKAO_SCOPES}});
 }
 function showAccount(){
-  const nm=(USER&&USER.user_metadata&&USER.user_metadata.name)||(USER&&USER.email)||"회원";
   document.getElementById("modalRoot").innerHTML=`<div class="overlay" id="ov" onclick="closeModal()"><div class="modalSm" onclick="event.stopPropagation()">
-    <div class="hero" style="align-items:center"><div style="flex:1"><div class="hname">🙋 ${nm}님</div><div class="sa">주락 회원</div></div><button class="close" onclick="closeModal()">✕</button></div>
+    <div class="hero" style="align-items:center"><div style="flex:1"><div class="hname">🙋 ${esc(displayName())}님</div><div class="sa">주락 회원</div></div><button class="close" onclick="closeModal()">✕</button></div>
     <div style="padding:16px 20px">
-      <div class="sa">회원 맞춤 기능(워치리스트·목표가·카톡 알림)이 순차 오픈됩니다. 조금만 기다려 주세요!</div>
-      <button class="distbtn" style="margin-top:14px;cursor:pointer" onclick="logout()">로그아웃</button>
+      <div class="sl" style="margin-bottom:6px">표시 닉네임 <span style="color:var(--sub);font-weight:500">(실명 대신 원하는 이름으로)</span></div>
+      <div style="display:flex;gap:8px">
+        <input id="nickInput" type="text" maxlength="16" value="${esc(displayName())}" placeholder="예: 위스키러버"
+          style="flex:1;background:var(--card);border:1px solid var(--line);border-radius:10px;padding:9px 11px;font-size:14px;outline:none">
+        <button class="distbtn on" style="border:none;cursor:pointer" onclick="saveNick()">저장</button>
+      </div>
+      <div class="sa" id="nickMsg" style="margin-top:8px"></div>
+      <div class="sa" style="margin-top:14px;padding-top:12px;border-top:1px solid var(--line)">회원 맞춤 기능(워치리스트·목표가·카톡 알림)이 순차 오픈됩니다 🙌</div>
+      <button class="distbtn" style="margin-top:12px;cursor:pointer" onclick="logout()">로그아웃</button>
     </div></div></div>`;
+}
+function saveNick(){
+  const el=document.getElementById("nickInput"), msg=document.getElementById("nickMsg");
+  const v=(el.value||"").trim();
+  if(v.length<1){msg.style.color="#D8562F";msg.textContent="닉네임을 입력해 주세요.";return;}
+  msg.style.color="var(--sub)";msg.textContent="저장 중…";
+  SUPA.auth.updateUser({data:{nickname:v}}).then(({data,error})=>{
+    if(error){msg.style.color="#D8562F";msg.textContent="저장 실패 — 잠시 후 다시.";return;}
+    USER=data.user; refreshAuthUI();
+    msg.style.color="#1F9E5A";msg.textContent="✅ 저장됐어요! 이제 이 닉네임으로 표시됩니다.";
+  });
 }
 function logout(){ if(SUPA)SUPA.auth.signOut(); USER=null; refreshAuthUI(); closeModal(); }
 initAuth();
