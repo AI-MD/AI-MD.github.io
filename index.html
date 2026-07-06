@@ -156,7 +156,7 @@
 </head>
 <body>
 <header><div class="hin">
-  <div class="logo"><span class="ic">🍶</span><div><div class="t">주락 <span style="font-weight:700;opacity:.6">酒樂</span></div><div class="s">합리적으로 사고, 즐겁게 마시다</div></div></div>
+  <div class="logo" onclick="goHome()" style="cursor:pointer" title="홈으로"><span class="ic">🍶</span><div><div class="t">주락 <span style="font-weight:700;opacity:.6">酒樂</span></div><div class="s">합리적으로 사고, 즐겁게 마시다</div></div></div>
   <div style="display:flex;align-items:center;gap:8px">
     <span class="upd" id="upd">불러오는 중…</span>
     <button class="srcbtn loginbtn" id="loginbtn" onclick="showLogin()" title="카카오로 로그인하고 맞춤 혜택 받기">🙋 로그인</button>
@@ -170,7 +170,7 @@
   <button id="navLearn" onclick="switchView('learn')">📚 알쓸신주</button>
 </div>
 <div id="viewLiquor">
-<div class="warn">⚠ <b>실시간이 아닌 하루 1회 갱신</b> 데이터입니다(재고 저녁·가격 아침) · 갱신 시점 이후 변동이 있을 수 있고 <b>현장 실물과 다를 수 있으니 방문 전 100% 신뢰하지 마세요.</b> (조회 전용)</div>
+<div class="warn">🛒 <b>주락 딜</b> · 이마트 트레이더스 <b>전국 24개 지점 주류 재고·가격</b>과 <b>데일리샷 최저가 비교</b>를 한눈에 — 하루 1회 갱신이라 <b>현장 실물과 다를 수 있으니 방문 전 확인</b>하세요. (조회 전용)</div>
 <div class="catbar"><div class="wrap"><div class="cattabs" id="cattabs"></div></div></div>
 <div class="filter"><div class="wrap"><div class="frow">
   <div class="search"><span>🔍</span><input id="q" placeholder="주류 검색 (예: 발렌타인, 발베니)…" /></div>
@@ -198,7 +198,7 @@
   <div id="learnBody"></div>
 </div></main></section>
 <section id="viewPick" hidden><main><div class="wrap">
-  <div class="warn">🌟 <b>주락 픽</b> — 트레이더스 매장엔 없지만, <b>애호가라면 눈여겨보는 명주</b>를 골랐어요. 데일리샷 최저가·평점 기준 큐레이션. <span style="color:var(--sub)">가격은 시점·판매처에 따라 다를 수 있어요.</span></div>
+  <div class="warn">🌟 <b>주락 픽</b> · 트레이더스엔 없는 <b>애호가의 명주</b>를 데일리샷 <b>최저가·평점</b>으로 큐레이션 — 주 1회 갱신, <b>가격은 판매처·시점에 따라 다를 수 있어요.</b></div>
   <div class="crow">
     <div class="search" style="flex:1;min-width:160px"><span>🔍</span><input id="pq" placeholder="명주 검색 (예: 맥캘란, 야마자키)…"></div>
     <select id="pcat"><option value="">전체 종류</option></select>
@@ -443,7 +443,8 @@ document.getElementById("grid").onclick=e=>{const c=e.target.closest(".card");if
 
 // 방문자 카운터 (무료·가입불필요 abacus) — 오늘/누적, 날짜키라 매일 자동 리셋
 (function(){
-  const ns="traders-liquor-web", today=new Date().toISOString().slice(0,10).replace(/-/g,"");
+  const ns="traders-liquor-web";
+  const today=new Date(Date.now()+9*3600*1000).toISOString().slice(0,10).replace(/-/g,"");  // KST 기준 '오늘'
   const put=(id,v)=>{const e=document.getElementById(id);if(e)e.textContent=(v||0).toLocaleString();};
   fetch(`https://abacus.jasoncameron.dev/hit/${ns}/total`).then(r=>r.json()).then(d=>put("vtotal",d.value)).catch(()=>{});
   fetch(`https://abacus.jasoncameron.dev/hit/${ns}/d${today}`).then(r=>r.json()).then(d=>put("vtoday",d.value)).catch(()=>{});
@@ -483,6 +484,7 @@ function switchView(m){
   else if(m==="pick")loadPick();
   window.scrollTo(0,0);
 }
+function goHome(){switchView("liquor");state.watchOnly=false;state.cat="전체";state.q="";state.store="";const qi=document.getElementById("q");if(qi)qi.value="";const si=document.getElementById("store");if(si)si.value="";state.shown=state.pageSize;render();window.scrollTo(0,0);}
 function loadColkage(){
   if(cloaded)return; cloaded=true;
   document.getElementById("crc").textContent="식당 목록 불러오는 중…";
@@ -589,7 +591,7 @@ function renderLearn(){
   document.getElementById("learnBody").innerHTML=
   S("🥃 위스키, 뭐가 다를까","원료·산지·증류 방식에 따라 이름이 달라져요.",[
     ["싱글몰트","<b>한 증류소</b>에서 100% 보리(몰트)로만. 개성이 뚜렷 — 맥캘란·글렌피딕·발베니"],
-    ["블렌디드","여러 증류소의 몰트+그레인 위스키를 섞음. 균형·부드러움 — 발렌타인·조니워커·시바스"],
+    ["블렌디드","여러 증류소의 몰트+그레인 위스키를 섞음. 균형·부드러움 — 발렌타인·조니워커·시바스 리갈 리갈"],
     ["블렌디드 몰트","그레인 없이 여러 증류소의 몰트끼리만 블렌딩 (구 '퓨어몰트')"],
     ["스카치","스코틀랜드산. 최소 3년 오크 숙성. 스모키~과일까지 스펙트럼이 넓음"],
     ["버번","미국산. 옥수수 <b>51%↑</b> + 새 오크통. 바닐라·카라멜의 달큰함 — 메이커스마크·와일드터키"],
