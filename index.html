@@ -93,6 +93,14 @@
   .more{display:block;text-align:center;padding:14px;font-size:12.5px;font-weight:700;color:var(--amber);text-decoration:none}
   .distbtn{font-size:11px;font-weight:700;color:var(--amberD);background:#F7EFDF;border:1px solid #EBDCBE;border-radius:14px;padding:4px 10px;margin-left:6px}
   .distbtn.on{background:var(--amber);color:#fff;border-color:var(--amber)}
+  .scard{border:1px solid var(--line);border-radius:14px;padding:14px;background:#FBFAF7}
+  .srow2{display:flex;justify-content:space-between;align-items:baseline;gap:10px;margin-bottom:6px}
+  .sname2{font-size:15px;font-weight:800}
+  .sprice2{font-size:16px;font-weight:800;color:var(--amberD)}
+  .alstep{font-size:13.5px;color:var(--ink);padding:12px 0;border-bottom:1px solid var(--line);line-height:1.5}
+  .alstep b:first-child{color:var(--amber)}
+  .topicbox{display:flex;justify-content:space-between;align-items:center;gap:8px;margin-top:8px;background:#FBF7EF;border:1px dashed #EBDCBE;border-radius:10px;padding:10px 12px;font-weight:800;cursor:pointer}
+  .copy{font-size:11px;font-weight:700;color:#fff;background:var(--amber);border-radius:8px;padding:4px 10px}
   /* 모바일: 헤더 줄바꿈으로 카테고리 탭과 겹치던 문제 해결 — 스티키 해제 + 헤더 컴팩트 */
   @media (max-width:640px){
     header{position:static}
@@ -113,7 +121,7 @@
   <div class="logo"><span class="ic">🍾</span><div><div class="t">TRADERS LIQUOR</div><div class="s">트레이더스 주류 재고 · 가격 · 리뷰</div></div></div>
   <div style="display:flex;align-items:center;gap:8px">
     <span class="upd" id="upd">불러오는 중…</span>
-    <a class="srcbtn" id="alertbtn" href="https://ntfy.sh/traders-liquor-kr-alerts" target="_blank" style="background:#FCEBE5;color:#B0431F;border-color:#F5C9B8">🔔 특가·재입고 알림</a>
+    <button class="srcbtn" id="alertbtn" onclick="showAlert()" style="background:#FCEBE5;color:#B0431F;border-color:#F5C9B8" title="특가·재입고·가격변동 알림 (무료·로그인 불필요)">🔔 알림 받기</button>
   </div>
 </div></header>
 <div class="warn">⚠ <b>실시간이 아닌 하루 2회 갱신</b> 데이터입니다 · 갱신 시점 이후 변동이 있을 수 있고 <b>현장 실물과 다를 수 있으니 방문 전 100% 신뢰하지 마세요.</b> (조회 전용)</div>
@@ -235,6 +243,25 @@ function detail(p){
     });
     if(p.dailyshot_url) revHtml+=`<a class="more" href="${p.dailyshot_url}" target="_blank">데일리샷에서 더 보기 →</a>`;
   } else { revHtml=`<div class="empty">리뷰가 없습니다.</div>`; }
+  // 데일리샷 최저가처
+  let sellerHtml="";
+  if(p.seller){
+    const se=p.seller, d=(USER_LOC&&se.lat&&se.lon)?haversine(USER_LOC.lat,USER_LOC.lng,se.lat,se.lon):null;
+    const map=(se.lat&&se.lon)?`https://www.google.com/maps/search/?api=1&query=${se.lat},${se.lon}`:(se.address?`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(se.address)}`:"");
+    sellerHtml=`<div style="padding:14px 20px">
+      <div class="scard">
+        <div class="srow2"><span class="sname2">${esc(se.name||"판매처")}</span><span class="sprice2">${p.dailyshot_price?p.dailyshot_price.toLocaleString()+"원":""}</span></div>
+        ${(se.region||se.address)?`<div class="sa">📍 ${esc(se.region||"")} ${se.address?esc(se.address):""}${d!=null?` · <b>${d.toFixed(1)}km</b>`:""}</div>`:""}
+        ${se.hours?`<div class="sa">🕒 ${esc(se.hours).replace(/\n/g," · ")}</div>`:""}
+        ${se.arrival?`<div class="sa">📦 ${esc(se.arrival)}</div>`:""}
+        <div style="display:flex;gap:8px;margin-top:12px;flex-wrap:wrap">
+          ${map?`<a class="distbtn on" style="text-decoration:none;padding:7px 12px" href="${map}" target="_blank">📍 지도에서 보기</a>`:""}
+          ${p.dailyshot_url?`<a class="distbtn" style="text-decoration:none;padding:7px 12px" href="${p.dailyshot_url}" target="_blank">데일리샷 상품 →</a>`:""}
+        </div>
+      </div>
+      <div class="sa" style="margin-top:12px">💸 최저가가 바뀌면 🔔 <b>가격변동 알림</b>으로 받아보세요 (특가·재입고와 같은 토픽).</div>
+    </div>`;
+  }
   const viv=p.vivino_score?`<span class="vivino">Vivino ${p.vivino_score}</span>`:"";
   const rr=p.rating?`${stars(p.rating)}<span class="rn">${p.rating}</span><span class="rc2">· 리뷰 ${p.review_count}</span>`:`<span class="nr">평점 없음</span>`;
   document.getElementById("modalRoot").innerHTML=`<div class="overlay" id="ov"><div class="modal" onclick="event.stopPropagation()">
@@ -244,13 +271,32 @@ function detail(p){
         <div style="display:flex;align-items:baseline;gap:8px;margin:8px 0"><span class="hprice">${won(p.price)}</span>${p.unit_price_text?`<span class="hunit">${esc(p.unit_price_text)}</span>`:""}</div>
         ${dsBadge(p)}</div><button class="close" onclick="closeModal()">✕</button></div>
     ${p.tasting_notes&&p.tasting_notes.length?`<div class="tasting"><div class="sl">🥃 테이스팅 노트 <span class="src">데일리샷</span></div><div class="tchips">${p.tasting_notes.map(n=>`<div class="tchip"><b>${esc(n.label)}</b> ${esc(n.value)}</div>`).join("")}</div></div>`:""}
-    <div class="tabs"><button class="tab on" data-tab="stores">지점별 재고</button><button class="tab" data-tab="reviews">리뷰 ${p.review_count?`(${p.review_count})`:""}</button></div>
+    <div class="tabs"><button class="tab on" data-tab="stores">지점별 재고</button>${p.seller?`<button class="tab" data-tab="seller">💸 최저가처</button>`:""}<button class="tab" data-tab="reviews">리뷰 ${p.review_count?`(${p.review_count})`:""}</button></div>
     <div class="mscroll" id="tabc">${storeHtml}</div>
     <div class="mwarn">⚠ 재고 수치는 시스템 기준이며 <b>현장 실물과 다를 수 있습니다.</b> 방문 전 100% 신뢰하지 마세요.</div></div></div>`;
   document.getElementById("ov").onclick=closeModal;
-  document.querySelectorAll(".tab").forEach(t=>t.onclick=()=>{document.querySelectorAll(".tab").forEach(x=>x.classList.remove("on"));t.classList.add("on");document.getElementById("tabc").innerHTML=t.dataset.tab==="stores"?storesHtml(!!USER_LOC):revHtml;});
+  document.querySelectorAll(".tab").forEach(t=>t.onclick=()=>{document.querySelectorAll(".tab").forEach(x=>x.classList.remove("on"));t.classList.add("on");document.getElementById("tabc").innerHTML=t.dataset.tab==="stores"?storesHtml(!!USER_LOC):(t.dataset.tab==="seller"?sellerHtml:revHtml);});
 }
 function closeModal(){document.getElementById("modalRoot").innerHTML="";}
+function showAlert(){
+  const T=NTFY_TOPIC;
+  document.getElementById("modalRoot").innerHTML=`<div class="overlay" id="ov" onclick="closeModal()"><div class="modalSm" onclick="event.stopPropagation()">
+    <div class="hero" style="align-items:center"><div style="flex:1"><div class="hname">🔔 무료 알림 받기</div><div class="sa">특가·재입고·신상·최저가 변동을 폰으로 · <b>로그인 불필요</b></div></div><button class="close" onclick="closeModal()">✕</button></div>
+    <div style="padding:18px 20px;overflow-y:auto">
+      <div class="alstep"><b>①</b> <b>ntfy</b> 앱 설치 (무료)
+        <div style="display:flex;gap:8px;margin-top:8px">
+          <a class="distbtn on" style="text-decoration:none;padding:7px 12px" href="https://apps.apple.com/app/ntfy/id1625396347" target="_blank">App Store</a>
+          <a class="distbtn on" style="text-decoration:none;padding:7px 12px" href="https://play.google.com/store/apps/details?id=io.heckel.ntfy" target="_blank">Play Store</a>
+        </div>
+      </div>
+      <div class="alstep"><b>②</b> 앱에서 <b>+</b> → 아래 토픽 입력 (로그인 없음)
+        <div class="topicbox" onclick="copyTopic()"><span id="topicval">${T}</span><span class="copy">복사</span></div>
+      </div>
+      <div class="alstep"><b>③</b> 끝! 알림이 뜨면 눌러서 페이지로 이동돼요.</div>
+      <div class="sa" style="margin-top:14px">💻 <b>PC</b>는 앱 없이 → <a href="https://ntfy.sh/${T}" target="_blank" style="color:var(--amberD);font-weight:700">ntfy.sh/${T}</a> 에서 <b>Subscribe</b> → 브라우저 알림 허용<br><span style="color:#B9AE9E">(웹에서 계정을 물으면 건너뛰고 앱 사용을 권장합니다)</span></div>
+    </div></div></div>`;
+}
+function copyTopic(){const t=NTFY_TOPIC;navigator.clipboard&&navigator.clipboard.writeText(t);const c=document.querySelector(".copy");if(c){c.textContent="복사됨!";setTimeout(()=>c.textContent="복사",1500);}}
 
 // events
 document.getElementById("q").oninput=e=>{state.q=e.target.value;render();};
