@@ -91,6 +91,8 @@
   .loading{display:flex;align-items:center;justify-content:center;gap:10px;padding:60px;color:var(--sub)}
   .sp{width:26px;height:26px;border:3px solid var(--line);border-top:3px solid var(--amber);border-radius:50%;animation:spin .8s linear infinite}
   .more{display:block;text-align:center;padding:14px;font-size:12.5px;font-weight:700;color:var(--amber);text-decoration:none}
+  .distbtn{font-size:11px;font-weight:700;color:var(--amberD);background:#F7EFDF;border:1px solid #EBDCBE;border-radius:14px;padding:4px 10px;margin-left:6px}
+  .distbtn.on{background:var(--amber);color:#fff;border-color:var(--amber)}
   /* 모바일: 헤더 줄바꿈으로 카테고리 탭과 겹치던 문제 해결 — 스티키 해제 + 헤더 컴팩트 */
   @media (max-width:640px){
     header{position:static}
@@ -111,7 +113,7 @@
   <div class="logo"><span class="ic">🍾</span><div><div class="t">TRADERS LIQUOR</div><div class="s">트레이더스 주류 재고 · 가격 · 리뷰</div></div></div>
   <div style="display:flex;align-items:center;gap:8px">
     <span class="upd" id="upd">불러오는 중…</span>
-    <a class="srcbtn" id="srcbtn" href="#" target="_blank">GitHub</a>
+    <a class="srcbtn" id="alertbtn" href="https://ntfy.sh/traders-liquor-kr-alerts" target="_blank" style="background:#FCEBE5;color:#B0431F;border-color:#F5C9B8">🔔 특가·재입고 알림</a>
   </div>
 </div></header>
 <div class="warn">⚠ <b>실시간이 아닌 하루 2회 갱신</b> 데이터입니다 · 갱신 시점 이후 변동이 있을 수 있고 <b>현장 실물과 다를 수 있으니 방문 전 100% 신뢰하지 마세요.</b> (조회 전용)</div>
@@ -129,7 +131,12 @@
 const CAT_ICON={전체:"🍾",위스키:"🥃",와인:"🍷",스파클링:"🥂",브랜디:"🍸","사케·전통주":"🍶",하이볼:"🥤",리큐르:"🍹",진:"🌿",럼:"🥃",데킬라:"🌵",보드카:"❄️",기타:"🍾"};
 const CAT_ORDER=["위스키","와인","스파클링","브랜디","리큐르","진","럼","데킬라","보드카","사케·전통주","하이볼","기타"];
 const REPO="https://github.com/AI-MD/traders-liquor-tracker";
+const NTFY_TOPIC="traders-liquor-kr-alerts";
 let DATA=null, state={cat:"전체",q:"",store:"",sort:"stock_desc",inStock:false};
+let USER_LOC=null;                 // 위치 조회 결과 {lat,lng}
+const STORE_COORDS={};             // store_id → {lat,lng}
+const BRANCH={};                   // store_id → 지점정보(name,address,region,lat,lng)
+const haversine=(la1,lo1,la2,lo2)=>{const R=6371,r=x=>x*Math.PI/180;const dLa=r(la2-la1),dLo=r(lo2-lo1);const h=Math.sin(dLa/2)**2+Math.cos(r(la1))*Math.cos(r(la2))*Math.sin(dLo/2)**2;return R*2*Math.asin(Math.sqrt(h));};
 
 const won=n=>n>0?n.toLocaleString()+"원":"가격 정보 없음";
 const esc=s=>(s||"").replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
@@ -146,10 +153,10 @@ function dsBadge(p){
 
 function computeStore(p){ // store filter: recompute price/stock for selected store
   if(!state.store) return {price:p.price,inv:p.total_inventory,cnt:p.stores_in_stock_count,in:p.in_stock};
-  const s=(p.stores||[]).find(x=>x.store_id===state.store);
+  const s=(p.stores||[]).find(x=>x.id===state.store);
   if(!s) return {price:0,inv:0,cnt:0,in:false,absent:true};
-  const has=!s.out_of_stock&&(s.inventory||0)>0;
-  return {price:s.price||p.price,inv:s.inventory||0,cnt:has?1:0,in:has};
+  const has=!s.o&&(s.q||0)>0;
+  return {price:s.p||p.price,inv:s.q||0,cnt:has?1:0,in:has};
 }
 
 function card(p){
@@ -176,7 +183,7 @@ function render(){
   let list=DATA.products.slice();
   if(state.q){const q=state.q.toLowerCase();list=list.filter(p=>p.name.toLowerCase().includes(q));}
   if(state.cat!=="전체")list=list.filter(p=>p.category===state.cat);
-  if(state.store)list=list.filter(p=>(p.stores||[]).some(x=>x.store_id===state.store));
+  if(state.store)list=list.filter(p=>(p.stores||[]).some(x=>x.id===state.store));
   if(state.inStock)list=list.filter(p=>computeStore(p).in);
   const key={stock_desc:p=>-computeStore(p).inv,price_asc:p=>computeStore(p).price||9e9,price_desc:p=>-(computeStore(p).price||0),name:p=>p.name};
   list.sort((a,b)=>{const f=key[state.sort];const x=f(a),y=f(b);return typeof x==="string"?x.localeCompare(y):x-y;});
@@ -185,24 +192,39 @@ function render(){
 }
 
 function detail(p){
-  const stores=(p.stores||[]).slice().sort((a,b)=>(a.out_of_stock-b.out_of_stock)||((b.inventory||0)-(a.inventory||0)));
-  const inStock=stores.filter(s=>!s.out_of_stock&&(s.inventory||0)>0);
-  const byReg={};stores.forEach(s=>{const r=regionOf(s.address);(byReg[r]=byReg[r]||[]).push(s);});
-  const hasStock=g=>g.some(s=>!s.out_of_stock&&s.inventory>0);
+  const bName=s=>(BRANCH[s.id]||{}).name||s.id;
+  const bAddr=s=>(BRANCH[s.id]||{}).address||"";
+  const stores=(p.stores||[]).slice().sort((a,b)=>(a.o-b.o)||((b.q||0)-(a.q||0)));
+  const inStock=stores.filter(s=>!s.o&&(s.q||0)>0);
+  const byReg={};stores.forEach(s=>{const r=regionOf(bAddr(s));(byReg[r]=byReg[r]||[]).push(s);});
+  const hasStock=g=>g.some(s=>!s.o&&s.q>0);
   const regs=Object.entries(byReg).sort((a,b)=>hasStock(b[1])-hasStock(a[1]));
-  const sumTxt=inStock.length?` · 합계 ${inStock.reduce((a,s)=>a+(s.inventory||0),0).toLocaleString()}개`:"";
-  let storeHtml=`<div class="summ">총 <b>${stores.length}</b>개 지점 중 <b style="color:#1F9E5A">${inStock.length}</b>개 보유${sumTxt}</div>`;
-  if(!inStock.length) storeHtml+=`<div class="empty">재고 보유 지점이 없습니다.</div>`;
-  regs.forEach(function(pair){
-    storeHtml+=`<div class="region">${esc(pair[0])}</div>`;
-    pair[1].forEach(function(s){
-      const has=!s.out_of_stock&&s.inventory>0;
-      const dot=has?'<span class="dot"></span>':"";
-      const addr=s.address?`<div class="sa">${esc(s.address)}</div>`:"";
-      const qty=has?s.inventory.toLocaleString()+"개":"품절";
-      storeHtml+=`<div class="srow ${has?"has":""}"><div><div class="sn">${dot}${esc(s.store_name)}</div>${addr}</div><div class="sq" style="color:${has?"#1F9E5A":"#C3B9AA"}">${qty}</div></div>`;
-    });
-  });
+  const sumTxt=inStock.length?` · 합계 ${inStock.reduce((a,s)=>a+(s.q||0),0).toLocaleString()}개`:"";
+  const distOf=s=>{const c=STORE_COORDS[s.id];return (USER_LOC&&c)?haversine(USER_LOC.lat,USER_LOC.lng,c.lat,c.lng):null;};
+  function srow(s){
+    const has=!s.o&&s.q>0, d=distOf(s);
+    const dot=has?'<span class="dot"></span>':"";
+    const meta=[bAddr(s)?esc(bAddr(s)):"", d!=null?`📍${d.toFixed(1)}km`:""].filter(Boolean).join(" · ");
+    const price=has&&s.p?`<div class="sa" style="text-align:right">${s.p.toLocaleString()}원</div>`:"";
+    return `<div class="srow ${has?"has":""}"><div><div class="sn">${dot}${esc(bName(s))}</div>${meta?`<div class="sa">${meta}</div>`:""}</div><div class="sq" style="color:${has?"#1F9E5A":"#C3B9AA"}">${has?s.q.toLocaleString()+"개":"품절"}${price}</div></div>`;
+  }
+  function storesHtml(byDist){
+    let h=`<div class="summ">총 <b>${stores.length}</b>개 중 <b style="color:#1F9E5A">${inStock.length}</b>개 보유${sumTxt} <button class="distbtn ${byDist&&USER_LOC?"on":""}" onclick="__locSort()">📍 가까운 순</button></div>`;
+    if(!inStock.length) h+=`<div class="empty">재고 보유 지점이 없습니다.</div>`;
+    if(byDist&&USER_LOC){
+      const sorted=stores.slice().sort((a,b)=>{const da=distOf(a),db=distOf(b);return (a.out_of_stock-b.out_of_stock)||((da==null?9e9:da)-(db==null?9e9:db));});
+      h+=`<div class="region">📍 내 위치에서 가까운 순</div>`; sorted.forEach(s=>h+=srow(s));
+    } else { regs.forEach(pair=>{h+=`<div class="region">${esc(pair[0])}</div>`;pair[1].forEach(s=>h+=srow(s));}); }
+    return h;
+  }
+  window.__locSort=function(){
+    const upd=()=>{const t=document.getElementById("tabc");if(t)t.innerHTML=storesHtml(true);};
+    if(USER_LOC){upd();return;}
+    if(!navigator.geolocation){alert("이 브라우저는 위치 조회를 지원하지 않아요.");return;}
+    navigator.geolocation.getCurrentPosition(pos=>{USER_LOC={lat:pos.coords.latitude,lng:pos.coords.longitude};upd();},
+      ()=>alert("위치 권한을 허용하면 가까운 매장순으로 볼 수 있어요."));
+  };
+  let storeHtml=storesHtml(!!USER_LOC);
   let revHtml;
   if(p.reviews&&p.reviews.length){
     revHtml="";
@@ -226,7 +248,7 @@ function detail(p){
     <div class="mscroll" id="tabc">${storeHtml}</div>
     <div class="mwarn">⚠ 재고 수치는 시스템 기준이며 <b>현장 실물과 다를 수 있습니다.</b> 방문 전 100% 신뢰하지 마세요.</div></div></div>`;
   document.getElementById("ov").onclick=closeModal;
-  document.querySelectorAll(".tab").forEach(t=>t.onclick=()=>{document.querySelectorAll(".tab").forEach(x=>x.classList.remove("on"));t.classList.add("on");document.getElementById("tabc").innerHTML=t.dataset.tab==="stores"?storeHtml:revHtml;});
+  document.querySelectorAll(".tab").forEach(t=>t.onclick=()=>{document.querySelectorAll(".tab").forEach(x=>x.classList.remove("on"));t.classList.add("on");document.getElementById("tabc").innerHTML=t.dataset.tab==="stores"?storesHtml(!!USER_LOC):revHtml;});
 }
 function closeModal(){document.getElementById("modalRoot").innerHTML="";}
 
@@ -237,12 +259,11 @@ document.getElementById("sort").onchange=e=>{state.sort=e.target.value;render();
 document.getElementById("track").parentElement.onclick=()=>{state.inStock=!state.inStock;document.getElementById("track").classList.toggle("on",state.inStock);render();};
 document.getElementById("cattabs").onclick=e=>{const b=e.target.closest(".cattab");if(b){state.cat=b.dataset.cat;render();}};
 document.getElementById("grid").onclick=e=>{const c=e.target.closest(".card");if(c){const p=DATA.products.find(x=>x.sku===c.dataset.sku);if(p)detail(p);}};
-document.getElementById("srcbtn").href=REPO;
 
 fetch("data.json?t="+Date.now(),{cache:"no-store"}).then(r=>r.json()).then(d=>{
   DATA=d;
   document.getElementById("upd").textContent="갱신 "+new Date(d.updated_at).toLocaleString("ko-KR",{month:"2-digit",day:"2-digit",hour:"2-digit",minute:"2-digit"});
-  const ss=document.getElementById("store");d.branches.forEach(b=>{const o=document.createElement("option");o.value=b.store_id;o.textContent=b.name;ss.appendChild(o);});
+  const ss=document.getElementById("store");d.branches.forEach(b=>{const o=document.createElement("option");o.value=b.store_id;o.textContent=b.name;ss.appendChild(o);BRANCH[b.store_id]=b;if(b.lat&&b.lng)STORE_COORDS[b.store_id]={lat:b.lat,lng:b.lng};});
   render();
 }).catch(e=>{document.getElementById("grid").innerHTML=`<div class="empty">데이터를 불러오지 못했습니다. (data.json)</div>`;});
 </script>
