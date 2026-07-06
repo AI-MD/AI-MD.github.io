@@ -115,7 +115,25 @@
     main{padding:12px 14px 48px}
     .grid{grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:11px}
   }
+  /* 뷰 전환 탭 */
+  .viewnav{display:flex;gap:8px;padding:10px 14px 0;max-width:1180px;margin:0 auto}
+  .viewnav button{flex:1;max-width:220px;padding:11px 14px;border:1px solid var(--line);background:var(--card);color:var(--sub);
+    border-radius:12px;font-weight:800;font-size:14.5px;cursor:pointer;transition:.15s}
+  .viewnav button.on{background:var(--amber);color:#fff;border-color:var(--amber);box-shadow:0 3px 10px rgba(184,121,26,.28)}
+  /* 콜키지 */
+  #cmap{height:340px;border-radius:14px;border:1px solid var(--line);z-index:0}
+  .crow{display:flex;gap:8px;flex-wrap:wrap;align-items:center;margin:12px 0}
+  .ccard{display:flex;gap:12px;padding:13px;border:1px solid var(--line);border-radius:14px;background:var(--card);margin:10px 0;text-align:left;align-items:flex-start}
+  .ccard .cnum{font-weight:800;color:var(--amberD);min-width:22px}
+  .ccard .cinfo{flex:1;min-width:0}
+  .ccard .cname{font-weight:800;font-size:15px}
+  .ccard .cmeta{color:var(--sub);font-size:12.5px;margin-top:3px}
+  .cbadge{display:inline-block;background:#E7F6EE;color:#1F7A44;font-weight:800;font-size:11.5px;padding:2px 7px;border-radius:20px}
+  .cunl{background:#FCEBE5;color:#B0431F}
+  .crate{color:#B8791A;font-weight:800}
 </style>
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" crossorigin=""/>
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" crossorigin=""></script>
 </head>
 <body>
 <header><div class="hin">
@@ -125,6 +143,11 @@
     <button class="srcbtn" id="alertbtn" onclick="showAlert()" style="background:#FCEBE5;color:#B0431F;border-color:#F5C9B8" title="특가·재입고·가격변동 알림 (무료·로그인 불필요)">🔔 알림 받기</button>
   </div>
 </div></header>
+<div class="viewnav">
+  <button id="navLiquor" class="on" onclick="switchView('liquor')">🍾 주류 재고</button>
+  <button id="navColkage" onclick="switchView('colkage')">🍽 콜키지프리 식당</button>
+</div>
+<div id="viewLiquor">
 <div class="warn">⚠ <b>실시간이 아닌 하루 1회 갱신</b> 데이터입니다(재고 저녁·가격 아침) · 갱신 시점 이후 변동이 있을 수 있고 <b>현장 실물과 다를 수 있으니 방문 전 100% 신뢰하지 마세요.</b> (조회 전용)</div>
 <div class="catbar"><div class="wrap"><div class="cattabs" id="cattabs"></div></div></div>
 <div class="filter"><div class="wrap"><div class="frow">
@@ -135,6 +158,18 @@
   <label class="toggle"><div class="track" id="track"><div class="thumb"></div></div><span>재고있는 것만</span></label>
 </div></div></div>
 <main><div class="wrap"><div class="rc" id="rc"></div><div class="grid" id="grid"><div class="loading"><div class="sp"></div> 데이터 불러오는 중…</div></div><div id="more" style="text-align:center;margin:22px 0"></div></div></main>
+</div><!-- /viewLiquor -->
+<section id="viewColkage" hidden><main><div class="wrap">
+  <div class="warn">🍷 <b>서울·수도권 콜키지프리 식당</b> — 내 술을 가져가 마실 수 있는 곳(카카오맵 평점 3.5+). 주 1회 갱신 · ⚠ <b>콜키지 정책은 매장 사정으로 바뀔 수 있으니 방문 전 전화 확인</b> 권장.</div>
+  <div class="crow">
+    <div class="search" style="flex:1;min-width:180px"><span>🔍</span><input id="cq" placeholder="식당·지역 검색 (예: 강남, 스시)…" /></div>
+    <select id="cregion"><option value="">전체 지역</option></select>
+  </div>
+  <div id="cmap"></div>
+  <div class="rc" id="crc" style="margin-top:14px"></div>
+  <div id="clist"></div>
+  <div id="cmore" style="text-align:center;margin:22px 0"></div>
+</div></main></section>
 <footer style="text-align:center;padding:20px 16px 40px;color:var(--sub);font-size:12px;border-top:1px solid var(--line)">
   👁 오늘 <b id="vtoday">–</b> · 누적 <b id="vtotal">–</b> 방문 &nbsp;·&nbsp; 🔔 구독자 <b id="vsubs">–</b>명 &nbsp;·&nbsp; 조회 전용 · 하루 1회 갱신
 </footer>
@@ -151,6 +186,9 @@ let USER_LOC=null;                 // 위치 조회 결과 {lat,lng}
 const STORE_COORDS={};             // store_id → {lat,lng}
 const BRANCH={};                   // store_id → 지점정보(name,address,region,lat,lng)
 const haversine=(la1,lo1,la2,lo2)=>{const R=6371,r=x=>x*Math.PI/180;const dLa=r(la2-la1),dLo=r(lo2-lo1);const h=Math.sin(dLa/2)**2+Math.cos(r(la1))*Math.cos(r(la2))*Math.sin(dLo/2)**2;return R*2*Math.asin(Math.sqrt(h));};
+// 카카오맵 연동(키 불필요): 위치 보기 / 길찾기
+const kakaoView=(name,lat,lng,addr)=>(lat&&lng)?`https://map.kakao.com/link/map/${encodeURIComponent(name||"위치")},${lat},${lng}`:(addr?`https://map.kakao.com/link/search/${encodeURIComponent(addr)}`:"");
+const kakaoTo=(name,lat,lng)=>(lat&&lng)?`https://map.kakao.com/link/to/${encodeURIComponent(name||"목적지")},${lat},${lng}`:"";
 
 const won=n=>n>0?n.toLocaleString()+"원":"가격 정보 없음";
 const esc=s=>(s||"").replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
@@ -232,11 +270,13 @@ function detail(p){
   const sumTxt=inStock.length?` · 합계 ${inStock.reduce((a,s)=>a+(s.q||0),0).toLocaleString()}개`:"";
   const distOf=s=>{const c=STORE_COORDS[s.id];return (USER_LOC&&c)?haversine(USER_LOC.lat,USER_LOC.lng,c.lat,c.lng):null;};
   function srow(s){
-    const has=!s.o&&s.q>0, d=distOf(s);
+    const has=!s.o&&s.q>0, d=distOf(s), bc=BRANCH[s.id]||{};
     const dot=has?'<span class="dot"></span>':"";
+    const km=kakaoView(bName(s)+" 트레이더스",bc.lat,bc.lng,bAddr(s));
+    const kmL=km?` · <a href="${km}" target="_blank" rel="noopener" style="color:var(--amberD);font-weight:700">🗺 지도</a>`:"";
     const meta=[bAddr(s)?esc(bAddr(s)):"", d!=null?`📍${d.toFixed(1)}km`:""].filter(Boolean).join(" · ");
     const price=has&&s.p?`<div class="sa" style="text-align:right">${s.p.toLocaleString()}원</div>`:"";
-    return `<div class="srow ${has?"has":""}"><div><div class="sn">${dot}${esc(bName(s))}</div>${meta?`<div class="sa">${meta}</div>`:""}</div><div class="sq" style="color:${has?"#1F9E5A":"#C3B9AA"}">${has?s.q.toLocaleString()+"개":"품절"}${price}</div></div>`;
+    return `<div class="srow ${has?"has":""}"><div><div class="sn">${dot}${esc(bName(s))}</div><div class="sa">${meta}${kmL}</div></div><div class="sq" style="color:${has?"#1F9E5A":"#C3B9AA"}">${has?s.q.toLocaleString()+"개":"품절"}${price}</div></div>`;
   }
   function storesHtml(byDist){
     let h=`<div class="summ">총 <b>${stores.length}</b>개 중 <b style="color:#1F9E5A">${inStock.length}</b>개 보유${sumTxt} <button class="distbtn ${byDist&&USER_LOC?"on":""}" onclick="__locSort()">📍 가까운 순</button></div>`;
@@ -269,7 +309,8 @@ function detail(p){
   let sellerHtml="";
   if(p.seller){
     const se=p.seller, d=(USER_LOC&&se.lat&&se.lon)?haversine(USER_LOC.lat,USER_LOC.lng,se.lat,se.lon):null;
-    const map=(se.lat&&se.lon)?`https://www.google.com/maps/search/?api=1&query=${se.lat},${se.lon}`:(se.address?`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(se.address)}`:"");
+    const map=kakaoView(se.name,se.lat,se.lon,se.address);
+    const to=kakaoTo(se.name,se.lat,se.lon);
     sellerHtml=`<div style="padding:14px 20px">
       <div class="scard">
         <div class="srow2"><span class="sname2">${esc(se.name||"판매처")}</span><span class="sprice2">${p.dailyshot_price?p.dailyshot_price.toLocaleString()+"원":""}</span></div>
@@ -277,8 +318,9 @@ function detail(p){
         ${se.hours?`<div class="sa">🕒 ${esc(se.hours).replace(/\n/g," · ")}</div>`:""}
         ${se.arrival?`<div class="sa">📦 ${esc(se.arrival)}</div>`:""}
         <div style="display:flex;gap:8px;margin-top:12px;flex-wrap:wrap">
-          ${map?`<a class="distbtn on" style="text-decoration:none;padding:7px 12px" href="${map}" target="_blank">📍 지도에서 보기</a>`:""}
-          ${p.dailyshot_url?`<a class="distbtn" style="text-decoration:none;padding:7px 12px" href="${p.dailyshot_url}" target="_blank">데일리샷 상품 →</a>`:""}
+          ${map?`<a class="distbtn on" style="text-decoration:none;padding:7px 12px" href="${map}" target="_blank" rel="noopener">📍 카카오맵</a>`:""}
+          ${to?`<a class="distbtn" style="text-decoration:none;padding:7px 12px" href="${to}" target="_blank" rel="noopener">🚗 길찾기</a>`:""}
+          ${p.dailyshot_url?`<a class="distbtn" style="text-decoration:none;padding:7px 12px" href="${p.dailyshot_url}" target="_blank" rel="noopener">데일리샷 상품 →</a>`:""}
         </div>
       </div>
       <div class="sa" style="margin-top:12px">💸 최저가가 바뀌면 🔔 <b>가격변동 알림</b>으로 받아보세요 (특가·재입고와 같은 토픽).</div>
@@ -367,6 +409,69 @@ fetch("data.json?t="+Date.now(),{cache:"no-store"}).then(r=>r.json()).then(d=>{
   const sku=qs.get("sku");
   if(sku){const p=DATA.products.find(x=>x.sku===sku);if(p)detail(p);}
 }).catch(e=>{document.getElementById("grid").innerHTML=`<div class="empty">데이터를 불러오지 못했습니다. (data.json)</div>`;});
+
+// ── 콜키지프리 뷰 ─────────────────────────────
+let CDATA=null, cmap=null, cmarkers=null, cshown=40, cloaded=false;
+function switchView(m){
+  const liq=m==="liquor";
+  document.getElementById("viewLiquor").hidden=!liq;
+  document.getElementById("viewColkage").hidden=liq;
+  document.getElementById("navLiquor").classList.toggle("on",liq);
+  document.getElementById("navColkage").classList.toggle("on",!liq);
+  if(!liq)loadColkage();
+}
+function loadColkage(){
+  if(cloaded)return; cloaded=true;
+  document.getElementById("crc").textContent="식당 목록 불러오는 중…";
+  fetch("colkage.json?t="+Date.now(),{cache:"no-store"}).then(r=>r.json()).then(d=>{
+    CDATA=d;
+    const regs=[...new Set(d.items.map(i=>(i.region||"").split(" ")[0]).filter(Boolean))].sort();
+    const sel=document.getElementById("cregion");
+    regs.forEach(r=>{const o=document.createElement("option");o.value=r;o.textContent=r;sel.appendChild(o);});
+    cmap=L.map("cmap",{scrollWheelZoom:false}).setView([37.5665,126.9784],11);
+    L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png",{maxZoom:19,attribution:"© OpenStreetMap"}).addTo(cmap);
+    cmarkers=L.layerGroup().addTo(cmap);
+    renderColkage();
+  }).catch(()=>{document.getElementById("crc").innerHTML='<div class="empty">콜키지 데이터를 아직 불러올 수 없습니다. 잠시 후 다시 시도해 주세요.</div>';});
+}
+function colkageFiltered(){
+  let list=CDATA.items.slice();
+  const q=(document.getElementById("cq").value||"").toLowerCase().trim();
+  const reg=document.getElementById("cregion").value;
+  if(reg)list=list.filter(i=>(i.region||"").startsWith(reg));
+  if(q)list=list.filter(i=>((i.name||"")+" "+(i.address||"")+" "+(i.category||"")).toLowerCase().includes(q));
+  return list;
+}
+function renderColkage(){
+  if(!CDATA)return;
+  const list=colkageFiltered(), shown=list.slice(0,cshown);
+  document.getElementById("crc").innerHTML=`총 <b>${list.length}</b>곳 · 카카오맵 평점 3.5+ <span style="color:var(--sub)">· 갱신 ${CDATA.updated_at?new Date(CDATA.updated_at).toLocaleDateString("ko-KR"):""}</span>`;
+  document.getElementById("clist").innerHTML=list.length?shown.map((i,idx)=>`
+    <div class="ccard">
+      <div class="cnum">${idx+1}</div>
+      <div class="cinfo">
+        <div class="cname">${esc(i.name)} ${i.unlimited?'<span class="cbadge cunl">♾️ 무한</span>':'<span class="cbadge">콜키지프리</span>'}</div>
+        <div class="cmeta">${i.rating?`<span class="crate">★ ${i.rating}</span> (${(i.review_count||0).toLocaleString()}) · `:""}${esc(i.category)} · ${esc(i.region)}</div>
+        <div class="cmeta">📍 ${esc(i.address)}</div>
+        <div class="cmeta" style="margin-top:6px">
+          ${i.phone?`<a href="tel:${i.phone}" style="color:var(--amberD);font-weight:700">📞 ${i.phone}</a> · `:""}
+          <a href="${i.url}" target="_blank" rel="noopener" style="color:var(--amberD);font-weight:700">카카오맵 →</a> ·
+          <a href="https://map.kakao.com/link/to/${encodeURIComponent(i.name)},${i.lat},${i.lng}" target="_blank" rel="noopener" style="color:var(--amberD);font-weight:700">길찾기</a>
+        </div>
+      </div>
+    </div>`).join(""):`<div class="empty"><div style="font-size:44px">🍽</div><div style="margin-top:12px">결과가 없습니다</div></div>`;
+  document.getElementById("cmore").innerHTML=list.length>shown.length?`<button class="distbtn on" style="padding:11px 22px;cursor:pointer" onclick="cshown+=40;renderColkage()">더 보기 (${(list.length-shown.length).toLocaleString()}곳)</button>`:"";
+  cmarkers.clearLayers();
+  const pts=[];
+  shown.forEach(i=>{
+    L.marker([i.lat,i.lng]).bindPopup(`<b>${esc(i.name)}</b><br>${i.rating?"★ "+i.rating+" · ":""}${esc(i.category)}<br>${esc(i.address)}<br><a href="${i.url}" target="_blank" rel="noopener">카카오맵 →</a>`).addTo(cmarkers);
+    pts.push([i.lat,i.lng]);
+  });
+  if(pts.length)cmap.fitBounds(pts,{padding:[30,30],maxZoom:14});
+  setTimeout(()=>cmap.invalidateSize(),120);
+}
+document.getElementById("cq").oninput=()=>{cshown=40;renderColkage();};
+document.getElementById("cregion").onchange=()=>{cshown=40;renderColkage();};
 </script>
 </body>
 </html>
