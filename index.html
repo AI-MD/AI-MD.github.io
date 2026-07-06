@@ -162,8 +162,9 @@
 <section id="viewColkage" hidden><main><div class="wrap">
   <div class="warn">🍷 <b>서울·수도권 콜키지프리 식당</b> — 내 술을 가져가 마실 수 있는 곳(카카오맵 평점 3.5+). 주 1회 갱신 · ⚠ <b>콜키지 정책은 매장 사정으로 바뀔 수 있으니 방문 전 전화 확인</b> 권장.</div>
   <div class="crow">
-    <div class="search" style="flex:1;min-width:180px"><span>🔍</span><input id="cq" placeholder="식당·지역 검색 (예: 강남, 스시)…" /></div>
+    <div class="search" style="flex:1;min-width:160px"><span>🔍</span><input id="cq" placeholder="식당·지역 검색 (예: 강남, 스시)…" /></div>
     <select id="cregion"><option value="">전체 지역</option></select>
+    <button id="cnear" class="distbtn" style="padding:9px 14px;cursor:pointer" onclick="colkageNear()">📍 내 주변</button>
   </div>
   <div id="cmap"></div>
   <div class="rc" id="crc" style="margin-top:14px"></div>
@@ -411,7 +412,17 @@ fetch("data.json?t="+Date.now(),{cache:"no-store"}).then(r=>r.json()).then(d=>{
 }).catch(e=>{document.getElementById("grid").innerHTML=`<div class="empty">데이터를 불러오지 못했습니다. (data.json)</div>`;});
 
 // ── 콜키지프리 뷰 ─────────────────────────────
-let CDATA=null, cmap=null, cmarkers=null, cshown=40, cloaded=false;
+let CDATA=null, cmap=null, cmarkers=null, cshown=40, cloaded=false, CLOC=null, cnear=false, cusermk=null;
+function colkageNear(){
+  if(!navigator.geolocation){alert("이 브라우저는 위치 조회를 지원하지 않아요.");return;}
+  const btn=document.getElementById("cnear"); btn.textContent="📍 위치 확인 중…";
+  navigator.geolocation.getCurrentPosition(pos=>{
+    CLOC={lat:pos.coords.latitude,lng:pos.coords.longitude}; cnear=true; cshown=40;
+    btn.textContent="📍 내 주변 ✓"; btn.classList.add("on");
+    if(cmap){cmap.setView([CLOC.lat,CLOC.lng],13);}
+    renderColkage();
+  },()=>{btn.textContent="📍 내 주변";alert("위치 권한을 허용하면 가까운 식당순으로 볼 수 있어요.");});
+}
 function switchView(m){
   const liq=m==="liquor";
   document.getElementById("viewLiquor").hidden=!liq;
@@ -444,13 +455,15 @@ function colkageFiltered(){
 }
 function renderColkage(){
   if(!CDATA)return;
-  const list=colkageFiltered(), shown=list.slice(0,cshown);
-  document.getElementById("crc").innerHTML=`총 <b>${list.length}</b>곳 · 카카오맵 평점 3.5+ <span style="color:var(--sub)">· 갱신 ${CDATA.updated_at?new Date(CDATA.updated_at).toLocaleDateString("ko-KR"):""}</span>`;
+  let list=colkageFiltered();
+  if(cnear&&CLOC){list.forEach(i=>i._d=haversine(CLOC.lat,CLOC.lng,i.lat,i.lng));list.sort((a,b)=>a._d-b._d);}
+  const shown=list.slice(0,cshown);
+  document.getElementById("crc").innerHTML=`${cnear?"📍 <b>내 주변</b> 가까운 순 · ":""}총 <b>${list.length}</b>곳 · 카카오맵 평점 3.5+ <span style="color:var(--sub)">· 갱신 ${CDATA.updated_at?new Date(CDATA.updated_at).toLocaleDateString("ko-KR"):""}</span>`;
   document.getElementById("clist").innerHTML=list.length?shown.map((i,idx)=>`
     <div class="ccard">
       <div class="cnum">${idx+1}</div>
       <div class="cinfo">
-        <div class="cname">${esc(i.name)} ${i.unlimited?'<span class="cbadge cunl">♾️ 무한</span>':'<span class="cbadge">콜키지프리</span>'}</div>
+        <div class="cname">${esc(i.name)} ${i.unlimited?'<span class="cbadge cunl">♾️ 무한</span>':'<span class="cbadge">콜키지프리</span>'}${i._d!=null?`<span class="cbadge" style="background:#EEF3FB;color:#3A6AB0">📍 ${i._d.toFixed(1)}km</span>`:""}</div>
         <div class="cmeta">${i.rating?`<span class="crate">★ ${i.rating}</span> (${(i.review_count||0).toLocaleString()}) · `:""}${esc(i.category)} · ${esc(i.region)}</div>
         <div class="cmeta">📍 ${esc(i.address)}</div>
         <div class="cmeta" style="margin-top:6px">
@@ -464,10 +477,14 @@ function renderColkage(){
   cmarkers.clearLayers();
   const pts=[];
   shown.forEach(i=>{
-    L.marker([i.lat,i.lng]).bindPopup(`<b>${esc(i.name)}</b><br>${i.rating?"★ "+i.rating+" · ":""}${esc(i.category)}<br>${esc(i.address)}<br><a href="${i.url}" target="_blank" rel="noopener">카카오맵 →</a>`).addTo(cmarkers);
+    L.marker([i.lat,i.lng]).bindPopup(`<b>${esc(i.name)}</b><br>${i.rating?"★ "+i.rating+" · ":""}${esc(i.category)}${i._d!=null?" · 📍"+i._d.toFixed(1)+"km":""}<br>${esc(i.address)}<br><a href="${i.url}" target="_blank" rel="noopener">카카오맵 →</a> · <a href="https://map.kakao.com/link/to/${encodeURIComponent(i.name)},${i.lat},${i.lng}" target="_blank" rel="noopener">길찾기</a>`).addTo(cmarkers);
     pts.push([i.lat,i.lng]);
   });
-  if(pts.length)cmap.fitBounds(pts,{padding:[30,30],maxZoom:14});
+  if(cnear&&CLOC){
+    L.circleMarker([CLOC.lat,CLOC.lng],{radius:8,color:"#3A6AB0",fillColor:"#3A6AB0",fillOpacity:.9,weight:3}).bindPopup("📍 내 위치").addTo(cmarkers);
+    pts.push([CLOC.lat,CLOC.lng]);
+    cmap.setView([CLOC.lat,CLOC.lng],13);
+  } else if(pts.length){cmap.fitBounds(pts,{padding:[30,30],maxZoom:14});}
   setTimeout(()=>cmap.invalidateSize(),120);
 }
 document.getElementById("cq").oninput=()=>{cshown=40;renderColkage();};
