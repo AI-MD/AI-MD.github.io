@@ -116,9 +116,9 @@
     .grid{grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:11px}
   }
   /* 뷰 전환 탭 */
-  .viewnav{display:flex;gap:8px;padding:10px 14px 0;max-width:1180px;margin:0 auto}
-  .viewnav button{flex:1;max-width:220px;padding:11px 14px;border:1px solid var(--line);background:var(--card);color:var(--sub);
-    border-radius:12px;font-weight:800;font-size:14.5px;cursor:pointer;transition:.15s}
+  .viewnav{display:flex;gap:7px;padding:10px 14px 0;max-width:1180px;margin:0 auto}
+  .viewnav button{flex:1;min-width:0;padding:11px 8px;border:1px solid var(--line);background:var(--card);color:var(--sub);
+    border-radius:12px;font-weight:800;font-size:14px;cursor:pointer;transition:.15s;white-space:nowrap}
   .viewnav button.on{background:var(--amber);color:#fff;border-color:var(--amber);box-shadow:0 3px 10px rgba(184,121,26,.28)}
   /* 콜키지 */
   #cmap{height:340px;border-radius:14px;border:1px solid var(--line);z-index:0}
@@ -165,6 +165,7 @@
 </div></header>
 <div class="viewnav">
   <button id="navLiquor" class="on" onclick="switchView('liquor')">🛒 주락 딜</button>
+  <button id="navPick" onclick="switchView('pick')">🌟 주락 픽</button>
   <button id="navColkage" onclick="switchView('colkage')">🍽 콜키지</button>
   <button id="navLearn" onclick="switchView('learn')">📚 알쓸신주</button>
 </div>
@@ -195,6 +196,17 @@
 <section id="viewLearn" hidden><main><div class="wrap">
   <div class="warn">📚 <b>알쓸신주</b> — 알아두면 쓸모있는 신비한 술 지식. 위스키 증류소·숙성·캐스크부터 와인 포도품종·빈티지, 테이스팅 용어까지.</div>
   <div id="learnBody"></div>
+</div></main></section>
+<section id="viewPick" hidden><main><div class="wrap">
+  <div class="warn">🌟 <b>주락 픽</b> — 트레이더스 매장엔 없지만, <b>애호가라면 눈여겨보는 명주</b>를 골랐어요. 데일리샷 최저가·평점 기준 큐레이션. <span style="color:var(--sub)">가격은 시점·판매처에 따라 다를 수 있어요.</span></div>
+  <div class="crow">
+    <div class="search" style="flex:1;min-width:160px"><span>🔍</span><input id="pq" placeholder="명주 검색 (예: 맥캘란, 야마자키)…"></div>
+    <select id="pcat"><option value="">전체 종류</option></select>
+    <select id="psort"><option value="review">인기순</option><option value="price_asc">낮은 가격순</option><option value="price_desc">높은 가격순</option><option value="rating">평점순</option></select>
+  </div>
+  <div class="rc" id="prc"></div>
+  <div class="grid" id="pgrid"></div>
+  <div id="pmore" style="text-align:center;margin:22px 0"></div>
 </div></main></section>
 <footer style="text-align:center;padding:20px 16px 40px;color:var(--sub);font-size:12px;border-top:1px solid var(--line)">
   <div style="font-weight:800;color:var(--amberD);margin-bottom:6px">🍶 주락 酒樂 · 합리적으로 사고, 즐겁게 마시다</div>
@@ -463,15 +475,13 @@ function colkageNear(){
   },()=>{btn.textContent="📍 내 주변";alert("위치 권한을 허용하면 가까운 식당순으로 볼 수 있어요.");});
 }
 function switchView(m){
-  const liq=m==="liquor", learn=m==="learn";
-  document.getElementById("viewLiquor").hidden=!liq;
-  document.getElementById("viewColkage").hidden=(m!=="colkage");
-  const vl=document.getElementById("viewLearn"); if(vl)vl.hidden=!learn;
-  document.getElementById("navLiquor").classList.toggle("on",liq);
-  document.getElementById("navColkage").classList.toggle("on",m==="colkage");
-  const nl=document.getElementById("navLearn"); if(nl)nl.classList.toggle("on",learn);
+  const V={liquor:"viewLiquor",pick:"viewPick",colkage:"viewColkage",learn:"viewLearn"};
+  const N={liquor:"navLiquor",pick:"navPick",colkage:"navColkage",learn:"navLearn"};
+  for(const k in V){const v=document.getElementById(V[k]);if(v)v.hidden=(k!==m);const n=document.getElementById(N[k]);if(n)n.classList.toggle("on",k===m);}
   if(m==="colkage")loadColkage();
-  else if(learn)renderLearn();
+  else if(m==="learn")renderLearn();
+  else if(m==="pick")loadPick();
+  window.scrollTo(0,0);
 }
 function loadColkage(){
   if(cloaded)return; cloaded=true;
@@ -652,6 +662,51 @@ function renderLearn(){
   ])+
   `<div class="sa" style="text-align:center;margin:18px 0 4px">🍶 아는 만큼 맛있습니다. 오늘의 한 잔, 즐겁게!</div>`;
 }
+
+// ── 🌟 주락 픽 (트레이더스 밖 명주) ──────────────────────
+let PDATA=null, ploaded=false, pshown=24;
+function loadPick(){
+  if(ploaded)return; ploaded=true;
+  document.getElementById("prc").textContent="명주 불러오는 중…";
+  fetch("dailyshot_top.json?t="+Date.now(),{cache:"no-store"}).then(r=>r.json()).then(d=>{
+    PDATA=d;
+    const cats=[...new Set(d.items.map(i=>i.category))];
+    const sel=document.getElementById("pcat");
+    cats.forEach(c=>{const o=document.createElement("option");o.value=c;o.textContent=(CAT_ICON[c]||"🍾")+" "+c;sel.appendChild(o);});
+    renderPick();
+  }).catch(()=>{document.getElementById("prc").innerHTML='<div class="empty">명주 셀렉션을 준비 중이에요. 잠시 후 다시 열어주세요.</div>';});
+}
+function pickFiltered(){
+  let list=PDATA.items.slice();
+  const q=(document.getElementById("pq").value||"").toLowerCase().trim();
+  const c=document.getElementById("pcat").value, s=document.getElementById("psort").value;
+  if(c)list=list.filter(i=>i.category===c);
+  if(q)list=list.filter(i=>((i.name||"")+" "+(i.subcategory||"")).toLowerCase().includes(q));
+  const key={review:i=>-(i.review_count||0),price_asc:i=>i.price||9e9,price_desc:i=>-(i.price||0),rating:i=>-(i.rating||0)};
+  const f=key[s]||key.review; list.sort((a,b)=>f(a)-f(b));
+  return list;
+}
+function pickCard(i){
+  const rr=i.rating?`${stars(i.rating)}<span class="rn">${i.rating}</span><span class="rc2">(${(i.review_count||0).toLocaleString()})</span>`:(i.vivino_score?`<span class="vivino">Vivino ${i.vivino_score}</span>`:`<span class="nr">평점 없음</span>`);
+  return `<a class="card" href="${i.url}" target="_blank" rel="noopener" style="text-decoration:none;color:inherit">
+    <div class="cimg">${i.image?`<img src="${i.image}" loading="lazy" referrerpolicy="no-referrer" onerror="this.onerror=null;this.outerHTML='<span class=&quot;fb&quot;>${CAT_ICON[i.category]||"🍾"}</span>'"/>`:`<span class="fb">${CAT_ICON[i.category]||"🍾"}</span>`}
+      <span class="catchip">${CAT_ICON[i.category]||""} ${esc(i.category)}</span>
+      <span class="stkchip" style="background:#95610F">🌟 PICK</span></div>
+    <div class="cbody"><div class="cname">${esc(i.name)}</div>
+      <div class="rr">${rr}</div>
+      <div class="pr"><span class="price">${won(i.price)}</span></div>
+      <div class="cfoot"><span class="sc">데일리샷 최저가</span><span class="dl">보러가기 →</span></div></div></a>`;
+}
+function renderPick(){
+  if(!PDATA)return;
+  const list=pickFiltered(), shown=list.slice(0,pshown);
+  document.getElementById("prc").innerHTML=`🌟 트레이더스 밖 명주 <b>${list.length}</b>종 <span style="color:var(--sub)">· 갱신 ${PDATA.updated_at?new Date(PDATA.updated_at).toLocaleDateString("ko-KR"):""}</span>`;
+  document.getElementById("pgrid").innerHTML=list.length?shown.map(pickCard).join(""):`<div class="empty"><div style="font-size:44px">🌟</div><div style="margin-top:12px">결과가 없습니다</div></div>`;
+  document.getElementById("pmore").innerHTML=list.length>shown.length?`<button class="distbtn on" style="padding:11px 22px;cursor:pointer" onclick="pshown+=24;renderPick()">더 보기 (${(list.length-shown.length).toLocaleString()}종)</button>`:"";
+}
+document.getElementById("pq").oninput=()=>{pshown=24;renderPick();};
+document.getElementById("pcat").onchange=()=>{pshown=24;renderPick();};
+document.getElementById("psort").onchange=()=>{pshown=24;renderPick();};
 
 // ── 회원(카카오 로그인) 뼈대 ───────────────────────────────
 // Supabase 프로젝트 값만 채우면 카카오 로그인이 즉시 활성화됩니다(백엔드 연동).
