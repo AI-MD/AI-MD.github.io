@@ -3,8 +3,8 @@
 <head>
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-<title>트레이더스 주류 재고·가격 · 콜키지프리 식당</title>
-<meta name="description" content="이마트 트레이더스 전국 24개 지점 주류(위스키·와인) 재고·가격·평점 조회 + 서울·수도권 콜키지프리 식당(평점3.5+·지도)까지 무료로" />
+<title>주락 酒樂 — 합리적으로 사고, 즐겁게 마시다</title>
+<meta name="description" content="주락(酒樂) — 트레이더스 전국 24개 지점 주류 재고·최저가 비교 + 서울·수도권 콜키지프리 식당(평점3.5+·지도)까지. 합리적으로 사고, 즐겁게 마시다." />
 <style>
   :root{--amber:#B8791A;--amberD:#95610F;--ink:#2B2622;--sub:#8A8177;--line:#EAE4DB;--card:#FFF;--bg:#F6F3EE;--green:#1F9E5A;--sh:0 1px 2px rgba(43,38,34,.04),0 4px 16px rgba(43,38,34,.06);}
   *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
@@ -137,15 +137,15 @@
 </head>
 <body>
 <header><div class="hin">
-  <div class="logo"><span class="ic">🍾</span><div><div class="t">TRADERS LIQUOR</div><div class="s">트레이더스 주류 재고·가격 · 콜키지프리 식당</div></div></div>
+  <div class="logo"><span class="ic">🍶</span><div><div class="t">주락 <span style="font-weight:700;opacity:.6">酒樂</span></div><div class="s">합리적으로 사고, 즐겁게 마시다</div></div></div>
   <div style="display:flex;align-items:center;gap:8px">
     <span class="upd" id="upd">불러오는 중…</span>
     <button class="srcbtn" id="alertbtn" onclick="showAlert()" style="background:#FCEBE5;color:#B0431F;border-color:#F5C9B8" title="특가·재입고·가격변동 알림 (무료·로그인 불필요)">🔔 알림 받기</button>
   </div>
 </div></header>
 <div class="viewnav">
-  <button id="navLiquor" class="on" onclick="switchView('liquor')">🍾 주류 재고</button>
-  <button id="navColkage" onclick="switchView('colkage')">🍽 콜키지프리 식당</button>
+  <button id="navLiquor" class="on" onclick="switchView('liquor')">🛒 주락 딜 <span style="font-weight:600;opacity:.7;font-size:12.5px">· 재고·최저가</span></button>
+  <button id="navColkage" onclick="switchView('colkage')">🍽 주락 다이닝 <span style="font-weight:600;opacity:.7;font-size:12.5px">· 콜키지프리</span></button>
 </div>
 <div id="viewLiquor">
 <div class="warn">⚠ <b>실시간이 아닌 하루 1회 갱신</b> 데이터입니다(재고 저녁·가격 아침) · 갱신 시점 이후 변동이 있을 수 있고 <b>현장 실물과 다를 수 있으니 방문 전 100% 신뢰하지 마세요.</b> (조회 전용)</div>
@@ -172,7 +172,8 @@
   <div id="cmore" style="text-align:center;margin:22px 0"></div>
 </div></main></section>
 <footer style="text-align:center;padding:20px 16px 40px;color:var(--sub);font-size:12px;border-top:1px solid var(--line)">
-  👁 오늘 <b id="vtoday">–</b> · 누적 <b id="vtotal">–</b> 방문 &nbsp;·&nbsp; 🔔 구독자 <b id="vsubs">–</b>명 &nbsp;·&nbsp; 조회 전용 · 하루 1회 갱신
+  <div style="font-weight:800;color:var(--amberD);margin-bottom:6px">🍶 주락 酒樂 · 합리적으로 사고, 즐겁게 마시다</div>
+  👁 오늘 <b id="vtoday">–</b> · 누적 <b id="vtotal">–</b> 방문 &nbsp;·&nbsp; 🔔 구독자 <b id="vsubs">–</b>명 &nbsp;·&nbsp; 조회 전용 · 주류 재고 하루 1회 · 콜키지프리 주 1회 갱신
 </footer>
 <div id="modalRoot"></div>
 
@@ -346,8 +347,12 @@ function closeModal(){document.getElementById("modalRoot").innerHTML="";}
 function showAlert(){
   const T=NTFY_TOPIC;
   document.getElementById("modalRoot").innerHTML=`<div class="overlay" id="ov" onclick="closeModal()"><div class="modalSm" onclick="event.stopPropagation()">
-    <div class="hero" style="align-items:center"><div style="flex:1"><div class="hname">🔔 무료 알림 받기</div><div class="sa">특가·재입고·신상·최저가 변동을 폰으로 · <b>로그인 불필요</b></div></div><button class="close" onclick="closeModal()">✕</button></div>
+    <div class="hero" style="align-items:center"><div style="flex:1"><div class="hname">🔔 주락 딜 알림 <span style="font-weight:700;color:var(--sub);font-size:13px">무료</span></div><div class="sa">좋은 술을 놓치지 않게 — <b>로그인·개인정보 없이</b> 폰이나 메일로</div></div><button class="close" onclick="closeModal()">✕</button></div>
     <div style="padding:18px 20px;overflow-y:auto">
+      <div style="background:#FBF7F0;border:1px solid var(--line);border-radius:12px;padding:12px 14px;margin-bottom:16px;font-size:13px;line-height:1.7">
+        이런 소식을 <b>하루 2회(오전 9시·오후 6시)</b> 정리해 보내드려요:<br>
+        🔥 <b>특가</b>(데일리샷 20%↓) · 💸 <b>최저가 변동</b> · 🎉 <b>재입고</b> · 🆕 <b>신상 입고</b> · ⏰ <b>품절임박</b>
+      </div>
       <div class="alstep"><b>①</b> <b>ntfy</b> 앱 설치 (무료)
         <div style="display:flex;gap:8px;margin-top:8px">
           <a class="distbtn on" style="text-decoration:none;padding:7px 12px" href="https://apps.apple.com/app/ntfy/id1625396347" target="_blank">App Store</a>
