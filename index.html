@@ -747,6 +747,28 @@ function bartenderRecs(){
   pool.sort((a,b)=>((b.rating||0)-(a.rating||0))||(Math.abs((a.price||0)-mid)-Math.abs((b.price||0)-mid)));
   return {topCat,mid,recs:pool.slice(0,4),n:v.length};
 }
+function showTalkbar(){
+  try{localStorage.setItem("jurak_talkbar_seen","1");}catch(e){}
+  const feats=[
+    ["💬","대화로 고르는 한 잔","‘예산 15만원, 스모키한 위스키’ 처럼 말만 하세요"],
+    ["🍾","실시간 재고 연동","트레이더스·데일리샷 재고에서 진짜 살 수 있는 술만"],
+    ["🥃","취향을 아는 단골 바","마실수록 더 정확해지는 나만의 바텐더"],
+  ];
+  document.getElementById("modalRoot").innerHTML=`<div class="overlay" id="ov" onclick="closeModal()"><div class="modalSm" onclick="event.stopPropagation()">
+    <div style="position:relative;background:linear-gradient(135deg,#2B2622,#6E460F);color:#fff;padding:22px 20px 20px">
+      <button class="close" style="position:absolute;top:12px;right:12px;background:rgba(255,255,255,.18);color:#fff" onclick="closeModal()">✕</button>
+      <div style="font-size:11.5px;font-weight:800;letter-spacing:.05em;color:#F7CE68">COMING SOON · 회원 먼저</div>
+      <div style="font-size:22px;font-weight:900;margin-top:6px;letter-spacing:-.01em">🤖 AI 바텐더 토킹바</div>
+      <div style="font-size:13.5px;opacity:.85;margin-top:4px">곧, 대화로 술을 고르는 시간</div>
+      <div style="display:inline-block;margin-top:13px;background:#F7CE68;color:#3A2A08;font-weight:900;font-size:13px;padding:6px 13px;border-radius:20px">🗓 2026. 7. 11 오픈 예정</div>
+    </div>
+    <div style="padding:16px 20px">
+      <div class="sa" style="line-height:1.7;margin-bottom:8px">예산·취향·기분을 말하면 <b>AI 바텐더</b>가 딱 맞는 한 잔을 골라드려요. <b>로그인 회원께 먼저</b> 열립니다 🍸</div>
+      ${feats.map(f=>`<div class="benerow"><div class="bi">${f[0]}</div><div><div class="bt">${f[1]}</div><div class="bd">${f[2]}</div></div></div>`).join("")}
+      <button class="kbtn" style="margin-top:14px;background:linear-gradient(135deg,#C98A2B,#8C5A16);color:#fff" onclick="closeModal()">🔔 출시되면 가장 먼저 만나기</button>
+      <div class="sa" style="text-align:center;margin-top:9px;font-size:11.5px;color:var(--sub)">출시 소식은 알림(앱·메일)으로 전해드릴게요</div>
+    </div></div></div>`;
+}
 function showPrivacy(){
   const rows=[
     ["1. 수집 항목·목적","· 카카오 로그인 시: <b>닉네임</b>(회원 식별·맞춤 추천/알림)<br>· 이메일 구독 시: <b>이메일</b>(특가·재입고 알림 발송)<br>· 조회 이력: <b>브라우저(이 기기)에만</b> 저장, 취향 추천용 — 서버 미전송<br>· 방문 통계: 익명 카운터(개인 식별 안 함)"],
@@ -798,12 +820,13 @@ function initAuth(){
   document.head.appendChild(s);
 }
 function displayName(){const md=(USER&&USER.user_metadata)||{};return md.nickname||"회원";}  // 실명(name) 절대 노출 안 함
-let _nickPrompted=false;
+let _nickPrompted=false, _talkbarShown=false;
 function refreshAuthUI(){
   const b=document.getElementById("loginbtn"); if(!b)return;
   if(USER){
     b.innerHTML="🙋 "+esc(displayName().slice(0,8))+"님"; b.onclick=showAccount;  // XSS 방지 esc
     if(!((USER.user_metadata||{}).nickname) && !_nickPrompted){_nickPrompted=true; setTimeout(()=>{if(!document.getElementById("ov"))showAccount();},600);}  // 닉네임 없으면 설정 유도
+    else if(!_talkbarShown && !localStorage.getItem("jurak_talkbar_seen")){_talkbarShown=true; setTimeout(()=>{if(!document.getElementById("ov"))showTalkbar();},900);}  // AI 토킹바 출시 티저(회원 1회)
   } else {b.innerHTML="🙋 로그인"; b.onclick=showLogin;}
 }
 const BENEFITS=[
@@ -854,6 +877,9 @@ function showAccount(){
         </div>
         ${MYWATCH.size?`<button class="distbtn on" style="width:100%;margin-top:10px;cursor:pointer;border:none" onclick="closeModal();showMyWatch()">⭐ 내 관심상품 모아보기</button>`:`<div class="sa" style="margin-top:10px;font-size:12px">상품 상세에서 <b>☆ 관심 등록</b>, 콜키지 식당에서 <b>☆ 즐겨찾기</b>를 눌러보세요.</div>`}
       </div>
+      <div style="margin-top:14px;padding:12px 14px;border-radius:12px;background:linear-gradient(135deg,#2B2622,#6E460F);color:#fff;cursor:pointer" onclick="closeModal();showTalkbar()">
+        <div style="font-size:11px;font-weight:800;color:#F7CE68">COMING SOON · 7. 11</div>
+        <div style="font-weight:800;font-size:14px;margin-top:2px">🤖 AI 바텐더 토킹바 — 회원 먼저 열려요 →</div></div>
       <button class="distbtn" style="margin-top:12px;cursor:pointer" onclick="logout()">로그아웃</button>
     </div></div></div>`;
 }
