@@ -185,7 +185,7 @@ function card(p){
       <div class="rr">${rr}${viv}</div>
       <div class="pr"><span class="price">${won(cs.price)}</span>${p.discount_percent>0?`<span class="disc">${p.discount_percent}%↓</span>`:""}</div>
       ${dsBadge(p)}
-      <div class="cfoot"><span class="sc">🏬 ${cs.cnt}개 지점 보유</span><span class="dl">상세 · 지점별 →</span></div></div></button>`;
+      <div class="cfoot"><span class="sc">🏬 ${state.store?`${(BRANCH[state.store]||{}).name||"해당 지점"} 보유`:`${cs.cnt}개 지점 보유`}</span><span class="dl">상세 · 지점별 →</span></div></div></button>`;
 }
 
 const SPECIAL="🔥특가";
