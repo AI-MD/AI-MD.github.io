@@ -192,20 +192,23 @@ const SPECIAL="🔥특가";
 const isSpecial=p=>p.price_diff_percent!=null&&p.price_diff_percent<=-20&&p.in_stock;
 function render(){
   const s=DATA.stats;
-  const nSpecial=DATA.products.filter(isSpecial).length;
-  // tabs (🔥특가 우선 노출)
+  // 카테고리 외 필터(검색·지점·재고)를 먼저 적용 → 탭 개수와 목록에 공통 반영
+  let base=DATA.products.slice();
+  if(state.q){const q=state.q.toLowerCase();base=base.filter(p=>p.name.toLowerCase().includes(q));}
+  if(state.store)base=base.filter(p=>(p.stores||[]).some(x=>x.id===state.store));
+  if(state.inStock)base=base.filter(p=>computeStore(p).in);
+  const nSpecial=base.filter(isSpecial).length;
+  const catCount={};base.forEach(p=>{catCount[p.category]=(catCount[p.category]||0)+1;});
+  // tabs (🔥특가 우선 노출) — 개수는 현재 필터 반영
   const cats=["전체",SPECIAL,...CAT_ORDER.filter(c=>s.by_category[c]),...Object.keys(s.by_category).filter(c=>!CAT_ORDER.includes(c))];
   document.getElementById("cattabs").innerHTML=cats.map(c=>{
-    const cnt=c==="전체"?s.total:(c===SPECIAL?nSpecial:(s.by_category[c]||0));
+    const cnt=c==="전체"?base.length:(c===SPECIAL?nSpecial:(catCount[c]||0));
     return `<button class="cattab ${state.cat===c?"on":""}" data-cat="${c}">${c===SPECIAL?"🔥 특가":`${CAT_ICON[c]||"🍾"} ${c}`}<span class="c">${cnt}</span></button>`;
   }).join("");
-  // filter
-  let list=DATA.products.slice();
-  if(state.q){const q=state.q.toLowerCase();list=list.filter(p=>p.name.toLowerCase().includes(q));}
+  // 목록: base + 카테고리 필터
+  let list=base;
   if(state.cat===SPECIAL)list=list.filter(isSpecial);
   else if(state.cat!=="전체")list=list.filter(p=>p.category===state.cat);
-  if(state.store)list=list.filter(p=>(p.stores||[]).some(x=>x.id===state.store));
-  if(state.inStock)list=list.filter(p=>computeStore(p).in);
   const key={stock_desc:p=>-computeStore(p).inv,price_asc:p=>computeStore(p).price||9e9,price_desc:p=>-(computeStore(p).price||0),name:p=>p.name};
   list.sort((a,b)=>{const f=key[state.sort];const x=f(a),y=f(b);return typeof x==="string"?x.localeCompare(y):x-y;});
   const shown=list.slice(0,state.shown);
