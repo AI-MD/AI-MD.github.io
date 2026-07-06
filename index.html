@@ -507,6 +507,7 @@ document.getElementById("cregion").onchange=()=>{cshown=40;renderColkage();};
 // ── 회원(카카오 로그인) 뼈대 ───────────────────────────────
 // Supabase 프로젝트 값만 채우면 카카오 로그인이 즉시 활성화됩니다(백엔드 연동).
 const AUTH_CFG = { url:"https://hzliwugasthzxamfpwxo.supabase.co", anon:"sb_publishable_mpTkGUSL4hPWbpv5SHyGYg_kHjkg8aP" };   // Supabase URL / publishable(public) key
+const KAKAO_SCOPES = "profile_nickname";   // 비즈 불필요. 카톡 알림 원하면 "profile_nickname,talk_message"
 let SUPA=null, USER=null;
 function authReady(){ return !!SUPA; }
 function initAuth(){
@@ -551,7 +552,14 @@ function showLogin(){
       </svg></div>
       <div style="font-size:13.5px;color:var(--sub);margin-bottom:2px">로그인하면 이런 혜택이 열려요 👇</div>
       ${bene}
-      <button class="kbtn" style="margin-top:16px" onclick="kakaoLogin()"><span style="font-size:18px">💬</span> 카카오로 시작하기</button>
+      <div style="background:#FBF7F0;border:1px solid var(--line);border-radius:12px;padding:12px 14px;margin-top:16px;font-size:12.5px;line-height:1.65;color:var(--sub)">
+        <b style="color:var(--ink)">개인정보 수집·이용 동의</b><br>
+        · 수집: <b>카카오 닉네임</b> (이메일·전화번호 등 민감정보 수집 안 함)<br>
+        · 목적: 회원 식별 · 관심상품/목표가 등 맞춤 알림 제공<br>
+        · 보관: 안전한 개인 저장소에 저장, <b>로그아웃·탈퇴 시 즉시 삭제</b><br>
+        아래 버튼을 누르면 위 내용 및 카카오 동의 화면에 동의하는 것으로 간주됩니다.
+      </div>
+      <button class="kbtn" style="margin-top:12px" onclick="kakaoLogin()"><span style="font-size:18px">💬</span> 카카오로 시작하기</button>
       <div class="sa" style="text-align:center;margin-top:10px">로그인 없이도 기본 조회·알림은 계속 <b>무료</b>예요.</div>
     </div></div></div>`;
 }
@@ -561,7 +569,7 @@ function kakaoLogin(){
     alert("카카오 로그인·맞춤 알림은 곧 오픈됩니다! 🙌\n지금은 무료 알림(앱/이메일)으로 특가·재입고를 먼저 받아보세요.");
     showAlert(); return;
   }
-  SUPA.auth.signInWithOAuth({provider:"kakao",options:{redirectTo:location.origin+location.pathname}});
+  SUPA.auth.signInWithOAuth({provider:"kakao",options:{redirectTo:location.origin+location.pathname,scopes:KAKAO_SCOPES}});
 }
 function showAccount(){
   const nm=(USER&&USER.user_metadata&&USER.user_metadata.name)||(USER&&USER.email)||"회원";
