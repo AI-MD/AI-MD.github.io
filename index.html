@@ -139,6 +139,17 @@
   .benerow .bi{font-size:20px;line-height:1.15}
   .benerow .bt{font-weight:800;font-size:14px}
   .benerow .bd{color:var(--sub);font-size:12.5px;margin-top:2px}
+  /* 주류 공부 */
+  .lcard{background:var(--card);border:1px solid var(--line);border-radius:14px;margin:12px 0;overflow:hidden}
+  .lcard>summary{padding:15px 16px;font-weight:800;font-size:15.5px;cursor:pointer;list-style:none;display:flex;justify-content:space-between;align-items:center}
+  .lcard>summary::-webkit-details-marker{display:none}
+  .lcard>summary::after{content:"▸";color:var(--sub);transition:.2s;font-weight:400}
+  .lcard[open]>summary::after{transform:rotate(90deg)}
+  .lbody{padding:0 16px 6px;font-size:13.5px;line-height:1.7;color:var(--ink)}
+  .lbody b{color:var(--amberD)}
+  .lrow{padding:10px 0;border-top:1px solid var(--line)}
+  .lrow .lt{font-weight:800;display:block;margin-bottom:1px}
+  .lrow .ld{color:var(--sub)}
 </style>
 <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" crossorigin=""/>
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" crossorigin=""></script>
@@ -153,8 +164,9 @@
   </div>
 </div></header>
 <div class="viewnav">
-  <button id="navLiquor" class="on" onclick="switchView('liquor')">🛒 주락 딜 <span style="font-weight:600;opacity:.7;font-size:12.5px">· 재고·최저가</span></button>
-  <button id="navColkage" onclick="switchView('colkage')">🍽 주락 다이닝 <span style="font-weight:600;opacity:.7;font-size:12.5px">· 콜키지프리</span></button>
+  <button id="navLiquor" class="on" onclick="switchView('liquor')">🛒 주락 딜</button>
+  <button id="navColkage" onclick="switchView('colkage')">🍽 콜키지</button>
+  <button id="navLearn" onclick="switchView('learn')">📚 알쓸신주</button>
 </div>
 <div id="viewLiquor">
 <div class="warn">⚠ <b>실시간이 아닌 하루 1회 갱신</b> 데이터입니다(재고 저녁·가격 아침) · 갱신 시점 이후 변동이 있을 수 있고 <b>현장 실물과 다를 수 있으니 방문 전 100% 신뢰하지 마세요.</b> (조회 전용)</div>
@@ -179,6 +191,10 @@
   <div class="rc" id="crc" style="margin-top:14px"></div>
   <div id="clist"></div>
   <div id="cmore" style="text-align:center;margin:22px 0"></div>
+</div></main></section>
+<section id="viewLearn" hidden><main><div class="wrap">
+  <div class="warn">📚 <b>알쓸신주</b> — 알아두면 쓸모있는 신비한 술 지식. 위스키 증류소·숙성·캐스크부터 와인 포도품종·빈티지, 테이스팅 용어까지.</div>
+  <div id="learnBody"></div>
 </div></main></section>
 <footer style="text-align:center;padding:20px 16px 40px;color:var(--sub);font-size:12px;border-top:1px solid var(--line)">
   <div style="font-weight:800;color:var(--amberD);margin-bottom:6px">🍶 주락 酒樂 · 합리적으로 사고, 즐겁게 마시다</div>
@@ -352,6 +368,7 @@ function detail(p){
       <button class="distbtn" style="cursor:pointer" onclick="detailTarget('${p.sku}')">💰 목표가${MYTARGET[p.sku]?` ${MYTARGET[p.sku].toLocaleString()}원`:" 설정"}</button>
     </div>
     ${p.tasting_notes&&p.tasting_notes.length?`<div class="tasting"><div class="sl">🥃 테이스팅 노트 <span class="src">데일리샷</span></div><div class="tchips">${p.tasting_notes.map(n=>`<div class="tchip"><b>${esc(n.label)}</b> ${esc(n.value)}</div>`).join("")}</div></div>`:""}
+    ${(()=>{const terms=detectTerms(p.name+" "+(p.tasting_notes||[]).map(n=>n.label+" "+n.value).join(" "));return terms.length?`<div class="tasting"><div class="sl">📚 이 술 용어 풀이 <span class="src">알쓸신주</span></div>${terms.map(g=>`<div class="lrow"><span class="lt">${g.t}</span><span class="ld">${esc(g.d)}</span></div>`).join("")}</div>`:"";})()}
     <div class="tabs"><button class="tab on" data-tab="stores">지점별 재고</button>${p.seller?`<button class="tab" data-tab="seller">💸 최저가처</button>`:""}<button class="tab" data-tab="reviews">리뷰 ${p.review_count?`(${p.review_count})`:""}</button></div>
     <div class="mscroll" id="tabc">${storeHtml}</div>
     <div class="mwarn">⚠ 재고 수치는 시스템 기준이며 <b>현장 실물과 다를 수 있습니다.</b> 방문 전 100% 신뢰하지 마세요.</div></div></div>`;
@@ -407,7 +424,7 @@ document.getElementById("store").onchange=e=>{state.store=e.target.value;rerende
 document.getElementById("sort").onchange=e=>{state.sort=e.target.value;rerender();};
 document.getElementById("pageSize").onchange=e=>{state.pageSize=+e.target.value;state.shown=state.pageSize;render();};
 document.getElementById("track").parentElement.onclick=()=>{state.inStock=!state.inStock;document.getElementById("track").classList.toggle("on",state.inStock);rerender();};
-document.getElementById("cattabs").onclick=e=>{const b=e.target.closest(".cattab");if(b){state.cat=b.dataset.cat;state.watchOnly=false;rerender();}};
+document.getElementById("cattabs").onclick=e=>{const b=e.target.closest(".cattab");if(b){state.cat=b.dataset.cat;rerender();}};  // watchOnly 유지 → 관심상품 안에서 카테고리 필터
 function showMyWatch(){switchView("liquor");state.watchOnly=true;state.cat="전체";state.q="";state.shown=state.pageSize;render();window.scrollTo(0,0);}
 function clearWatchOnly(){state.watchOnly=false;rerender();}
 document.getElementById("grid").onclick=e=>{const c=e.target.closest(".card");if(c){const p=DATA.products.find(x=>x.sku===c.dataset.sku);if(p)detail(p);}};
@@ -446,12 +463,15 @@ function colkageNear(){
   },()=>{btn.textContent="📍 내 주변";alert("위치 권한을 허용하면 가까운 식당순으로 볼 수 있어요.");});
 }
 function switchView(m){
-  const liq=m==="liquor";
+  const liq=m==="liquor", learn=m==="learn";
   document.getElementById("viewLiquor").hidden=!liq;
-  document.getElementById("viewColkage").hidden=liq;
+  document.getElementById("viewColkage").hidden=(m!=="colkage");
+  const vl=document.getElementById("viewLearn"); if(vl)vl.hidden=!learn;
   document.getElementById("navLiquor").classList.toggle("on",liq);
-  document.getElementById("navColkage").classList.toggle("on",!liq);
-  if(!liq)loadColkage();
+  document.getElementById("navColkage").classList.toggle("on",m==="colkage");
+  const nl=document.getElementById("navLearn"); if(nl)nl.classList.toggle("on",learn);
+  if(m==="colkage")loadColkage();
+  else if(learn)renderLearn();
 }
 function loadColkage(){
   if(cloaded)return; cloaded=true;
@@ -512,6 +532,126 @@ function renderColkage(){
 }
 document.getElementById("cq").oninput=()=>{cshown=40;renderColkage();};
 document.getElementById("cregion").onchange=()=>{cshown=40;renderColkage();};
+
+// ── 📚 알쓸신주 (주류 지식) ─────────────────────────────
+// 용어 사전 — 상품 상세에서 이름/테이스팅에 등장하면 풀이를 붙여줌 (사실 기반)
+const GLOSSARY=[
+ {k:["셰리","쉐리"],t:"셰리 캐스크",d:"셰리(스페인 주정강화 와인)를 담았던 오크통. 건포도·견과·초콜릿의 진한 풍미를 줍니다."},
+ {k:["올로로소"],t:"올로로소(Oloroso)",d:"산화 숙성한 드라이한 셰리. 견과·가죽의 묵직함으로 위스키 캐스크로 인기."},
+ {k:["페드로","히메네스"],t:"페드로 히메네스(PX)",d:"가장 단 셰리. 검은 건포도·당밀의 짙은 단맛을 입힙니다."},
+ {k:["아몬티야도"],t:"아몬티야도",d:"피노와 올로로소 중간 스타일의 셰리. 견과·짭짤함."},
+ {k:["포트"],t:"포트 캐스크",d:"포르투갈 포트(주정강화 와인)를 담았던 통. 붉은 과일·달콤함."},
+ {k:["마데이라"],t:"마데이라",d:"산화·가열 숙성한 포르투갈 주정강화 와인. 캐러멜·견과."},
+ {k:["버번"],t:"버번 캐스크",d:"버번을 담았던 새 아메리칸 오크. 바닐라·꿀·코코넛의 밝은 단맛."},
+ {k:["비노","바리끄","바리크"],t:"비노 바리끄",d:"와인을 담았던 작은 오크통(바리끄=225L). 과일·스파이스."},
+ {k:["피티드","피트"],t:"피트(이탄)",d:"이탄을 태워 몰트를 건조 → 스모키·요오드 향. 아일라 위스키의 상징."},
+ {k:["캐스크 스트렝스","캐스크스트렝스","배치 스트렝스"],t:"캐스크 스트렝스",d:"물로 희석하지 않은 원액 도수(보통 55~65%). 물 몇 방울로 향이 열립니다."},
+ {k:["논칠필터","넌칠"],t:"논칠필터",d:"냉각여과를 생략 → 풍미·오일감 보존(차가우면 살짝 흐려질 수 있음)."},
+ {k:["싱글 캐스크","싱글캐스크"],t:"싱글 캐스크",d:"단 하나의 오크통에서만 병입. 통마다 미세하게 다릅니다."},
+ {k:["스몰배치","스몰 배치"],t:"스몰 배치",d:"소량의 엄선된 통을 골라 병입(법적 정의는 없는 표현)."},
+ {k:["빈티지"],t:"빈티지",d:"포도를 수확한 연도(보관 연도 아님). 그해 작황이 품질을 좌우."},
+ {k:["브뤼","브륏"],t:"브뤼(Brut)",d:"스파클링 당도 표기 중 '드라이(단맛 적음)'."},
+ {k:["그랑 크뤼","그랑크뤼"],t:"그랑 크뤼",d:"프랑스 최상위 밭·등급 표기(부르고뉴·보르도 등)."},
+ {k:["레포사도"],t:"레포사도",d:"2~12개월 오크 숙성한 데킬라(블랑코와 아녜호 사이)."},
+ {k:["아녜호"],t:"아녜호",d:"1년 이상 숙성한 데킬라. 부드럽고 오크향."},
+ {k:["다이긴죠"],t:"다이긴죠",d:"정미율 50% 이하로 깎은 최고급 사케. 화려한 향."},
+ {k:["긴죠"],t:"긴죠",d:"정미율 60% 이하 사케. 깔끔하고 향긋."},
+ {k:["준마이"],t:"준마이",d:"쌀·누룩·물로만 빚은 사케(양조알코올 무첨가)."},
+];
+const _GLOSSARY_LATIN=[
+ {re:/\bPX\b/i,t:"페드로 히메네스(PX)",d:"가장 단 셰리. 검은 건포도·당밀의 짙은 단맛."},
+ {re:/\bCS\b/i,t:"캐스크 스트렝스(CS)",d:"물로 희석하지 않은 원액 도수(보통 55~65%)."},
+ {re:/\bNAS\b/i,t:"NAS",d:"연수 미표기(No Age Statement). 연수가 곧 품질은 아님."},
+ {re:/\bVSOP\b/i,t:"VSOP",d:"브랜디/코냑 숙성등급(VS<VSOP<XO, 최소 4년급)."},
+ {re:/\bXO\b/i,t:"XO",d:"코냑 최상급 숙성등급(최소 10년급)."},
+ {re:/\bDOCG\b/i,t:"DOCG",d:"이탈리아 최상위 와인 등급(원산지 통제·보증)."},
+];
+function detectTerms(text){
+  const low=(text||"").toLowerCase(); const out=[]; const seen=new Set();
+  GLOSSARY.forEach(g=>{ if(seen.has(g.t))return; if(g.k.some(k=>low.includes(k))){out.push(g);seen.add(g.t);} });
+  _GLOSSARY_LATIN.forEach(g=>{ if(seen.has(g.t))return; if(g.re.test(text||"")){out.push(g);seen.add(g.t);} });
+  return out;
+}
+let _learnDone=false;
+function renderLearn(){
+  if(_learnDone) return; _learnDone=true;
+  const S=(title,intro,rows,open)=>`<details class="lcard"${open?" open":""}><summary>${title}</summary><div class="lbody">${intro?`<div class="lrow" style="border:none;padding-top:2px;color:var(--sub)">${intro}</div>`:""}${rows.map(r=>`<div class="lrow"><span class="lt">${r[0]}</span><span class="ld">${r[1]}</span></div>`).join("")}</div></details>`;
+  document.getElementById("learnBody").innerHTML=
+  S("🥃 위스키, 뭐가 다를까","원료·산지·증류 방식에 따라 이름이 달라져요.",[
+    ["싱글몰트","<b>한 증류소</b>에서 100% 보리(몰트)로만. 개성이 뚜렷 — 맥캘란·글렌피딕·발베니"],
+    ["블렌디드","여러 증류소의 몰트+그레인 위스키를 섞음. 균형·부드러움 — 발렌타인·조니워커·시바스"],
+    ["블렌디드 몰트","그레인 없이 여러 증류소의 몰트끼리만 블렌딩 (구 '퓨어몰트')"],
+    ["스카치","스코틀랜드산. 최소 3년 오크 숙성. 스모키~과일까지 스펙트럼이 넓음"],
+    ["버번","미국산. 옥수수 <b>51%↑</b> + 새 오크통. 바닐라·카라멜의 달큰함 — 메이커스마크·와일드터키"],
+    ["아이리시","아일랜드산. 보통 <b>3회 증류</b>로 매우 부드러움 — 제임슨·부쉬밀"],
+    ["재패니즈","일본산. 스카치 방식 + 섬세한 밸런스 — 야마자키·히비키"],
+  ],true)+
+  S("🏴 스카치 6대 산지 & 대표 증류소","같은 스카치도 지역색이 뚜렷합니다.",[
+    ["스페이사이드","가장 많은 증류소 밀집. <b>꽃·과일·꿀</b>의 우아함 — 맥캘란·글렌피딕·글렌리벳·발베니"],
+    ["아일라(Islay)","바다·이탄(피트)의 <b>스모키·요오드</b> 향 — 라가불린·아드벡·라프로익"],
+    ["하이랜드","가장 넓은 지역, 스타일 다양(과일~묵직) — 글렌모렌지·달모어·오반"],
+    ["로우랜드","가볍고 산뜻, 입문용 — 오켄토션·글렌킨치"],
+    ["캠벨타운","짭짤·오일리한 개성 — 스프링뱅크"],
+    ["아일랜드(제도)","섬마다 개성, 은은한 스모크 — 탈리스커(스카이섬)·아란"],
+  ])+
+  S("🛢 숙성 & 캐스크(오크통)","위스키 풍미의 60~70%는 '어떤 통에서 얼마나' 익혔는지에서 나와요.",[
+    ["버번 캐스크","버번을 담았던 아메리칸 오크. <b>바닐라·꿀·코코넛</b>의 밝은 단맛"],
+    ["셰리 캐스크","셰리 와인을 담았던 유러피안 오크. <b>건포도·견과·초콜릿</b>의 진한 풍미 — 맥캘란"],
+    ["포트/와인 캐스크","포트·레드와인 통. <b>붉은 과일·달콤함</b>. '포트우드', '비노 바리끄' 등"],
+    ["캐스크 피니시","기본 숙성 후 <b>다른 통에 추가 숙성</b>해 풍미를 덧입힘 (더블우드 등)"],
+    ["숙성 연수(12·18년)","<b>오크통 속</b>에서 보낸 최소 기간. 병에 담으면 더는 숙성 안 됨"],
+    ["NAS","No Age Statement — 연수 미표기. 어린 원액+숙성 원액 블렌딩, 연수≠품질"],
+    ["엔젤스 셰어","숙성 중 매년 증발하는 양(연 ~2%). '천사의 몫'이라 부름"],
+  ])+
+  S("🍇 와인 포도 품종","품종이 와인의 성격을 결정합니다.",[
+    ["까베르네 소비뇽","레드의 왕. <b>진한 바디·높은 탄닌</b>, 블랙커런트 — 보르도·나파"],
+    ["메를로","부드럽고 둥근 질감, 자두·초콜릿. 까베르네와 자주 블렌딩"],
+    ["피노누아","가볍고 섬세, <b>붉은 베리·흙내</b>. 부르고뉴의 얼굴"],
+    ["시라/쉬라즈","스파이시·후추·다크베리, 묵직 — 론·호주"],
+    ["샤도네이","화이트 대표. 오크 숙성 시 <b>버터·바닐라</b>의 풀바디"],
+    ["소비뇽 블랑","상큼한 산도·<b>허브·자몽</b>. 뉴질랜드 말보로 유명"],
+    ["리슬링","드라이~스위트 폭넓음, 높은 산도·꽃향 — 독일"],
+    ["모스카토/모스카텔","머스캣 향의 <b>달콤함</b>, 저알코올·스파클링"],
+  ])+
+  S("🗓 빈티지 & 와인 상식","라벨의 숫자와 용어 읽는 법.",[
+    ["빈티지","포도를 <b>수확한 연도</b>(보관 연도 아님). 그해 작황이 품질을 좌우"],
+    ["바디","입안에서 느끼는 무게감(라이트~풀바디)"],
+    ["탄닌","떫은맛·구조감. 레드에 많고 숙성으로 부드러워짐"],
+    ["산도 / 당도","산도=상큼함, 당도=드라이(브뤼)~스위트"],
+    ["디캔팅","와인을 공기와 접촉시켜 향을 열어줌(브리딩)"],
+    ["스파클링","<b>샴페인</b>=프랑스 샹파뉴, <b>까바</b>=스페인, <b>프로세코</b>=이탈리아. '브뤼'=드라이"],
+  ])+
+  S("🌍 와인 지역별 특징","같은 품종도 산지에 따라 스타일이 달라집니다.",[
+    ["프랑스 · 보르도","까베르네·메를로 <b>블렌딩</b>. 좌안(메독)=까베르네 중심의 강건함, 우안(생테밀리옹·포므롤)=메를로 중심의 부드러움"],
+    ["프랑스 · 부르고뉴","<b>피노누아</b>(레드)·<b>샤도네이</b>(화이트) 단일 품종. 밭 등급(그랑 크뤼>프르미에 크뤼) 중심"],
+    ["프랑스 · 론","<b>시라</b>·그르나슈. 북부는 시라 단일, 남부는 GSM 블렌딩(샤토네프뒤파프)"],
+    ["프랑스 · 샹파뉴","<b>샴페인</b>의 고향. 샤도네이·피노누아·피노뮈니에"],
+    ["이탈리아 · 토스카나","<b>산지오베제</b> → 키안티·브루넬로 디 몬탈치노"],
+    ["이탈리아 · 피에몬테","<b>네비올로</b> → 바롤로·바르바레스코(탄닌·장기숙성)"],
+    ["스페인 · 리오하","<b>템프라니요</b>. 숙성등급 크리안사<리제르바<그란 리제르바"],
+    ["미국 · 나파밸리","<b>까베르네 소비뇽</b>의 명산지, 풍만하고 진한 스타일"],
+    ["칠레·아르헨티나","칠레=까베르네·카르메네르(가성비), 아르헨티나=<b>말벡</b>(멘도사)"],
+    ["호주·독일","호주=<b>쉬라즈</b>(바로사), 독일=<b>리슬링</b>(모젤·라인가우)"],
+  ])+
+  S("🍸 위스키·와인 말고도","증류주·기타 주류 상식.",[
+    ["브랜디/코냑","포도를 증류. 숙성등급 <b>VS &lt; VSOP &lt; XO</b>. 코냑은 프랑스 코냑 지방산"],
+    ["진","주니퍼베리(향나무 열매)로 향을 낸 증류주. 진토닉의 주인공"],
+    ["럼","사탕수수 원료. 화이트(칵테일)·다크·스파이스드"],
+    ["데킬라","아가베로 만듦. <b>블랑코 → 레포사도 → 아녜호</b> 순으로 숙성↑"],
+    ["사케/청주","쌀 발효. <b>정미율</b>이 낮을수록 고급(다이긴죠 ≤50%, 긴죠 ≤60%)"],
+    ["하이볼","위스키+탄산수. 가볍게 즐기는 입문 스타일"],
+  ])+
+  S("👅 테이스팅 & 용어사전","한 잔을 200% 즐기는 법.",[
+    ["시음 5단계","① 색 → ② 향(노징) → ③ 맛 → ④ 바디 → ⑤ 피니시(여운)"],
+    ["노징(Nosing)","코로 향을 맡는 것. 입 벌리고 살짝 들이마시면 알코올 자극↓"],
+    ["피니시","삼킨 뒤 남는 여운. '롱 피니시'=길게 남음"],
+    ["캐스크 스트렝스","물로 희석 안 한 <b>원액 도수</b>(보통 55~65%). 물 몇 방울로 향이 열림"],
+    ["논칠필터","냉각여과를 안 함 → 풍미·오일감 보존(살짝 흐려질 수 있음)"],
+    ["가수(加水)","물 몇 방울 떨어뜨리면 닫힌 향이 피어남. 도수 높은 술에 추천"],
+    ["ABV","알코올 도수(%). 데킬라 40, 캐스크스트렝스 60 등"],
+  ])+
+  `<div class="sa" style="text-align:center;margin:18px 0 4px">🍶 아는 만큼 맛있습니다. 오늘의 한 잔, 즐겁게!</div>`;
+}
 
 // ── 회원(카카오 로그인) 뼈대 ───────────────────────────────
 // Supabase 프로젝트 값만 채우면 카카오 로그인이 즉시 활성화됩니다(백엔드 연동).
