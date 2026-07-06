@@ -830,6 +830,7 @@ function refreshAuthUI(){
   } else {b.innerHTML="🙋 로그인"; b.onclick=showLogin;}
 }
 const BENEFITS=[
+  ["🤖","AI 바텐더 토킹바 · 7/11 오픈","대화로 술을 고르는 회원 전용 기능 — 곧 만나요"],
   ["💬","카카오톡으로 직접 알림","앱 설치 없이 '나에게 보내기'로 특가·재입고를 카톡으로"],
   ["🎯","내 관심 상품만 콕","전체 알림 대신 워치리스트에 담은 술만 골라서"],
   ["💰","목표가 알림","‘발베니 12년 15만원 이하 되면 알려줘’"],
@@ -939,7 +940,7 @@ async function detailTarget(sku){ await setTargetPrice(sku,_curP?_curP.name:"");
 async function favR(pid){ const it=(CDATA&&CDATA.items||[]).find(x=>x.id===pid); const ok=await toggleFavR(pid,it?it.name:""); if(ok)renderColkage(); }
 initAuth();
 // 첫 방문 1회, 로그인 혜택 자동 안내 (localStorage로 1회만·비강제)
-try{ if(!localStorage.getItem("jurak_login_seen")){ setTimeout(()=>{ if(!document.getElementById("ov")){ showLogin(); localStorage.setItem("jurak_login_seen","1"); } },4500); } }catch(e){}
+try{ if(!localStorage.getItem("jurak_login_seen")){ setTimeout(()=>{ if(!USER && !document.getElementById("ov")){ showLogin(); localStorage.setItem("jurak_login_seen","1"); } },4500); } }catch(e){}  // 비로그인 유저에게만
 </script>
 </body>
 </html>
