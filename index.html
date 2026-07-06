@@ -666,7 +666,7 @@ function renderLearn(){
   `<div class="sa" style="text-align:center;margin:18px 0 4px">🍶 아는 만큼 맛있습니다. 오늘의 한 잔, 즐겁게!</div>`;
 }
 
-// ── 🌟 주락 픽 (트레이더스 밖 명주) ──────────────────────
+// ── 🌟 주락 픽 (애호가의 명주) ──────────────────────
 let PDATA=null, ploaded=false, pshown=24;
 function loadPick(){
   if(ploaded)return; ploaded=true;
@@ -703,7 +703,7 @@ function pickCard(i){
 function renderPick(){
   if(!PDATA)return;
   const list=pickFiltered(), shown=list.slice(0,pshown);
-  document.getElementById("prc").innerHTML=`🌟 트레이더스 밖 명주 <b>${list.length}</b>종 <span style="color:var(--sub)">· 갱신 ${PDATA.updated_at?new Date(PDATA.updated_at).toLocaleDateString("ko-KR"):""}</span>`;
+  document.getElementById("prc").innerHTML=`🌟 애호가의 명주 <b>${list.length}</b>종 <span style="color:var(--sub)">· 갱신 ${PDATA.updated_at?new Date(PDATA.updated_at).toLocaleDateString("ko-KR"):""}</span>`;
   document.getElementById("pgrid").innerHTML=list.length?shown.map(pickCard).join(""):`<div class="empty"><div style="font-size:44px">🌟</div><div style="margin-top:12px">결과가 없습니다</div></div>`;
   document.getElementById("pmore").innerHTML=list.length>shown.length?`<button class="distbtn on" style="padding:11px 22px;cursor:pointer" onclick="pshown+=24;renderPick()">더 보기 (${(list.length-shown.length).toLocaleString()}종)</button>`:"";
 }
