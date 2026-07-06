@@ -479,6 +479,7 @@ fetch("data.json?t="+Date.now(),{cache:"no-store"}).then(r=>r.json()).then(d=>{
   const qs=new URLSearchParams(location.search);
   if(qs.get("special")==="1"){state.cat=SPECIAL;state.shown=state.pageSize;}
   if(qs.get("pick")==="1"){setTimeout(()=>switchView("pick"),100);}
+  if(qs.get("talkbar")==="1"){setTimeout(()=>showTalkbar(),400);}  // 미리보기
   render();
   const sku=qs.get("sku");
   if(sku){const p=DATA.products.find(x=>x.sku===sku);if(p)detail(p);}
@@ -749,6 +750,7 @@ function bartenderRecs(){
   pool.sort((a,b)=>((b.rating||0)-(a.rating||0))||(Math.abs((a.price||0)-mid)-Math.abs((b.price||0)-mid)));
   return {topCat,mid,recs:pool.slice(0,4),n:v.length};
 }
+function _tbTry(n){ if(localStorage.getItem("jurak_talkbar_seen")||n>8)return; setTimeout(()=>{ if(document.getElementById("ov")){_tbTry(n+1);return;} showTalkbar(); },1000); }
 function showTalkbar(){
   try{localStorage.setItem("jurak_talkbar_seen","1");}catch(e){}
   const feats=[
@@ -828,7 +830,7 @@ function refreshAuthUI(){
   if(USER){
     b.innerHTML="🙋 "+esc(displayName().slice(0,8))+"님"; b.onclick=showAccount;  // XSS 방지 esc
     if(!((USER.user_metadata||{}).nickname) && !_nickPrompted){_nickPrompted=true; setTimeout(()=>{if(!document.getElementById("ov"))showAccount();},600);}  // 닉네임 없으면 설정 유도
-    else if(!_talkbarShown && !localStorage.getItem("jurak_talkbar_seen")){_talkbarShown=true; setTimeout(()=>{if(!document.getElementById("ov"))showTalkbar();},900);}  // AI 토킹바 출시 티저(회원 1회)
+    else if(!_talkbarShown && !localStorage.getItem("jurak_talkbar_seen")){_talkbarShown=true; _tbTry(0);}  // AI 토킹바 출시 티저(회원 1회, 모달 닫히면 표시)
   } else {b.innerHTML="🙋 로그인"; b.onclick=showLogin;}
 }
 const BENEFITS=[
