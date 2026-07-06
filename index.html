@@ -506,7 +506,7 @@ document.getElementById("cregion").onchange=()=>{cshown=40;renderColkage();};
 
 // ── 회원(카카오 로그인) 뼈대 ───────────────────────────────
 // Supabase 프로젝트 값만 채우면 카카오 로그인이 즉시 활성화됩니다(백엔드 연동).
-const AUTH_CFG = { url:"", anon:"" };   // ← Supabase Project URL / anon(public) key
+const AUTH_CFG = { url:"https://hzliwugasthzxamfpwxo.supabase.co", anon:"sb_publishable_mpTkGUSL4hPWbpv5SHyGYg_kHjkg8aP" };   // Supabase URL / publishable(public) key
 let SUPA=null, USER=null;
 function authReady(){ return !!SUPA; }
 function initAuth(){
