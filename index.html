@@ -59,6 +59,7 @@
   .sc{font-size:11px;color:var(--sub)}.dl{font-size:11px;font-weight:700;color:var(--amber)}
   .overlay{position:fixed;inset:0;background:rgba(43,38,34,.42);backdrop-filter:blur(3px);z-index:1000;display:flex;align-items:center;justify-content:center;padding:18px}
   .modal{background:var(--bg);border-radius:20px;width:100%;max-width:540px;max-height:88vh;overflow:hidden;display:flex;flex-direction:column;box-shadow:0 24px 70px rgba(43,38,34,.28)}
+  .modalSm{background:var(--card);border-radius:20px;width:100%;max-width:460px;max-height:84vh;overflow:hidden;display:flex;flex-direction:column;box-shadow:0 24px 70px rgba(43,38,34,.28)}
   .hero{display:flex;gap:14px;padding:20px 20px 16px;background:var(--card);border-bottom:1px solid var(--line);position:relative}
   .hero .im{width:84px;height:84px;border-radius:14px;background:#FBFAF7;border:1px solid var(--line);display:flex;align-items:center;justify-content:center;flex-shrink:0;overflow:hidden}
   .hero .im img{width:100%;height:100%;object-fit:contain;padding:6px;mix-blend-mode:multiply}
@@ -299,12 +300,25 @@ function showAlert(){
       <div class="alstep"><b>③</b> 끝! 알림이 뜨면 눌러서 페이지로 이동돼요.</div>
       <div class="sa" style="margin-top:14px">💻 <b>PC</b>는 앱 없이 → <a href="https://ntfy.sh/app" target="_blank" style="color:var(--amberD);font-weight:700">ntfy.sh/app</a> 열기 → <b>+ Subscribe</b> → 토픽 <b>${T}</b> 입력 → 브라우저 알림 허용<br><span style="color:#B9AE9E">(주소창에 토픽을 직접 붙이면 404가 날 수 있어요. 반드시 <b>ntfy.sh/app</b> 에서 추가하세요.)</span></div>
       <div style="margin-top:16px;padding-top:14px;border-top:1px solid var(--line)">
-        <div class="sl" style="margin-bottom:6px">📧 앱이 부담되면 — 이메일로 받기</div>
-        ${EMAIL_FORM_URL?`<a class="distbtn on" style="text-decoration:none;padding:8px 14px;display:inline-block" href="${EMAIL_FORM_URL}" target="_blank">📧 이메일 구독하기</a>`:`<div class="sa">이메일 구독은 곧 열립니다. 우선 ntfy 앱을 이용해 주세요.</div>`}
+        <div class="sl" style="margin-bottom:6px">📧 앱이 부담되면 — 이메일로 받기 (하루 1회 정리)</div>
+        <div style="display:flex;gap:8px">
+          <input id="subEmail" type="email" placeholder="your@email.com" style="flex:1;background:var(--card);border:1px solid var(--line);border-radius:10px;padding:9px 11px;font-size:13px;outline:none">
+          <button class="distbtn on" style="border:none" onclick="subscribeEmail()">구독</button>
+        </div>
+        <div class="sa" id="subMsg" style="margin-top:8px"></div>
       </div>
     </div></div></div>`;
 }
 function copyTopic(){const t=NTFY_TOPIC;navigator.clipboard&&navigator.clipboard.writeText(t);const c=document.querySelector(".copy");if(c){c.textContent="복사됨!";setTimeout(()=>c.textContent="복사",1500);}}
+function subscribeEmail(){
+  const el=document.getElementById("subEmail"), msg=document.getElementById("subMsg");
+  const em=(el.value||"").trim();
+  if(!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(em)){msg.style.color="#D8562F";msg.textContent="올바른 이메일을 입력해 주세요.";return;}
+  msg.style.color="var(--sub)";msg.textContent="등록 중…";
+  fetch("https://ntfy.sh/traders-liquor-kr-subscribe",{method:"POST",body:"SUBSCRIBE "+em})
+    .then(()=>{msg.style.color="#1F9E5A";msg.textContent="✅ 구독 완료! 특가·재입고 소식을 메일로 보내드릴게요.";el.value="";})
+    .catch(()=>{msg.style.color="#D8562F";msg.textContent="잠시 후 다시 시도해 주세요.";});
+}
 
 // events
 document.getElementById("q").oninput=e=>{state.q=e.target.value;render();};
@@ -327,6 +341,9 @@ fetch("data.json?t="+Date.now(),{cache:"no-store"}).then(r=>r.json()).then(d=>{
   document.getElementById("upd").textContent="갱신 "+new Date(d.updated_at).toLocaleString("ko-KR",{month:"2-digit",day:"2-digit",hour:"2-digit",minute:"2-digit"});
   const ss=document.getElementById("store");d.branches.forEach(b=>{const o=document.createElement("option");o.value=b.store_id;o.textContent=b.name;ss.appendChild(o);BRANCH[b.store_id]=b;if(b.lat&&b.lng)STORE_COORDS[b.store_id]={lat:b.lat,lng:b.lng};});
   render();
+  // 딥링크: 알림/메일의 ?sku=… 로 들어오면 해당 상품 상세를 바로 연다
+  const sku=new URLSearchParams(location.search).get("sku");
+  if(sku){const p=DATA.products.find(x=>x.sku===sku);if(p)detail(p);}
 }).catch(e=>{document.getElementById("grid").innerHTML=`<div class="empty">데이터를 불러오지 못했습니다. (data.json)</div>`;});
 </script>
 </body>
