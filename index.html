@@ -15,11 +15,11 @@
   ::-webkit-scrollbar{width:8px;height:8px}::-webkit-scrollbar-thumb{background:#D8D0C4;border-radius:4px}
   @keyframes spin{to{transform:rotate(360deg)}}
   .wrap{max-width:1320px;margin:0 auto}
-  header{background:rgba(246,243,238,.9);backdrop-filter:saturate(1.6) blur(10px);border-bottom:1px solid var(--line);padding:0 20px;position:sticky;top:0;z-index:100}
+  header{background:linear-gradient(180deg,#221910,#2A2013);border-bottom:1px solid #3D2F1B;padding:0 20px;position:sticky;top:0;z-index:100}
   .hin{max-width:1320px;margin:0 auto;display:flex;align-items:center;justify-content:space-between;height:62px;gap:12px;flex-wrap:wrap}
   .logo{display:flex;align-items:center;gap:10px}
-  .logo .ic{font-size:24px}.logo .t{font-size:17px;font-weight:800;color:var(--amberD);letter-spacing:.06em}.logo .s{font-size:11px;color:var(--sub)}
-  .upd{font-size:11.5px;color:var(--sub);background:var(--card);border:1px solid var(--line);border-radius:20px;padding:5px 11px}
+  .logo .ic{font-size:24px}.logo .t{font-size:17px;font-weight:800;color:#E5C57F;letter-spacing:.12em}.logo .s{font-size:11px;color:#A8946E;letter-spacing:.02em}
+  .upd{font-size:11.5px;color:#C7B592;background:rgba(255,255,255,.05);border:1px solid #46361F;border-radius:20px;padding:5px 11px}
   .srcbtn{font-size:12px;font-weight:700;color:var(--amberD);background:var(--card);border:1px solid #EBDCBE;border-radius:10px;padding:8px 12px;text-decoration:none;box-shadow:var(--sh)}
   .warn{background:#FCF3E6;border-bottom:1px solid #F2E3C9;color:#9A6A16;font-size:12.5px;padding:9px 20px;text-align:center;line-height:1.5}
   .catbar{background:var(--bg);border-bottom:1px solid var(--line);padding:0 20px;position:sticky;top:62px;z-index:90}
@@ -129,13 +129,16 @@
     .viewnav .primary small{display:none}
     .viewnav .minor{font-size:12px;padding:11px 4px}
   }
-  /* 최상단 히어로 검색 — 핵심 가치(재고·최저가 비교)로 바로 진입 */
-  .herosearch{background:var(--bg);padding:14px 20px 2px}
+  /* 최상단 글로벌 검색 — 딜+픽 통합, 헤더와 한 몸인 프리미엄 다크 밴드 */
+  .herosearch{background:linear-gradient(180deg,#2A2013,#332818);padding:16px 20px 14px;border-bottom:1px solid var(--line)}
   .herosearch .hwrap{max-width:1180px;margin:0 auto}
-  .herosearch .search input{font-size:15px;padding:14px 40px;border-radius:14px;border:1px solid var(--amber);box-shadow:0 3px 12px rgba(184,121,26,.14)}
-  .herosearch .search span{font-size:15px}
-  .hsline{margin-top:7px;font-size:12px;color:var(--sub);padding:0 4px;line-height:1.5}
-  .hsline b{color:var(--amberD)}
+  .herosearch .search input{font-size:15px;padding:14px 42px;border-radius:14px;background:#FFFDF8;border:1px solid #C9A45C;box-shadow:0 4px 18px rgba(0,0,0,.28)}
+  .herosearch .search input:focus{border-color:#E5C57F;outline:none}
+  .herosearch .search span{font-size:15px;opacity:.55}
+  .hsline{margin-top:9px;font-size:12px;color:#B4A17C;padding:0 4px;line-height:1.5}
+  .hsline b{color:#E0C078}
+  /* 통합 검색 — 딜 결과 하단의 주락 픽 매칭 섹션 */
+  .xph{margin:28px 0 12px;padding-top:20px;border-top:1px dashed var(--line);font-size:14px;color:var(--ink);display:flex;align-items:center;gap:6px;flex-wrap:wrap}
   /* 콜키지 */
   #cmap{height:340px;border-radius:14px;border:1px solid var(--line);z-index:0;position:relative;background:#EFEBE4}
   .maploading{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;gap:8px;background:#EFEBE4;color:var(--sub);font-size:13px;font-weight:700;z-index:400;border-radius:14px}
@@ -189,6 +192,10 @@
     <button class="srcbtn" id="alertbtn" onclick="showAlert()" style="background:#FCEBE5;color:#B0431F;border-color:#F5C9B8" title="특가·재입고·가격변동 알림 (무료·로그인 불필요)">🔔 알림 받기</button>
   </div>
 </div></header>
+<div class="herosearch"><div class="hwrap">
+  <div class="search"><span>🔍</span><input id="q" placeholder="어떤 술을 찾으세요? — 트레이더스 딜 + 주락 픽 통합 검색 (예: 발베니, 야마자키)" /></div>
+  <div class="hsline">🍶 <b>합리적으로 사고, 즐겁게 마시다</b> — 전국 트레이더스 24개 지점 <b id="hsN">–</b>종의 재고·최저가, 그리고 그 밖의 명주까지 한 번에.</div>
+</div></div>
 <div class="viewnav">
   <button id="navLiquor" class="on primary" onclick="switchView('liquor')" title="트레이더스 전국 24개 지점 재고·최저가 비교 — 주락의 본진">🛒 주락 딜<small>재고 · 최저가 비교</small></button>
   <button id="navPick" onclick="switchView('pick')" title="트레이더스 밖 애호가의 명주 큐레이션">🌟 주락 픽</button>
@@ -196,10 +203,6 @@
   <button id="navLearn" class="minor" onclick="switchView('learn')" title="알아두면 쓸모있는 술 지식">📚 알쓸신주</button>
 </div>
 <div id="viewLiquor">
-<div class="herosearch"><div class="hwrap">
-  <div class="search"><span>🔍</span><input id="q" placeholder="어떤 술을 찾으세요? — 재고·최저가 바로 비교 (예: 발베니, 까베르네)" /></div>
-  <div class="hsline">🍶 <b>합리적으로 사고, 즐겁게 마시다</b> — 전국 트레이더스 24개 지점, <b id="hsN">–</b>종의 재고와 최저가를 오늘도 비교하고 있어요.</div>
-</div></div>
 <div class="warn">🛒 <b>주락 딜</b> · 이마트 트레이더스 <b>전국 24개 지점 주류 재고·가격</b>과 <b>데일리샷 최저가 비교</b>를 한눈에 — 하루 1회 갱신이라 <b>현장 실물과 다를 수 있으니 방문 전 확인</b>하세요. (조회 전용)</div>
 <div class="catbar"><div class="wrap"><div class="cattabs" id="cattabs"></div></div></div>
 <div class="filter"><div class="wrap"><div class="frow">
@@ -208,7 +211,7 @@
   <select id="pageSize"><option value="20">20개씩</option><option value="50" selected>50개씩</option><option value="100">100개씩</option></select>
   <label class="toggle"><div class="track" id="track"><div class="thumb"></div></div><span>재고있는 것만</span></label>
 </div></div></div>
-<main><div class="wrap"><div class="rc" id="rc"></div><div class="grid" id="grid"><div class="loading"><div class="sp"></div> 데이터 불러오는 중…</div></div><div id="more" style="text-align:center;margin:22px 0"></div></div></main>
+<main><div class="wrap"><div class="rc" id="rc"></div><div class="grid" id="grid"><div class="loading"><div class="sp"></div> 데이터 불러오는 중…</div></div><div id="more" style="text-align:center;margin:22px 0"></div><div id="crossPick"></div></div></main>
 </div><!-- /viewLiquor -->
 <section id="viewColkage" hidden>
   <div class="warn">🍷 <b>서울·수도권 콜키지프리 식당</b> — 내 술을 가져가 마실 수 있는 곳(카카오맵 평점 3.5+). 주 3회 갱신 · ⚠ <b>콜키지 정책은 매장 사정으로 바뀔 수 있으니 방문 전 전화 확인</b> 권장.</div>
@@ -332,6 +335,7 @@ function render(){
   if(list.length>shown.length){
     more.innerHTML=`<button class="distbtn on" style="padding:11px 22px;font-size:14px" onclick="showMore()">더 보기 (${(list.length-shown.length).toLocaleString()}개 더)</button>`;
   } else { more.innerHTML=""; }
+  renderCrossPick();
 }
 function showMore(){state.shown+=state.pageSize;render();}
 
@@ -470,7 +474,9 @@ function subscribeEmail(){
 
 // events — 필터 변경 시 표시개수 초기화 후 렌더
 const rerender=()=>{state.shown=state.pageSize;render();};
-document.getElementById("q").oninput=e=>{state.q=e.target.value;rerender();};
+document.getElementById("q").oninput=e=>{state.q=e.target.value;
+  if(state.q.trim()&&document.getElementById("viewLiquor").hidden)switchView("liquor");  // 통합 검색: 어느 뷰에서든 딜+픽 결과로
+  rerender();};
 document.getElementById("store").onchange=e=>{state.store=e.target.value;rerender();};
 document.getElementById("sort").onchange=e=>{state.sort=e.target.value;rerender();};
 document.getElementById("pageSize").onchange=e=>{state.pageSize=+e.target.value;state.shown=state.pageSize;render();};
@@ -723,6 +729,7 @@ function loadPick(){
     const sel=document.getElementById("pcat");
     cats.forEach(c=>{const o=document.createElement("option");o.value=c;o.textContent=(CAT_ICON[c]||"🍾")+" "+c;sel.appendChild(o);});
     renderPick();
+    renderCrossPick();  // 통합 검색 대기 중이던 픽 매칭 반영
   }).catch(()=>{document.getElementById("prc").innerHTML='<div class="empty">명주 셀렉션을 준비 중이에요. 잠시 후 다시 열어주세요.</div>';});
 }
 function pickFiltered(){
@@ -753,6 +760,17 @@ function renderPick(){
   document.getElementById("pgrid").innerHTML=list.length?shown.map(pickCard).join(""):`<div class="empty"><div style="font-size:44px">🌟</div><div style="margin-top:12px">결과가 없습니다</div></div>`;
   document.getElementById("pmore").innerHTML=list.length>shown.length?`<button class="distbtn on" style="padding:11px 22px;cursor:pointer" onclick="pshown+=24;renderPick()">더 보기 (${(list.length-shown.length).toLocaleString()}종)</button>`:"";
 }
+// ── 통합 검색: 딜 검색 결과 하단에 주락 픽 매칭 함께 노출 ─────────────
+function renderCrossPick(){
+  const el=document.getElementById("crossPick"); if(!el)return;
+  const q=(state.q||"").toLowerCase().trim();
+  if(!q){el.innerHTML="";return;}
+  if(!PDATA){el.innerHTML=""; if(!ploaded)loadPick(); return;}
+  const m=PDATA.items.filter(i=>((i.name||"")+" "+(i.subcategory||"")).toLowerCase().includes(q));
+  if(!m.length){el.innerHTML="";return;}
+  el.innerHTML=`<div class="xph">🌟 <b>주락 픽</b>에서도 <b>${m.length}</b>종 — 트레이더스 밖 명주${m.length>4?` <button class="distbtn" style="padding:6px 12px;margin-left:6px" onclick="goPickSearch()">픽에서 모두 보기 →</button>`:""}</div><div class="grid">${m.slice(0,4).map(pickCard).join("")}</div>`;
+}
+function goPickSearch(){const pq=document.getElementById("pq");if(pq)pq.value=state.q||"";pshown=24;switchView("pick");if(PDATA)renderPick();}
 document.getElementById("pq").oninput=()=>{pshown=24;renderPick();};
 document.getElementById("pcat").onchange=()=>{pshown=24;renderPick();};
 document.getElementById("psort").onchange=()=>{pshown=24;renderPick();};
