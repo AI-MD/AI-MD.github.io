@@ -115,11 +115,27 @@
     main{padding:12px 14px 48px}
     .grid{grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:11px}
   }
-  /* 뷰 전환 탭 */
-  .viewnav{display:flex;gap:7px;padding:10px 14px 0;max-width:1180px;margin:0 auto}
+  /* 뷰 전환 탭 — 위계: 딜(주력) > 픽·콜키지(보조) > 알쓸신주(참고) */
+  .viewnav{display:flex;gap:7px;padding:10px 14px 0;max-width:1180px;margin:0 auto;align-items:stretch}
   .viewnav button{flex:1;min-width:0;padding:11px 8px;border:1px solid var(--line);background:var(--card);color:var(--sub);
     border-radius:12px;font-weight:800;font-size:14px;cursor:pointer;transition:.15s;white-space:nowrap}
   .viewnav button.on{background:var(--amber);color:#fff;border-color:var(--amber);box-shadow:0 3px 10px rgba(184,121,26,.28)}
+  .viewnav .primary{flex:1.8;font-size:15px;border-color:var(--amber);color:var(--amberD)}
+  .viewnav .primary small{display:block;font-size:10.5px;font-weight:600;opacity:.72;margin-top:1px;letter-spacing:0}
+  .viewnav .primary.on small{opacity:.85}
+  .viewnav .minor{flex:.72;background:transparent;border-color:transparent;box-shadow:none;font-weight:700;font-size:12.5px}
+  @media (max-width:700px){
+    .viewnav .primary{flex:1.35;font-size:14px}
+    .viewnav .primary small{display:none}
+    .viewnav .minor{font-size:12px;padding:11px 4px}
+  }
+  /* 최상단 히어로 검색 — 핵심 가치(재고·최저가 비교)로 바로 진입 */
+  .herosearch{background:var(--bg);padding:14px 20px 2px}
+  .herosearch .hwrap{max-width:1180px;margin:0 auto}
+  .herosearch .search input{font-size:15px;padding:14px 40px;border-radius:14px;border:1px solid var(--amber);box-shadow:0 3px 12px rgba(184,121,26,.14)}
+  .herosearch .search span{font-size:15px}
+  .hsline{margin-top:7px;font-size:12px;color:var(--sub);padding:0 4px;line-height:1.5}
+  .hsline b{color:var(--amberD)}
   /* 콜키지 */
   #cmap{height:340px;border-radius:14px;border:1px solid var(--line);z-index:0;position:relative;background:#EFEBE4}
   .maploading{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;gap:8px;background:#EFEBE4;color:var(--sub);font-size:13px;font-weight:700;z-index:400;border-radius:14px}
@@ -174,16 +190,19 @@
   </div>
 </div></header>
 <div class="viewnav">
-  <button id="navLiquor" class="on" onclick="switchView('liquor')">🛒 주락 딜</button>
-  <button id="navPick" onclick="switchView('pick')">🌟 주락 픽</button>
-  <button id="navColkage" onclick="switchView('colkage')">🍽 콜키지</button>
-  <button id="navLearn" onclick="switchView('learn')">📚 알쓸신주</button>
+  <button id="navLiquor" class="on primary" onclick="switchView('liquor')" title="트레이더스 전국 24개 지점 재고·최저가 비교 — 주락의 본진">🛒 주락 딜<small>재고 · 최저가 비교</small></button>
+  <button id="navPick" onclick="switchView('pick')" title="트레이더스 밖 애호가의 명주 큐레이션">🌟 주락 픽</button>
+  <button id="navColkage" onclick="switchView('colkage')" title="내 술 들고 가는 콜키지프리 식당">🍽 콜키지</button>
+  <button id="navLearn" class="minor" onclick="switchView('learn')" title="알아두면 쓸모있는 술 지식">📚 알쓸신주</button>
 </div>
 <div id="viewLiquor">
+<div class="herosearch"><div class="hwrap">
+  <div class="search"><span>🔍</span><input id="q" placeholder="어떤 술을 찾으세요? — 재고·최저가 바로 비교 (예: 발베니, 까베르네)" /></div>
+  <div class="hsline">🍶 <b>합리적으로 사고, 즐겁게 마시다</b> — 전국 트레이더스 24개 지점, <b id="hsN">–</b>종의 재고와 최저가를 오늘도 비교하고 있어요.</div>
+</div></div>
 <div class="warn">🛒 <b>주락 딜</b> · 이마트 트레이더스 <b>전국 24개 지점 주류 재고·가격</b>과 <b>데일리샷 최저가 비교</b>를 한눈에 — 하루 1회 갱신이라 <b>현장 실물과 다를 수 있으니 방문 전 확인</b>하세요. (조회 전용)</div>
 <div class="catbar"><div class="wrap"><div class="cattabs" id="cattabs"></div></div></div>
 <div class="filter"><div class="wrap"><div class="frow">
-  <div class="search"><span>🔍</span><input id="q" placeholder="주류 검색 (예: 발렌타인, 발베니)…" /></div>
   <select id="store"><option value="">전지점 집계</option></select>
   <select id="sort"><option value="stock_desc">재고 많은순</option><option value="name">이름순</option><option value="price_asc">낮은 가격순</option><option value="price_desc">높은 가격순</option></select>
   <select id="pageSize"><option value="20">20개씩</option><option value="50" selected>50개씩</option><option value="100">100개씩</option></select>
@@ -474,6 +493,7 @@ fetch("data.json?t="+Date.now(),{cache:"no-store"}).then(r=>r.json()).then(d=>{
   DATA=d;
   document.getElementById("upd").textContent="갱신 "+new Date(d.updated_at).toLocaleString("ko-KR",{month:"2-digit",day:"2-digit",hour:"2-digit",minute:"2-digit"});
   const vs=document.getElementById("vsubs");if(vs)vs.textContent=(d.subscriber_count||0).toLocaleString();
+  const hn=document.getElementById("hsN");if(hn)hn.textContent=(d.products||[]).length.toLocaleString();
   const ss=document.getElementById("store");d.branches.forEach(b=>{const o=document.createElement("option");o.value=b.store_id;o.textContent=b.name;ss.appendChild(o);BRANCH[b.store_id]=b;if(b.lat&&b.lng)STORE_COORDS[b.store_id]={lat:b.lat,lng:b.lng};});
   // 딥링크: ?special=1 → 특가만, ?sku=… → 해당 상품 상세
   const qs=new URLSearchParams(location.search);
