@@ -294,6 +294,7 @@ const CAT_ICON={전체:"🍾",위스키:"🥃",와인:"🍷",스파클링:"🥂"
 const CAT_ORDER=["위스키","와인","스파클링","브랜디","리큐르","진","럼","데킬라","보드카","사케·전통주","하이볼","기타"];
 const REPO="https://github.com/AI-MD/traders-liquor-tracker";
 const NTFY_TOPIC="traders-liquor-kr-alerts";
+const VAPID_PUBLIC="BO-C5RFke5bE3trhqbhd2ZbkXnxptohVqTuzv7tUIrRBcoegaF9hu2wudy04BySs0hqd2dcwGEA8GK342rDRN0o";  // 웹푸시 공개키(노출 안전)
 const EMAIL_FORM_URL="";  // 구글폼 주소 입력 시 '이메일 구독' 버튼 활성화
 let DATA=null, state={cat:"전체",q:"",store:"",sort:"stock_desc",inStock:false,pageSize:50,shown:50,watchOnly:false};
 let USER_LOC=null;                 // 위치 조회 결과 {lat,lng}
@@ -472,6 +473,46 @@ function detail(p){
   document.querySelectorAll(".tab").forEach(t=>t.onclick=()=>{document.querySelectorAll(".tab").forEach(x=>x.classList.remove("on"));t.classList.add("on");document.getElementById("tabc").innerHTML=t.dataset.tab==="stores"?storesHtml(!!USER_LOC):(t.dataset.tab==="seller"?sellerHtml:revHtml);});
 }
 function closeModal(){document.getElementById("modalRoot").innerHTML="";}
+// ── 웹푸시(익명·무료) — 앱 설치 없이 이 브라우저로 알림 ─────────────
+function _wpB64ToU8(b64){const pad="=".repeat((4-b64.length%4)%4);const s=(b64+pad).replace(/-/g,"+").replace(/_/g,"/");const r=atob(s);const a=new Uint8Array(r.length);for(let i=0;i<r.length;i++)a[i]=r.charCodeAt(i);return a;}
+function webpushSupported(){return ("serviceWorker" in navigator)&&("PushManager" in window)&&("Notification" in window);}
+async function webpushRefreshState(){
+  const st=document.getElementById("wpState"), btn=document.getElementById("wpBtn");
+  if(!webpushSupported()){if(btn){btn.disabled=true;btn.style.opacity=".5";}if(st)st.textContent="이 브라우저는 웹푸시를 지원하지 않아요 — 아래 ntfy·이메일을 이용해 주세요.";return;}
+  const isIOS=/iphone|ipad|ipod/i.test(navigator.userAgent);
+  const standalone=(window.matchMedia&&window.matchMedia("(display-mode: standalone)").matches)||navigator.standalone===true;
+  if(isIOS&&!standalone){if(st)st.innerHTML="🍎 아이폰은 <b>공유 → 홈 화면에 추가</b> 후, 설치된 앱에서 켜주세요.";return;}
+  try{const reg=await navigator.serviceWorker.ready;const sub=await reg.pushManager.getSubscription();
+    if(sub){if(st)st.innerHTML="✅ 이 기기 <b>구독 중</b>이에요. 특가·재입고가 뜨면 바로 알려드려요.";if(btn){btn.textContent="🔕 알림 끄기";btn.onclick=webpushUnsub;}}
+  }catch(e){}
+}
+async function webpushToggle(){
+  const st=document.getElementById("wpState");
+  if(!webpushSupported()){if(st)st.textContent="이 브라우저는 웹푸시를 지원하지 않아요.";return;}
+  const isIOS=/iphone|ipad|ipod/i.test(navigator.userAgent);
+  const standalone=(window.matchMedia&&window.matchMedia("(display-mode: standalone)").matches)||navigator.standalone===true;
+  if(isIOS&&!standalone){if(st)st.innerHTML="🍎 아이폰은 <b>공유 → 홈 화면에 추가</b> 후, 설치된 앱에서 켜주세요.";return;}
+  try{
+    if(st)st.textContent="알림 권한을 확인하는 중…";
+    const perm=await Notification.requestPermission();
+    if(perm!=="granted"){if(st)st.innerHTML="🔕 알림이 <b>차단</b>돼 있어요. 브라우저 주소창 옆 자물쇠 → 알림 허용 후 다시 시도해 주세요.";return;}
+    const reg=await navigator.serviceWorker.ready;
+    let sub=await reg.pushManager.getSubscription();
+    if(!sub)sub=await reg.pushManager.subscribe({userVisibleOnly:true,applicationServerKey:_wpB64ToU8(VAPID_PUBLIC)});
+    const j=sub.toJSON();
+    const r=await fetch(AUTH_CFG.url+"/rest/v1/push_subscriptions",{method:"POST",headers:{"Content-Type":"application/json","apikey":AUTH_CFG.anon,"Authorization":"Bearer "+AUTH_CFG.anon,"Prefer":"return=minimal"},body:JSON.stringify({endpoint:sub.endpoint,p256dh:j.keys.p256dh,auth:j.keys.auth,user_agent:(navigator.userAgent||"").slice(0,300),user_id:(typeof USER!=="undefined"&&USER&&USER.id)||null})});
+    if(!r.ok&&r.status!==409)throw new Error("save "+r.status);  // 409=이미 구독된 endpoint(정상)
+    if(st)st.innerHTML="✅ <b>구독 완료!</b> 특가·재입고 소식을 이 기기로 바로 보내드릴게요.";
+    try{track("webpush_sub",{});}catch(e){}
+    const btn=document.getElementById("wpBtn");if(btn){btn.textContent="🔕 알림 끄기";btn.onclick=webpushUnsub;}
+  }catch(e){if(st)st.textContent="구독 중 문제가 생겼어요. 잠시 후 다시 시도해 주세요.";}
+}
+async function webpushUnsub(){
+  const st=document.getElementById("wpState");
+  try{const reg=await navigator.serviceWorker.ready;const sub=await reg.pushManager.getSubscription();if(sub)await sub.unsubscribe();}catch(e){}
+  if(st)st.textContent="알림을 껐어요. (서버의 오래된 구독은 발송 시 자동 정리됩니다)";
+  const btn=document.getElementById("wpBtn");if(btn){btn.textContent="📲 이 브라우저로 바로 받기";btn.onclick=webpushToggle;}
+}
 function showAlert(){
   const T=NTFY_TOPIC;
   document.getElementById("modalRoot").innerHTML=`<div class="overlay" id="ov" onclick="closeModal()"><div class="modalSm" onclick="event.stopPropagation()">
@@ -481,6 +522,13 @@ function showAlert(){
         이런 소식을 <b>하루 2회(오전 9시·오후 6시)</b> 정리해 보내드려요:<br>
         🔥 <b>특가</b>(데일리샷 20%↓) · 💸 <b>최저가 변동</b> · 🎉 <b>재입고</b> · 🆕 <b>신상 입고</b> · ⏰ <b>품절임박</b>
       </div>
+      <div style="background:linear-gradient(135deg,#2A2013,#3A2C18);border:1px solid #5C4826;border-radius:12px;padding:13px 15px;margin-bottom:16px">
+        <div style="color:#E5C57F;font-weight:800;font-size:13.5px">📲 가장 간편 — 이 브라우저로 바로 받기</div>
+        <div style="color:#C7B592;font-size:12px;margin-top:3px;line-height:1.6">앱 설치·로그인 없이, 지금 이 폰/PC로 푸시 알림을 받아요. <span style="color:#9C8C6E">(아이폰은 홈 화면에 추가 후)</span></div>
+        <button id="wpBtn" class="distbtn on" style="border:none;margin-top:10px;width:100%;padding:10px;cursor:pointer" onclick="webpushToggle()">📲 이 브라우저로 바로 받기</button>
+        <div id="wpState" class="sa" style="margin-top:8px;font-size:12px;color:#C7B592"></div>
+      </div>
+      <div class="sl" style="margin-bottom:8px;color:var(--sub)">또는 — 앱/이메일로 받기</div>
       <div class="alstep"><b>①</b> <b>ntfy</b> 앱 설치 (무료)
         <div style="display:flex;gap:8px;margin-top:8px">
           <a class="distbtn on" style="text-decoration:none;padding:7px 12px" href="https://apps.apple.com/app/ntfy/id1625396347" target="_blank">App Store</a>
@@ -501,6 +549,7 @@ function showAlert(){
         <div class="sa" id="subMsg" style="margin-top:8px"></div>
       </div>
     </div></div></div>`;
+  setTimeout(webpushRefreshState,30);
 }
 function copyTopic(){const t=NTFY_TOPIC;navigator.clipboard&&navigator.clipboard.writeText(t);const c=document.querySelector(".copy");if(c){c.textContent="복사됨!";setTimeout(()=>c.textContent="복사",1500);}}
 function subscribeEmail(){

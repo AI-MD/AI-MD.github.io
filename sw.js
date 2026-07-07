@@ -3,7 +3,7 @@
    - 데이터 JSON: network-first + 캐시 폴백
    - 정적 자산(아이콘·manifest 등 동일출처 GET): cache-first + 백그라운드 갱신
    - 교차출처/POST/Supabase 등: SW가 관여하지 않음(그대로 네트워크)  */
-const CACHE = "jurak-v1";
+const CACHE = "jurak-v2";
 const APP_SHELL = ["/offline.html", "/manifest.json", "/icon-192.png", "/icon-512.png", "/apple-touch-icon.png"];
 const DATA_FILES = ["/data.json", "/colkage.json", "/dailyshot_top.json"];
 
@@ -51,6 +51,34 @@ async function cacheFirst(req) {
   if (res && res.ok) cache.put(req, res.clone());
   return res;
 }
+
+// ── 웹푸시(익명 브로드캐스트) ─────────────────────────────
+self.addEventListener("push", (event) => {
+  let d = {};
+  try { d = event.data ? event.data.json() : {}; } catch (e) { d = { body: (event.data && event.data.text()) || "" }; }
+  const title = d.title || "🍶 주락 알림";
+  const opts = {
+    body: d.body || "",
+    icon: "/icon-192.png",
+    badge: "/favicon-64.png",
+    tag: d.tag || "jurak-deal",
+    data: { url: d.url || "/" },
+  };
+  event.waitUntil(self.registration.showNotification(title, opts));
+});
+
+self.addEventListener("notificationclick", (event) => {
+  event.notification.close();
+  const target = (event.notification.data && event.notification.data.url) || "/";
+  event.waitUntil(
+    self.clients.matchAll({ type: "window", includeUncontrolled: true }).then((cls) => {
+      for (const c of cls) {
+        if ("focus" in c) { c.navigate && c.navigate(target); return c.focus(); }
+      }
+      return self.clients.openWindow(target);
+    })
+  );
+});
 
 self.addEventListener("fetch", (event) => {
   const req = event.request;
