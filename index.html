@@ -835,18 +835,39 @@ function _tbTry(n){ if(localStorage.getItem("jurak_talkbar_seen")||n>8)return; s
 const TB_LAUNCH=Date.parse("2026-07-10T15:00:00Z");                       // = 7/11 00:00 KST
 const TB_BETA=["3cd90412-0113-435f-a312-d98d826357ec"];                   // 베타 테스터(운영자) — 서버에서도 동일하게 검증
 function talkbarAllowed(){return !!(USER&&SUPA&&DATA)&&(Date.now()>=TB_LAUNCH||TB_BETA.includes(USER.id));}
-function tbEntry(){ if(talkbarAllowed())showTalkbarChat(); else showTalkbar(); }
+function tbEntry(){ if(talkbarAllowed())tbEnterChat(); else showTalkbar(); }
+function tbEnterChat(){  // 주류 권유 성격의 공간 → 만 19세 자기확인 1회
+  let ok=false; try{ok=localStorage.getItem("jurak_adult")==="1";}catch(e){}
+  if(ok)showTalkbarChat(); else showAdultGate();
+}
+function showAdultGate(){
+  document.getElementById("modalRoot").innerHTML=`<div class="overlay" id="ov" onclick="closeModal()"><div class="modalSm" onclick="event.stopPropagation()">
+    <div class="hero" style="align-items:center"><div style="flex:1"><div class="hname">🍷 성인 확인</div><div class="sa">주류를 다루는 공간이에요</div></div><button class="close" onclick="closeModal()">✕</button></div>
+    <div style="padding:16px 20px">
+      <div class="sa" style="line-height:1.75">토킹바는 AI 바텐더가 <b>주류를 추천하는 공간</b>이라 <b>만 19세 이상</b>만 이용할 수 있어요.</div>
+      <button class="kbtn" style="margin-top:14px;background:linear-gradient(135deg,#C98A2B,#8C5A16);color:#fff" onclick="try{localStorage.setItem('jurak_adult','1')}catch(e){};showTalkbarChat()">네, 만 19세 이상입니다</button>
+      <button class="distbtn" style="width:100%;margin-top:8px;padding:11px" onclick="closeModal()">아니요</button>
+    </div></div></div>`;
+}
 function showTalkbarChat(){
   track("talkbar_open",{});
   window._tbMsgs=window._tbMsgs||[];
   document.getElementById("modalRoot").innerHTML=`<div class="overlay" id="ov" onclick="closeModal()"><div class="modalSm tbmodal" onclick="event.stopPropagation()">
-    <div class="hero" style="align-items:center"><div style="flex:1"><div class="hname">🤖 AI 바텐더 토킹바</div><div class="sa">혼술바의 단골 바텐더${Date.now()<TB_LAUNCH?" · <b>베타</b>":""}</div></div><button class="close" onclick="closeModal()">✕</button></div>
+    <div class="hero" style="align-items:center"><div style="flex:1"><div class="hname">🤖 AI 바텐더 토킹바</div><div class="sa">나만 아는 심야 바, 오늘도 한 잔${Date.now()<TB_LAUNCH?" · <b>베타</b>":""}</div></div><button class="close" onclick="closeModal()">✕</button></div>
     <div id="tbBody" class="tbbody"></div>
     <div class="tbrow"><input id="tbIn" placeholder="예산·기분·안주를 말씀해 보세요…" maxlength="300"/><button class="distbtn on" style="padding:10px 16px" onclick="tbSend()">전송</button></div>
     <div class="sa" style="text-align:center;padding:0 16px 12px;font-size:10.5px;color:var(--sub)">지나친 음주는 건강을 해칩니다 · 만 19세 미만 이용 불가 · AI 답변은 참고용 · 대화는 취향 추천을 위해 내 계정에 저장</div>
   </div></div>`;
   document.getElementById("tbIn").addEventListener("keydown",e=>{if(e.key==="Enter")tbSend();});
-  if(!window._tbMsgs.length)window._tbMsgs.push({role:"assistant",text:`어서 오세요${USER?", "+displayName()+"님":""} 🥃 오늘 하루는 어떠셨어요? 예산이나 기분을 말씀해 주시면 지금 트레이더스에 있는 술로 딱 맞게 골라드릴게요.`,skus:[]});
+  if(!window._tbMsgs.length){
+    const nm=USER?displayName()+"님":"손님";
+    const greets=[
+      `${nm} 오셨어요? 🥃 마침 바가 조용했는데, 잘 오셨네요. 오늘 하루는 어땠어요?`,
+      `어서 와요 ${nm} 🍸 늘 앉던 자리 비워뒀어요. 시원한 얘기든 고민이든, 한잔하면서 편하게 해요.`,
+      `${nm}, 딱 좋은 시간에 오셨네요 🥃 오늘은 달달한 쪽이 당겨요, 아니면 좀 묵직한 쪽?`,
+    ];
+    window._tbMsgs.push({role:"assistant",text:greets[Math.floor(Math.random()*greets.length)],skus:[]});
+  }
   tbRender();
   document.getElementById("tbIn").focus();
 }
@@ -873,9 +894,11 @@ async function tbSend(){
   track("talkbar_msg",{len:q.length});
   try{
     const {data:{session}}=await SUPA.auth.getSession();
-    const r=await fetch(AUTH_CFG.url+"/functions/v1/talkbar",{method:"POST",
+    const ac=new AbortController();const to=setTimeout(()=>ac.abort(),20000);  // 20초 타임아웃 (무한로딩 방지)
+    const r=await fetch(AUTH_CFG.url+"/functions/v1/talkbar",{method:"POST",signal:ac.signal,
       headers:{"Content-Type":"application/json","Authorization":"Bearer "+session.access_token,"apikey":AUTH_CFG.anon},
       body:JSON.stringify({messages:window._tbMsgs.filter(m=>m.text).map(m=>({role:m.role,text:m.text})).slice(-30),candidates:_aiCandidates(),nickname:displayName()})});
+    clearTimeout(to);
     const j=await r.json().catch(()=>({}));
     window._tbWait=false;
     if(r.ok&&j.reply)window._tbMsgs.push({role:"assistant",text:j.reply,skus:j.skus||[]});
@@ -902,7 +925,7 @@ function showTalkbar(){
     <div style="padding:16px 20px">
       <div class="sa" style="line-height:1.7;margin-bottom:8px">예산·취향·기분을 말하면 <b>AI 바텐더</b>가 딱 맞는 한 잔을 골라드려요. <b>로그인 회원께 먼저</b> 열립니다 🍸</div>
       ${feats.map(f=>`<div class="benerow"><div class="bi">${f[0]}</div><div><div class="bt">${f[1]}</div><div class="bd">${f[2]}</div></div></div>`).join("")}
-      ${talkbarAllowed()?`<button class="kbtn" style="margin-top:14px;background:linear-gradient(135deg,#C98A2B,#8C5A16);color:#fff" onclick="showTalkbarChat()">🥃 지금 입장하기 (베타)</button>`:`<button class="kbtn" style="margin-top:14px;background:linear-gradient(135deg,#C98A2B,#8C5A16);color:#fff" onclick="closeModal()">🔔 출시되면 가장 먼저 만나기</button>`}
+      ${talkbarAllowed()?`<button class="kbtn" style="margin-top:14px;background:linear-gradient(135deg,#C98A2B,#8C5A16);color:#fff" onclick="tbEnterChat()">🥃 지금 입장하기 (베타)</button>`:`<button class="kbtn" style="margin-top:14px;background:linear-gradient(135deg,#C98A2B,#8C5A16);color:#fff" onclick="closeModal()">🔔 출시되면 가장 먼저 만나기</button>`}
       <div class="sa" style="text-align:center;margin-top:9px;font-size:11.5px;color:var(--sub)">출시 소식은 알림(앱·메일)으로 전해드릴게요</div>
     </div></div></div>`;
 }
@@ -928,7 +951,7 @@ function showBartender(){
   track("bartender_open",{ai:!!(USER&&SUPA&&DATA)});
   if(USER&&SUPA&&DATA){  // 회원: AI 바텐더 (서버 취향 데이터 기반) — 실패 시 로컬 추천으로 폴백
     _bartenderShell(`<div style="text-align:center;padding:26px 0;color:var(--sub)"><div class="sp" style="margin:0 auto 12px"></div>AI 바텐더가 취향을 읽는 중…</div>`,"AI가 고르는 한 잔");
-    aiBartender().then(j=>{const ov=document.getElementById("ov");if(!ov)return; if(j)renderAIBartender(j); else renderLocalBartender();});
+    aiBartender().then(j=>{const ov=document.getElementById("ov");if(!ov)return; try{if(j)renderAIBartender(j); else renderLocalBartender();}catch(e){renderLocalBartender();}});
     return;
   }
   renderLocalBartender();
@@ -943,7 +966,9 @@ async function aiBartender(){
   try{
     const {data:{session}}=await SUPA.auth.getSession();
     if(!session)return null;
-    const r=await fetch(AUTH_CFG.url+"/functions/v1/recommend",{method:"POST",headers:{"Content-Type":"application/json","Authorization":"Bearer "+session.access_token,"apikey":AUTH_CFG.anon},body:JSON.stringify({candidates:_aiCandidates(),nickname:displayName()})});
+    const ac=new AbortController();const to=setTimeout(()=>ac.abort(),12000);  // 12초 넘으면 로컬 추천 폴백 (무한로딩 방지)
+    const r=await fetch(AUTH_CFG.url+"/functions/v1/recommend",{method:"POST",signal:ac.signal,headers:{"Content-Type":"application/json","Authorization":"Bearer "+session.access_token,"apikey":AUTH_CFG.anon},body:JSON.stringify({candidates:_aiCandidates(),nickname:displayName()})});
+    clearTimeout(to);
     if(!r.ok)return null;
     const j=await r.json();
     return (j&&Array.isArray(j.picks)&&j.picks.length)?j:null;
