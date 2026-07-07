@@ -5,10 +5,12 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
 <title>주락 酒樂 — 합리적으로 사고, 즐겁게 마시다</title>
 <meta name="description" content="주락(酒樂) — 트레이더스 전국 24개 지점 주류 재고·최저가 비교 + 서울·수도권 콜키지프리 식당(평점3.5+·지도)까지. 합리적으로 사고, 즐겁게 마시다." />
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/variable/pretendardvariable-dynamic-subset.min.css" />
 <style>
-  :root{--amber:#B8791A;--amberD:#95610F;--ink:#2B2622;--sub:#8A8177;--line:#EAE4DB;--card:#FFF;--bg:#F6F3EE;--green:#1F9E5A;--sh:0 1px 2px rgba(43,38,34,.04),0 4px 16px rgba(43,38,34,.06);}
+  /* 디자인 토큰 — 30~40대 남성 타깃: 에스프레소·샴페인골드·웜뉴트럴 (변경 시 .claude/skills/jurak-design 참고) */
+  :root{--amber:#B8791A;--amberD:#95610F;--ink:#26211A;--sub:#837968;--line:#E6DFD3;--card:#FFF;--bg:#F4F1EA;--green:#1F9E5A;--sh:0 1px 2px rgba(38,33,26,.04),0 4px 16px rgba(38,33,26,.06);}
   *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
-  body{background:var(--bg);color:var(--ink);font-family:'Pretendard','Apple SD Gothic Neo',-apple-system,sans-serif;-webkit-font-smoothing:antialiased}
+  body{background:var(--bg);color:var(--ink);font-family:'Pretendard Variable','Pretendard','Apple SD Gothic Neo',-apple-system,sans-serif;-webkit-font-smoothing:antialiased}
   button{font-family:inherit;cursor:pointer}
   img{max-width:100%}
   a{color:inherit}
@@ -20,6 +22,9 @@
   .logo{display:flex;align-items:center;gap:10px}
   .logo .ic{font-size:24px}.logo .t{font-size:17px;font-weight:800;color:#E5C57F;letter-spacing:.12em}.logo .s{font-size:11px;color:#A8946E;letter-spacing:.02em}
   .upd{font-size:11.5px;color:#C7B592;background:rgba(255,255,255,.05);border:1px solid #46361F;border-radius:20px;padding:5px 11px}
+  /* 헤더 액션 버튼 — 다크 밴드 위 골드 톤 통일 (색상 수 절제) */
+  header .srcbtn{background:rgba(229,197,127,.1);border:1px solid #5C4826;color:#E5C57F;box-shadow:none}
+  header .loginbtn{background:linear-gradient(135deg,#8A6A2E,#B08A3E);border-color:#C9A45C;color:#FFF7E6}
   .srcbtn{font-size:12px;font-weight:700;color:var(--amberD);background:var(--card);border:1px solid #EBDCBE;border-radius:10px;padding:8px 12px;text-decoration:none;box-shadow:var(--sh)}
   .warn{background:#FCF3E6;border-bottom:1px solid #F2E3C9;color:#9A6A16;font-size:13.5px;padding:9px 20px;text-align:center;line-height:1.5}
   .catbar{background:var(--bg);border-bottom:1px solid var(--line);padding:0 20px;position:sticky;top:62px;z-index:90}
@@ -57,6 +62,7 @@
   .ds{font-size:10.5px;font-weight:700;padding:4px 8px;border-radius:7px;margin-bottom:10px;display:inline-block}
   .cfoot{display:flex;align-items:center;justify-content:space-between;gap:6px;border-top:1px solid var(--line);padding-top:9px;margin-top:auto}
   .sc{font-size:12px;color:var(--sub)}.dl{font-size:12px;font-weight:700;color:var(--amber)}
+  .nr{display:none}  /* '평점 없음'은 정보가 아님 — 카드 정보 절제 */
   .overlay{position:fixed;inset:0;background:rgba(43,38,34,.42);backdrop-filter:blur(3px);z-index:1000;display:flex;align-items:center;justify-content:center;padding:18px}
   .modal{background:var(--bg);border-radius:20px;width:100%;max-width:540px;max-height:88vh;overflow:hidden;display:flex;flex-direction:column;box-shadow:0 24px 70px rgba(43,38,34,.28)}
   .modalSm{background:var(--card);border-radius:20px;width:100%;max-width:460px;max-height:84vh;overflow:hidden;display:flex;flex-direction:column;box-shadow:0 24px 70px rgba(43,38,34,.28)}
@@ -111,32 +117,38 @@
     .logo .t{font-size:15px}
     .upd{font-size:10px;max-width:150px}
     .srcbtn{padding:6px 9px;font-size:11px}
+    .hin .hsearch{order:3;flex-basis:100%;max-width:none;margin:0 0 6px}
+    #pageSize{display:none}  /* 모바일 필터 한 줄 압축 */
     .cattabs{padding:9px 0}
     main{padding:12px 14px 48px}
     .grid{grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:11px}
   }
-  /* 뷰 전환 탭 — 위계: 딜(주력) > 픽·콜키지(보조) > 알쓸신주(참고) */
+  /* 뷰 전환 탭 — 위계는 크기가 아니라 색·순서·상태로만 표현 (동일 지오메트리 = 일관성) */
   .viewnav{display:flex;gap:7px;padding:10px 14px 0;max-width:1180px;margin:0 auto;align-items:stretch}
   .viewnav button{flex:1;min-width:0;padding:11px 8px;border:1px solid var(--line);background:var(--card);color:var(--sub);
     border-radius:12px;font-weight:800;font-size:14px;cursor:pointer;transition:.15s;white-space:nowrap}
   .viewnav button.on{background:var(--amber);color:#fff;border-color:var(--amber);box-shadow:0 3px 10px rgba(184,121,26,.28)}
-  .viewnav .primary{flex:1.8;font-size:15px;border-color:var(--amber);color:var(--amberD)}
-  .viewnav .primary small{display:block;font-size:10.5px;font-weight:600;opacity:.72;margin-top:1px;letter-spacing:0}
-  .viewnav .primary.on small{opacity:.85}
-  .viewnav .minor{flex:.72;background:transparent;border-color:transparent;box-shadow:none;font-weight:700;font-size:12.5px}
-  @media (max-width:700px){
-    .viewnav .primary{flex:1.35;font-size:14px}
-    .viewnav .primary small{display:none}
-    .viewnav .minor{font-size:12px;padding:11px 4px}
-  }
-  /* 최상단 글로벌 검색 — 딜+픽 통합, 헤더와 한 몸인 프리미엄 다크 밴드 */
-  .herosearch{background:linear-gradient(180deg,#2A2013,#332818);padding:16px 20px 14px;border-bottom:1px solid var(--line)}
+  .viewnav .primary{border-color:#D9BE8A;color:var(--amberD)}
+  .viewnav .minor{color:#9A8F7E;flex:0 0 auto;padding:11px 16px}
+  .viewnav{position:relative}
+  #moreNav{position:absolute;right:14px;top:calc(100% + 6px);background:var(--card);border:1px solid var(--line);border-radius:12px;box-shadow:0 8px 28px rgba(38,33,26,.16);z-index:150;min-width:180px;overflow:hidden;padding:4px}
+  #moreNav button{display:block;width:100%;text-align:left;padding:12px 15px;border:none;background:none;font-size:14px;font-weight:700;color:var(--ink);border-radius:8px}
+  #moreNav button:hover{background:var(--bg)}
+  #moreNav button.on{color:var(--amberD);background:var(--bg)}
+  /* 최상단 통합 검색 — 헤더 로고 옆, 서비스의 관문 */
+  .hin .hsearch{flex:1;max-width:560px;min-width:180px;margin:0 6px}
+  .hin .hsearch input{font-size:14px;padding:10px 36px;border-radius:12px;background:#FFFDF8;border:1px solid #C9A45C;box-shadow:0 3px 12px rgba(0,0,0,.3);width:100%}
+  .hin .hsearch input:focus{border-color:#E5C57F;outline:none}
+  .hin .hsearch span{font-size:14px;opacity:.55}
+  /* 다크 밴드 — 가치 한 줄 + 반전 매력(추천·AI 바텐더) */
+  .herosearch{background:linear-gradient(180deg,#2A2013,#332818);padding:9px 20px;border-bottom:1px solid var(--line)}
   .herosearch .hwrap{max-width:1180px;margin:0 auto}
-  .herosearch .search input{font-size:15px;padding:14px 42px;border-radius:14px;background:#FFFDF8;border:1px solid #C9A45C;box-shadow:0 4px 18px rgba(0,0,0,.28)}
-  .herosearch .search input:focus{border-color:#E5C57F;outline:none}
-  .herosearch .search span{font-size:15px;opacity:.55}
-  .hsline{margin-top:9px;font-size:13px;color:#B4A17C;padding:0 4px;line-height:1.5}
+  .hsline{font-size:13px;color:#B4A17C;line-height:1.5;display:flex;justify-content:space-between;align-items:center;gap:8px 14px;flex-wrap:wrap}
   .hsline b{color:#E0C078}
+  .charm{display:flex;gap:8px;flex-wrap:wrap}
+  .charmbtn{background:rgba(229,197,127,.1);border:1px solid #5C4826;color:#E5C57F;border-radius:20px;padding:6px 13px;font-size:12px;font-weight:700;transition:.15s;white-space:nowrap}
+  .charmbtn:hover{background:rgba(229,197,127,.22)}
+  .charmbtn.gold{background:linear-gradient(135deg,#8A6A2E,#B08A3E);color:#FFF7E6;border-color:#C9A45C}
   /* 통합 검색 — 딜 결과 하단의 주락 픽 매칭 섹션 */
   .xph{margin:28px 0 12px;padding-top:20px;border-top:1px dashed var(--line);font-size:14px;color:var(--ink);display:flex;align-items:center;gap:6px;flex-wrap:wrap}
   /* 콜키지 */
@@ -186,21 +198,30 @@
 <body>
 <header><div class="hin">
   <div class="logo" onclick="goHome()" style="cursor:pointer" title="홈으로"><span class="ic">🍶</span><div><div class="t">주락 <span style="font-weight:700;opacity:.6">酒樂</span></div><div class="s">합리적으로 사고, 즐겁게 마시다</div></div></div>
+  <div class="search hsearch"><span>🔍</span><input id="q" placeholder="어떤 술을 찾으세요? — 딜+픽 통합 검색 (예: 발베니, 야마자키)" /></div>
   <div style="display:flex;align-items:center;gap:8px">
     <span class="upd" id="upd">불러오는 중…</span>
     <button class="srcbtn loginbtn" id="loginbtn" onclick="showLogin()" title="카카오로 로그인하고 맞춤 혜택 받기">🙋 로그인</button>
-    <button class="srcbtn" id="alertbtn" onclick="showAlert()" style="background:#FCEBE5;color:#B0431F;border-color:#F5C9B8" title="특가·재입고·가격변동 알림 (무료·로그인 불필요)">🔔 알림 받기</button>
+    <button class="srcbtn" id="alertbtn" onclick="showAlert()" title="특가·재입고·가격변동 알림 (무료·로그인 불필요)">🔔 알림 받기</button>
   </div>
 </div></header>
 <div class="herosearch"><div class="hwrap">
-  <div class="search"><span>🔍</span><input id="q" placeholder="어떤 술을 찾으세요? — 트레이더스 딜 + 주락 픽 통합 검색 (예: 발베니, 야마자키)" /></div>
-  <div class="hsline">🍶 <b>합리적으로 사고, 즐겁게 마시다</b> — 전국 트레이더스 24개 지점 <b id="hsN">–</b>종의 재고·최저가, 그리고 그 밖의 명주까지 한 번에.</div>
+  <div class="hsline">
+    <span>🍶 <b>합리적으로 사고, 즐겁게 마시다</b> — 트레이더스 24개 지점 <b id="hsN">–</b>종의 재고·최저가, 그 밖의 명주까지 한 번에.</span>
+    <span class="charm">
+      <button class="charmbtn" onclick="showBartender()" title="조회 이력으로 취향을 읽어 골라드립니다">🥃 오늘의 추천 한 잔</button>
+      <button class="charmbtn gold" onclick="showTalkbar()" title="대화로 고르는 AI 바텐더 — 7/11 영입">🤖 AI 바텐더 · 7/11 영입</button>
+    </span>
+  </div>
 </div></div>
 <div class="viewnav">
-  <button id="navLiquor" class="on primary" onclick="switchView('liquor')" title="트레이더스 전국 24개 지점 재고·최저가 비교 — 주락의 본진">🛒 주락 딜<small>재고 · 최저가 비교</small></button>
+  <button id="navLiquor" class="on primary" onclick="switchView('liquor')" title="트레이더스 전국 24개 지점 재고·최저가 비교 — 주락의 본진">🛒 주락 딜</button>
   <button id="navPick" onclick="switchView('pick')" title="트레이더스 밖 애호가의 명주 큐레이션">🌟 주락 픽</button>
-  <button id="navColkage" onclick="switchView('colkage')" title="내 술 들고 가는 콜키지프리 식당">🍽 콜키지</button>
-  <button id="navLearn" class="minor" onclick="switchView('learn')" title="알아두면 쓸모있는 술 지식">📚 알쓸신주</button>
+  <button id="navMore" class="minor" onclick="toggleMoreNav(event)" title="콜키지프리 식당 · 술 지식">≡ 더보기</button>
+  <div id="moreNav" hidden>
+    <button id="navColkage" onclick="switchView('colkage');document.getElementById('moreNav').hidden=true" title="내 술 들고 가는 콜키지프리 식당">🍽 콜키지 다이닝</button>
+    <button id="navLearn" onclick="switchView('learn');document.getElementById('moreNav').hidden=true" title="알아두면 쓸모있는 술 지식">📚 알쓸신주</button>
+  </div>
 </div>
 <div id="viewLiquor">
 <div class="warn">🛒 <b>주락 딜</b> · 이마트 트레이더스 <b>전국 24개 지점 주류 재고·가격</b>과 <b>데일리샷 최저가 비교</b>를 한눈에 — 하루 1회 갱신이라 <b>현장 실물과 다를 수 있으니 방문 전 확인</b>하세요. (조회 전용)</div>
@@ -249,7 +270,6 @@
   <div style="margin-top:8px"><a href="#" onclick="showPrivacy();return false" style="color:var(--amberD);font-weight:700;text-decoration:none">개인정보 처리방침</a></div>
 </footer>
 <div id="modalRoot"></div>
-<button class="fab" id="fab" onclick="showBartender()" title="바텐더 추천 — 내 취향에 맞는 술">🥃</button>
 
 <script>
 // 저장소 초기화: ?reset=1 접속 시 로그인 세션·팝업기록·조회이력 모두 삭제(쿠키 지우기 대용)
@@ -527,6 +547,7 @@ function switchView(m){
   const V={liquor:"viewLiquor",pick:"viewPick",colkage:"viewColkage",learn:"viewLearn"};
   const N={liquor:"navLiquor",pick:"navPick",colkage:"navColkage",learn:"navLearn"};
   for(const k in V){const v=document.getElementById(V[k]);if(v)v.hidden=(k!==m);const n=document.getElementById(N[k]);if(n)n.classList.toggle("on",k===m);}
+  const mb=document.getElementById("navMore");if(mb)mb.classList.toggle("on",m==="colkage"||m==="learn");
   if(m==="colkage"){loadColkage(); if(cmap)[60,300,700].forEach(t=>setTimeout(()=>cmap.invalidateSize(),t));}
   else if(m==="learn")renderLearn();
   else if(m==="pick")loadPick();
@@ -771,6 +792,9 @@ function renderCrossPick(){
   el.innerHTML=`<div class="xph">🌟 <b>주락 픽</b>에서도 <b>${m.length}</b>종 — 트레이더스 밖 명주${m.length>4?` <button class="distbtn" style="padding:6px 12px;margin-left:6px" onclick="goPickSearch()">픽에서 모두 보기 →</button>`:""}</div><div class="grid">${m.slice(0,4).map(pickCard).join("")}</div>`;
 }
 function goPickSearch(){const pq=document.getElementById("pq");if(pq)pq.value=state.q||"";pshown=24;switchView("pick");if(PDATA)renderPick();}
+// ── 더보기 내비 (콜키지·알쓸신주) ─────────────
+function toggleMoreNav(ev){ev.stopPropagation();const m=document.getElementById("moreNav");if(m)m.hidden=!m.hidden;}
+document.addEventListener("click",e=>{const m=document.getElementById("moreNav");if(m&&!m.hidden&&!e.target.closest("#navMore")&&!e.target.closest("#moreNav"))m.hidden=true;});
 document.getElementById("pq").oninput=()=>{pshown=24;renderPick();};
 document.getElementById("pcat").onchange=()=>{pshown=24;renderPick();};
 document.getElementById("psort").onchange=()=>{pshown=24;renderPick();};
