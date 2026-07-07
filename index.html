@@ -5,6 +5,13 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
 <title>주락 酒樂 — 합리적으로 사고, 즐겁게 마시다</title>
 <meta name="description" content="주락(酒樂) — 트레이더스 전국 24개 지점 주류 재고·최저가 비교 + 서울·수도권 콜키지프리 식당(평점3.5+·지도)까지. 합리적으로 사고, 즐겁게 마시다." />
+<link rel="manifest" href="/manifest.json" />
+<meta name="theme-color" content="#221910" />
+<link rel="apple-touch-icon" href="/apple-touch-icon.png" />
+<meta name="apple-mobile-web-app-capable" content="yes" />
+<meta name="mobile-web-app-capable" content="yes" />
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+<meta name="apple-mobile-web-app-title" content="주락" />
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/variable/pretendardvariable-dynamic-subset.min.css" />
 <style>
   /* 디자인 토큰 — 30~40대 남성 타깃: 에스프레소·샴페인골드·웜뉴트럴 (변경 시 .claude/skills/jurak-design 참고) */
@@ -1201,6 +1208,39 @@ async function favR(pid){ const it=(CDATA&&CDATA.items||[]).find(x=>x.id===pid);
 initAuth();
 // 첫 방문 1회, 로그인 혜택 자동 안내 (localStorage로 1회만·비강제)
 try{ if(!localStorage.getItem("jurak_login_seen")){ setTimeout(()=>{ if(!USER && !document.getElementById("ov")){ showLogin(); localStorage.setItem("jurak_login_seen","1"); } },4500); } }catch(e){}  // 비로그인 유저에게만
+
+// ── PWA: 서비스워커 등록 + 홈화면 설치 유도 (등록 실패해도 사이트 정상) ─────────────
+window.addEventListener("load",()=>{ try{ navigator.serviceWorker&&navigator.serviceWorker.register("/sw.js").catch(()=>{}); }catch(e){} });
+(function(){
+  let deferred=null;
+  const seen=()=>{try{return localStorage.getItem("jurak_a2hs")==="1";}catch(e){return true;}};
+  const mark=()=>{try{localStorage.setItem("jurak_a2hs","1");}catch(e){}};
+  const standalone=window.matchMedia("(display-mode: standalone)").matches||window.navigator.standalone===true;
+  function banner(html,onYes){
+    if(seen()||standalone||document.getElementById("a2hs")||document.getElementById("ov"))return;  // 기존 모달과 동시노출 금지
+    const el=document.createElement("div");el.id="a2hs";
+    el.style.cssText="position:fixed;left:12px;right:12px;bottom:14px;z-index:900;background:linear-gradient(135deg,#2A2013,#3A2C16);color:#F1E6CE;border:1px solid #5C4826;border-radius:14px;box-shadow:0 8px 28px rgba(0,0,0,.4);padding:12px 14px;display:flex;align-items:center;gap:10px;font-size:13px;max-width:520px;margin:0 auto";
+    el.innerHTML='<span style="font-size:20px">📲</span><div style="flex:1;line-height:1.5">'+html+'</div>';
+    const close=document.createElement("button");close.textContent="✕";close.setAttribute("aria-label","닫기");
+    close.style.cssText="background:transparent;border:none;color:#B4A17C;font-size:15px;cursor:pointer;padding:4px";
+    close.onclick=()=>{el.remove();mark();};
+    if(onYes){const yes=document.createElement("button");yes.textContent="설치";
+      yes.style.cssText="background:linear-gradient(135deg,#8A6A2E,#B08A3E);color:#FFF7E6;border:1px solid #C9A45C;border-radius:10px;padding:8px 14px;font-weight:700;font-size:13px;cursor:pointer;white-space:nowrap";
+      yes.onclick=async()=>{el.remove();mark();try{await onYes();}catch(e){}};el.appendChild(yes);}
+    el.appendChild(close);document.body.appendChild(el);
+  }
+  // 안드로이드/데스크톱 크롬: 설치 프롬프트 가로채 은은하게 제안
+  window.addEventListener("beforeinstallprompt",(e)=>{ e.preventDefault(); deferred=e;
+    setTimeout(()=>banner("주락을 <b>홈 화면 앱</b>으로 추가해 더 빠르게 열어보세요.",async()=>{
+      if(!deferred)return; deferred.prompt(); try{await deferred.userChoice;}catch(e){} deferred=null;
+    }),9000);
+  });
+  window.addEventListener("appinstalled",mark);
+  // iOS 사파리(설치 API 없음): 공유→홈화면 힌트 1회
+  const ios=/iphone|ipad|ipod/i.test(navigator.userAgent)&&!window.MSStream;
+  const iosSafari=ios&&/safari/i.test(navigator.userAgent)&&!/crios|fxios|edgios/i.test(navigator.userAgent);
+  if(iosSafari&&!standalone){ setTimeout(()=>banner("아이폰: <b>공유</b> <span style=\"opacity:.7\">⎋</span> → <b>홈 화면에 추가</b>로 앱처럼 쓰세요.",null),10000); }
+})();
 </script>
 </body>
 </html>

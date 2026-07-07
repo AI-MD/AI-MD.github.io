@@ -1,0 +1,20 @@
+{
+  "name": "주락 酒樂 — 합리적으로 사고, 즐겁게 마시다",
+  "short_name": "주락",
+  "description": "트레이더스 전국 24개 지점 주류 재고·최저가 비교 + 애호가의 명주(주락 픽) + 콜키지프리 식당 + AI 바텐더 추천.",
+  "lang": "ko",
+  "dir": "ltr",
+  "start_url": "/?src=pwa",
+  "scope": "/",
+  "id": "/",
+  "display": "standalone",
+  "orientation": "portrait",
+  "theme_color": "#221910",
+  "background_color": "#1B1512",
+  "categories": ["food", "shopping", "lifestyle"],
+  "icons": [
+    { "src": "/icon-192.png", "sizes": "192x192", "type": "image/png", "purpose": "any" },
+    { "src": "/icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "any" },
+    { "src": "/icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "maskable" }
+  ]
+}
