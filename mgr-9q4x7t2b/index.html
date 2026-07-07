@@ -1,0 +1,372 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<meta name="robots" content="noindex, nofollow"/>
+<title>주락 관리자 콘솔</title>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/variable/pretendardvariable-dynamic-subset.min.css"/>
+<style>
+:root{--bg:#1B1512;--card:#251D16;--card2:#2C231A;--line:#3D3122;--ink:#EDE5D8;--sub:#A89983;
+  --gold:#E5C57F;--goldD:#C9A45C;--green:#4CBF7E;--red:#E4736A;--blue:#8FB4D9;}
+*{box-sizing:border-box;margin:0;padding:0}
+body{background:var(--bg);color:var(--ink);font-family:'Pretendard Variable','Pretendard','Apple SD Gothic Neo',-apple-system,sans-serif;-webkit-font-smoothing:antialiased;padding:20px 16px 60px}
+.wrap{max-width:1180px;margin:0 auto}
+a{color:var(--gold)}
+h1{font-size:18px;font-weight:800;letter-spacing:.05em;color:var(--gold)}
+h1 small{font-size:11px;color:var(--sub);font-weight:600;letter-spacing:.02em;margin-left:8px}
+.sec{font-size:11.5px;font-weight:800;letter-spacing:.08em;color:var(--goldD);margin:22px 2px 10px;text-transform:uppercase;opacity:.9}
+.topbar{display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap;margin-bottom:6px}
+.ctrls{display:flex;gap:7px;align-items:center;flex-wrap:wrap}
+.btn{background:linear-gradient(135deg,#8A6A2E,#B08A3E);color:#FFF7E6;border:1px solid var(--goldD);border-radius:10px;padding:8px 13px;font:inherit;font-size:12px;font-weight:700;cursor:pointer}
+select{background:var(--card2);border:1px solid var(--line);border-radius:10px;color:var(--ink);font:inherit;font-size:12px;padding:8px 9px;outline:none;cursor:pointer}
+.live{display:flex;align-items:center;gap:9px;background:var(--card);border:1px solid var(--line);border-radius:12px;padding:8px 14px}
+.dot{width:9px;height:9px;border-radius:50%;background:var(--green);animation:pulse 1.8s infinite}
+.dot.off{background:var(--sub);animation:none}
+@keyframes pulse{0%{box-shadow:0 0 0 0 rgba(76,191,126,.55)}70%{box-shadow:0 0 0 9px rgba(76,191,126,0)}100%{box-shadow:0 0 0 0 rgba(76,191,126,0)}}
+.live .n{font-size:19px;font-weight:800;color:var(--green);font-variant-numeric:tabular-nums;line-height:1}
+.live .t{font-size:10.5px;color:var(--sub)}
+.kpis{display:grid;grid-template-columns:repeat(auto-fit,minmax(120px,1fr));gap:10px}
+.kpi{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:13px 15px}
+.kpi .n{font-size:23px;font-weight:800;color:var(--gold);font-variant-numeric:tabular-nums;letter-spacing:-.02em;line-height:1}
+.kpi .t{font-size:10.5px;color:var(--sub);margin-top:6px;font-weight:600}
+.grid{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+@media(max-width:860px){.grid{grid-template-columns:1fr}}
+.ops{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:12px}
+.card{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:14px 16px;overflow:hidden}
+.card.wide{grid-column:1/-1}
+.card h2{font-size:12px;font-weight:800;color:var(--gold);letter-spacing:.02em;margin-bottom:11px;display:flex;justify-content:space-between;align-items:center;gap:8px}
+.card h2 .hint{font-size:10px;color:var(--sub);font-weight:600}
+.opsc{background:var(--card);border:1px solid var(--line);border-left-width:4px;border-radius:12px;padding:13px 15px}
+.opsc.ok{border-left-color:var(--green)}.opsc.warn{border-left-color:var(--red)}.opsc.na{border-left-color:var(--sub)}
+.opsc .oh{font-size:12px;font-weight:800;display:flex;align-items:center;gap:7px}
+.opsc .obig{font-size:20px;font-weight:800;margin-top:8px;font-variant-numeric:tabular-nums}
+.opsc.ok .obig{color:var(--green)}.opsc.warn .obig{color:var(--red)}.opsc.na .obig{color:var(--sub)}
+.opsc .osub{font-size:11px;color:var(--sub);margin-top:4px;line-height:1.5}
+.row{display:flex;justify-content:space-between;align-items:center;gap:9px;padding:6px 0;border-top:1px solid var(--line);font-size:12.5px}
+.row:first-of-type{border-top:none}
+.row .k{color:var(--ink);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;flex:1}
+.row .v{color:var(--gold);font-weight:700;font-variant-numeric:tabular-nums;white-space:nowrap}
+.bar{height:6px;border-radius:3px;background:var(--card2);overflow:hidden;flex:1;max-width:120px;min-width:36px}
+.bar i{display:block;height:100%;background:linear-gradient(90deg,#8A6A2E,var(--gold))}
+.bar.g i{background:linear-gradient(90deg,#2E6B45,var(--green))}
+.bar.r i{background:linear-gradient(90deg,#7A322C,var(--red))}
+.zero .v{color:var(--red)}
+.fun{display:flex;flex-direction:column;gap:7px}
+.fun .fstep{display:flex;align-items:center;gap:10px}
+.fun .flab{width:96px;font-size:12px;color:var(--sub);flex-shrink:0}
+.fun .fbar{flex:1;height:22px;background:var(--card2);border-radius:6px;overflow:hidden;position:relative}
+.fun .fbar i{display:block;height:100%;background:linear-gradient(90deg,#8A6A2E,var(--gold));border-radius:6px}
+.fun .fv{position:absolute;right:8px;top:0;line-height:22px;font-size:11.5px;font-weight:700;color:#1B1512}
+.fun .fpct{width:52px;text-align:right;font-size:11px;color:var(--green);font-weight:700;flex-shrink:0}
+.chat{padding:7px 0;border-top:1px solid var(--line);font-size:12px;line-height:1.5}
+.chat:first-child{border-top:none}
+.chat .who{font-weight:800;color:var(--goldD);font-size:10.5px;letter-spacing:.04em}
+.chat.u .who{color:var(--blue)}
+.chat .tm{color:var(--sub);font-size:10px;margin-left:5px}
+.feed{font-size:11.5px;font-variant-numeric:tabular-nums;max-height:280px;overflow-y:auto}
+.feed .fr{display:flex;gap:8px;padding:4px 0;border-top:1px solid var(--line);align-items:baseline}
+.feed .fr:first-child{border-top:none}
+.feed .ft{color:var(--sub);white-space:nowrap;font-size:10.5px}
+.feed .fs{color:var(--goldD);font-family:ui-monospace,monospace;font-size:10px}
+.feed .fe{font-weight:700;white-space:nowrap}
+.feed .fd{color:var(--sub);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;flex:1}
+.tag{display:inline-block;font-size:10px;font-weight:700;padding:1px 7px;border-radius:20px;background:var(--card2);border:1px solid var(--line);color:var(--sub)}
+.st{display:flex;justify-content:space-between;gap:10px;padding:8px 0;border-top:1px solid var(--line);font-size:12px}
+.st:first-child{border-top:none}
+.st .sk{color:var(--sub)}.st .sv{text-align:right;font-weight:600}
+.st .lock{font-size:10px;color:var(--sub);margin-left:6px}
+.muted{color:var(--sub);font-size:12px;padding:14px 0;text-align:center}
+.svgwrap{overflow-x:auto}
+svg{display:block}
+.gate{max-width:480px;margin:14vh auto;background:var(--card);border:1px solid var(--line);border-radius:16px;padding:30px;text-align:center}
+.gate .ic{font-size:34px}.gate h1{margin:12px 0 0}
+.gate p{font-size:13px;color:var(--sub);line-height:1.75;margin:14px 0 18px}
+.foot{margin-top:24px;text-align:center;font-size:10.5px;color:var(--sub)}
+.err{background:#3A1F1C;border:1px solid #6E3730;color:#F0B9B3;border-radius:11px;padding:11px 15px;font-size:12.5px;margin-bottom:14px;display:none}
+</style>
+</head>
+<body>
+<div id="gate" class="gate" style="display:none">
+  <div class="ic">🔒</div>
+  <h1>주락 관리자 콘솔</h1>
+  <p id="gateMsg"></p>
+  <a class="btn" href="https://ai-md.github.io/" style="text-decoration:none;display:inline-block">🍶 주락 메인으로</a>
+</div>
+
+<div id="dash" class="wrap" style="display:none">
+  <div class="topbar">
+    <h1>🍶 주락 관리자 콘솔 <small id="upd"></small></h1>
+    <div class="ctrls">
+      <div class="live"><span class="dot" id="liveDot"></span><div><div class="n" id="liveNow">–</div><div class="t">지금 접속 중 (5분)</div></div></div>
+      <select id="range" title="표시 기간"><option value="1">오늘</option><option value="7">7일</option><option value="14">14일</option><option value="30">30일</option></select>
+      <select id="poll" title="자동 새로고침 주기"><option value="0">자동 끄기</option><option value="10">10초</option><option value="30">30초</option><option value="60">1분</option><option value="300">5분</option></select>
+      <button class="btn" onclick="load()">↻ 새로고침</button>
+    </div>
+  </div>
+  <div id="err" class="err"></div>
+
+  <div class="sec">① 서비스 건강 (Ops)</div>
+  <div class="ops" id="ops"></div>
+
+  <div class="sec">② 핵심 지표</div>
+  <div class="kpis" id="kpis"></div>
+
+  <div class="sec">③ 실시간</div>
+  <div class="grid">
+    <div class="card"><h2>⏱ 최근 1시간 활동 <span class="hint">분 단위</span></h2><div class="svgwrap" id="minute"></div></div>
+    <div class="card"><h2>🔴 실시간 이벤트 피드 <span class="hint">최근 20건</span></h2><div class="feed" id="feed"></div></div>
+  </div>
+
+  <div class="sec">④ 트래픽</div>
+  <div class="grid">
+    <div class="card wide"><h2>📈 일별 방문 세션 <span class="hint" id="dailyHint"></span></h2><div class="svgwrap" id="daily"></div></div>
+    <div class="card"><h2>🕐 시간대별 방문 히트 <span class="hint">0~23시</span></h2><div class="svgwrap" id="hourly"></div></div>
+    <div class="card"><h2>🌐 유입 경로</h2><div id="refs"></div></div>
+    <div class="card"><h2>📱 디바이스 · 🔗 딥링크</h2><div id="device"></div><div style="height:6px"></div><div id="deep"></div></div>
+    <div class="card"><h2>📑 탭 방문 비중</h2><div id="tabs"></div></div>
+  </div>
+
+  <div class="sec">⑤ 사용자 행동 · 전환</div>
+  <div class="grid">
+    <div class="card wide"><h2>🫧 전환 깔때기 <span class="hint">기간 내 세션 기준: 방문→검색→상세→AI</span></h2><div class="fun" id="funnel"></div></div>
+    <div class="card"><h2>🔍 인기 검색어</h2><div id="topq"></div></div>
+    <div class="card"><h2>🚫 무결과 검색어 <span class="hint">재고·픽 발굴 재료</span></h2><div id="zeroq"></div></div>
+    <div class="card"><h2>👁 많이 본 상품</h2><div id="topp"></div></div>
+  </div>
+
+  <div class="sec">⑥ AI · 회원</div>
+  <div class="grid">
+    <div class="card"><h2>🤖 AI 기능 사용 <span class="hint">기간 누적</span></h2><div id="ai"></div></div>
+    <div class="card"><h2>🙋 신규 가입 추이 <span class="hint">14일</span></h2><div class="svgwrap" id="signup"></div></div>
+    <div class="card"><h2>🥃 최근 취향 기록 <span class="hint">회원 조회</span></h2><div id="taste"></div></div>
+    <div class="card"><h2>💬 토킹바 최근 대화 <span class="hint">14건</span></h2><div id="chat"></div></div>
+  </div>
+
+  <div class="sec">⑦ 설정 · 상태</div>
+  <div class="grid">
+    <div class="card"><h2>⚙️ 표시 설정 <span class="hint">이 브라우저에 저장</span></h2>
+      <div class="st"><span class="sk">자동 새로고침</span><span class="sv" id="stPoll">–</span></div>
+      <div class="st"><span class="sk">표시 기간</span><span class="sv" id="stRange">–</span></div>
+      <div class="muted" style="text-align:left;padding:8px 0 0">상단 드롭다운으로 조절합니다.</div>
+    </div>
+    <div class="card"><h2>🔒 서버 관리 항목 <span class="hint">읽기 전용</span></h2><div id="status"></div>
+      <div class="muted" style="text-align:left;padding:8px 0 0;font-size:10.5px">이 항목들은 서버(launchd 스케줄·Supabase 시크릿)에서 관리됩니다. 보안상 브라우저에서 변경할 수 없습니다.</div>
+    </div>
+  </div>
+  <div class="foot">주락 酒樂 · 관리자 전용 콘솔 · 서버에서 운영자 계정만 인가 · 은닉 경로 (링크 없음)</div>
+</div>
+
+<script>
+const SUPA_URL="https://hzliwugasthzxamfpwxo.supabase.co";
+const ANON="sb_publishable_mpTkGUSL4hPWbpv5SHyGYg_kHjkg8aP";
+const REF="hzliwugasthzxamfpwxo";
+const SITE="https://ai-md.github.io";
+const TB_LAUNCH=Date.parse("2026-07-10T15:00:00Z"); // 7/11 00:00 KST
+const esc=s=>String(s??"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
+const fmt=n=>Number(n||0).toLocaleString();
+const hAgo=iso=>{const h=(Date.now()-Date.parse(iso))/3600000;return h;};
+const hTxt=h=>h<1?Math.round(h*60)+"분 전":h<48?h.toFixed(1)+"시간 전":Math.floor(h/24)+"일 "+Math.round(h%24)+"시간 전";
+
+function readToken(){
+  try{
+    const raw=localStorage.getItem("sb-"+REF+"-auth-token");
+    if(!raw)return null;
+    const j=JSON.parse(raw);
+    return j.access_token||(j.currentSession&&j.currentSession.access_token)||(Array.isArray(j)&&j[0])||null;
+  }catch(e){return null;}
+}
+function showGate(msg){
+  document.getElementById("dash").style.display="none";
+  const g=document.getElementById("gate");g.style.display="block";
+  document.getElementById("gateMsg").innerHTML=msg;
+}
+
+let timer=null;
+function arm(){
+  if(timer)clearInterval(timer);
+  const s=parseInt(document.getElementById("poll").value,10);
+  document.getElementById("stPoll").textContent=s>0?(s<60?s+"초":(s/60)+"분")+" 마다":"꺼짐";
+  if(s>0)timer=setInterval(load,s*1000);
+}
+function setupCtrls(){
+  const poll=document.getElementById("poll"),range=document.getElementById("range");
+  poll.value=localStorage.getItem("jurak_admin_poll")??"60";
+  range.value=localStorage.getItem("jurak_admin_range")??"14";
+  poll.onchange=()=>{localStorage.setItem("jurak_admin_poll",poll.value);arm();};
+  range.onchange=()=>{localStorage.setItem("jurak_admin_range",range.value);document.getElementById("stRange").textContent=range.options[range.selectedIndex].text;load();};
+  document.getElementById("stRange").textContent=range.options[range.selectedIndex].text;
+  arm();
+}
+
+// ── Ops: 공개 JSON 신선도 (백엔드 불필요, 개별 try/catch) ──
+async function freshness(){
+  const items=[
+    {url:SITE+"/data.json",name:"🍾 재고 (data.json)",warnH:30,sched:"매일 18시"},
+    {url:SITE+"/dailyshot_top.json",name:"🌟 주락 픽",warnH:96,sched:"월·수·금 8시반"},
+    {url:SITE+"/colkage.json",name:"🍽 콜키지",warnH:96,sched:"월·수·금 8시"},
+  ];
+  const out=await Promise.all(items.map(async it=>{
+    try{
+      const r=await fetch(it.url+"?t="+Date.now(),{cache:"no-store"});
+      if(!r.ok)throw new Error("HTTP "+r.status);
+      const d=await r.json();
+      const upd=d.updated_at||d.updatedAt||null;
+      const cnt=(d.products&&d.products.length)||(d.items&&d.items.length)||(d.restaurants&&d.restaurants.length)||(Array.isArray(d)?d.length:0);
+      const h=upd?hAgo(upd):999;
+      return {...it,ok:h<=it.warnH,cnt,h,upd};
+    }catch(e){return {...it,ok:false,err:String(e.message||e),na:true};}
+  }));
+  return out;
+}
+function renderOps(fr,d){
+  let html=fr.map(f=>{
+    const cls=f.na?"na":(f.ok?"ok":"warn");
+    const sig=f.na?"⚪":(f.ok?"🟢":"🔴");
+    const big=f.na?"확인 불가":hTxt(f.h);
+    const sub=f.na?esc(f.err||"불러오기 실패"):`${fmt(f.cnt)}종 · 갱신 ${f.sched}`;
+    return `<div class="opsc ${cls}"><div class="oh">${sig} ${esc(f.name)}</div><div class="obig">${big}</div><div class="osub">${sub}</div></div>`;
+  }).join("");
+  // AI 오늘 상태
+  if(d){
+    const ta=d.today_ai||{},open=Date.now()>=TB_LAUNCH;
+    html+=`<div class="opsc ok"><div class="oh">🤖 AI 기능 (오늘)</div><div class="obig" style="font-size:14px;color:var(--ink)">추천 ${fmt(ta.bartender)} · 토킹바 ${fmt(ta.talkbar_open)}회/${fmt(ta.talkbar_msg)}발화</div><div class="osub">토킹바: ${open?"정식 오픈":"베타(운영자만) · 7/11 0시 오픈"}</div></div>`;
+  }
+  document.getElementById("ops").innerHTML=html;
+}
+
+async function load(){
+  const tok=readToken();
+  if(!tok){showGate("먼저 <b>주락 메인</b>에서 <b>카카오 로그인</b>을 한 뒤 이 주소를 다시 열어주세요.<br>(같은 브라우저·같은 도메인에서만 세션이 인식됩니다)");return;}
+  const days=document.getElementById("range").value;
+  // 신선도는 백엔드와 독립적으로 먼저 시도
+  freshness().then(fr=>renderOps(fr,window._lastData)).catch(()=>{});
+  try{
+    const r=await fetch(SUPA_URL+"/functions/v1/admin-stats?days="+days,{method:"POST",headers:{apikey:ANON,Authorization:"Bearer "+tok}});
+    if(r.status===401){showGate("세션이 만료됐어요. <b>주락 메인</b>에서 다시 로그인한 뒤 열어주세요.");return;}
+    if(r.status===403){showGate("이 계정은 <b>관리자 권한</b>이 없습니다. 운영자 계정으로 로그인해 주세요.");return;}
+    if(!r.ok)throw new Error("HTTP "+r.status);
+    const d=await r.json();window._lastData=d;
+    document.getElementById("gate").style.display="none";
+    document.getElementById("dash").style.display="block";
+    render(d);
+    freshness().then(fr=>renderOps(fr,d)).catch(()=>{});
+    document.getElementById("err").style.display="none";
+  }catch(e){
+    const el=document.getElementById("err");el.textContent="집계 불러오기 실패: "+e.message+" — 잠시 후 다시 시도하세요. (신선도 패널은 위에 그대로 표시됩니다)";el.style.display="block";
+  }
+}
+
+function rows(el,items,cls,unit){
+  const top=(items[0]&&items[0][1])||1;
+  document.getElementById(el).innerHTML=items.length?items.map(([k,v])=>
+    `<div class="row ${cls==='r'?'zero':''}"><span class="k">${esc(k)}</span><span class="bar ${cls||''}"><i style="width:${Math.max(3,Math.round(v/top*100))}%"></i></span><span class="v">${fmt(v)}${unit||""}</span></div>`).join(""):`<div class="muted">데이터 없음</div>`;
+}
+function barChart(el,data,valKey,color){
+  const n=data.length,W=Math.max(320,n*Math.min(48,760/n+8)),H=150,pad=24;
+  const iw=(W-pad*2)/n,bw=Math.min(30,iw-6);
+  const max=Math.max(1,...data.map(d=>d[valKey]));
+  const bars=data.map((d,i)=>{
+    const x=pad+i*iw+(iw-bw)/2,h=Math.round(d[valKey]/max*(H-pad*2)),y=H-pad-h;
+    return `<rect x="${x.toFixed(1)}" y="${y}" width="${bw.toFixed(1)}" height="${h}" rx="3" fill="url(#g1)"/>`+
+      `<text x="${(x+bw/2).toFixed(1)}" y="${H-pad+13}" text-anchor="middle" font-size="9" fill="#A89983">${esc(d.d).slice(-5)}</text>`+
+      (d[valKey]>0?`<text x="${(x+bw/2).toFixed(1)}" y="${y-4}" text-anchor="middle" font-size="9" fill="${color||'#E5C57F'}">${d[valKey]}</text>`:"");
+  }).join("");
+  document.getElementById(el).innerHTML=`<svg width="${W}" height="${H}" viewBox="0 0 ${W} ${H}"><defs><linearGradient id="g1" x1="0" y1="1" x2="0" y2="0"><stop offset="0" stop-color="#8A6A2E"/><stop offset="1" stop-color="${color||'#E5C57F'}"/></linearGradient></defs>${bars}</svg>`;
+}
+function spark(el,arr,color){
+  const W=Math.max(320,arr.length*5),H=88,pad=8,max=Math.max(1,...arr),step=(W-pad*2)/(arr.length-1);
+  const pts=arr.map((v,i)=>[pad+i*step,H-pad-v/max*(H-pad*2)]);
+  const line=pts.map((p,i)=>(i?"L":"M")+p[0].toFixed(1)+" "+p[1].toFixed(1)).join(" ");
+  const area=line+` L${(pad+(arr.length-1)*step).toFixed(1)} ${H-pad} L${pad} ${H-pad} Z`;
+  const total=arr.reduce((a,b)=>a+b,0);
+  document.getElementById(el).innerHTML=`<svg width="${W}" height="${H}" viewBox="0 0 ${W} ${H}"><defs><linearGradient id="sg" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="${color}" stop-opacity=".38"/><stop offset="1" stop-color="${color}" stop-opacity="0"/></linearGradient></defs><path d="${area}" fill="url(#sg)"/><path d="${line}" fill="none" stroke="${color}" stroke-width="2"/></svg><div class="muted" style="padding:3px 0 0;text-align:right">최근 1시간 ${total}건</div>`;
+}
+function hourChart(el,arr){
+  const W=Math.max(360,24*15),H=128,pad=22,max=Math.max(1,...arr),iw=(W-pad*2)/24,bw=iw-3;
+  const nowH=new Date(Date.now()+9*3600000).getUTCHours();
+  const bars=arr.map((v,i)=>{
+    const x=pad+i*iw,h=Math.round(v/max*(H-pad*2));
+    return `<rect x="${x.toFixed(1)}" y="${H-pad-h}" width="${bw.toFixed(1)}" height="${h}" rx="2" fill="${i===nowH?'#4CBF7E':'url(#g1)'}"/>`+
+      (i%3===0?`<text x="${(x+bw/2).toFixed(1)}" y="${H-pad+12}" text-anchor="middle" font-size="8.5" fill="#A89983">${i}</text>`:"");
+  }).join("");
+  document.getElementById(el).innerHTML=`<svg width="${W}" height="${H}" viewBox="0 0 ${W} ${H}"><defs><linearGradient id="g1" x1="0" y1="1" x2="0" y2="0"><stop offset="0" stop-color="#8A6A2E"/><stop offset="1" stop-color="#E5C57F"/></linearGradient></defs>${bars}</svg>`;
+}
+function funnel(el,f){
+  const steps=[["방문 세션",f.visit],["검색",f.search],["상세 열람",f.detail],["AI 사용",f.ai]];
+  const top=Math.max(1,f.visit);
+  document.getElementById(el).innerHTML=steps.map(([lab,v],i)=>{
+    const pct=i===0?100:Math.round(v/(steps[i-1][1]||1)*100);
+    return `<div class="fstep"><span class="flab">${lab}</span><div class="fbar"><i style="width:${Math.max(2,Math.round(v/top*100))}%"></i><span class="fv">${fmt(v)}</span></div><span class="fpct">${i===0?"100%":pct+"%"}</span></div>`;
+  }).join("");
+}
+
+const EVLABEL={page_view:"방문",search:"검색",view:"탭이동",product_view:"상품",dwell:"체류",bartender_open:"추천열람",talkbar_open:"토킹바",talkbar_msg:"토킹바발화"};
+const EVCOLOR={search:"#E5C57F",product_view:"#8FB4D9",bartender_open:"#4CBF7E",talkbar_msg:"#4CBF7E",talkbar_open:"#4CBF7E",page_view:"#C9A45C",dwell:"#A89983",view:"#C9A45C"};
+
+function render(d){
+  const k=d.kpi;
+  document.getElementById("liveNow").textContent=fmt(k.live_now);
+  document.getElementById("liveDot").className="dot"+(k.live_now>0?"":" off");
+  document.getElementById("dailyHint").textContent="최근 "+(d.days||14)+"일";
+  document.getElementById("kpis").innerHTML=[
+    ["오늘 방문 세션",k.today_sessions],["오늘 이벤트",k.today_events],["7일 세션",k.week_sessions],
+    ["평균 체류(초)",k.avg_dwell],["세션당 이벤트",k.avg_events_per_session],["검색 도달률",k.search_reach_rate+"%"],
+    ["회원 수",k.members],["취향 기록",k.taste_count],["토킹바 대화",k.talkbar_count],
+  ].map(([t,n])=>`<div class="kpi"><div class="n">${typeof n==='string'?n:fmt(n)}</div><div class="t">${t}</div></div>`).join("");
+
+  spark("minute",d.minute,"#4CBF7E");
+  document.getElementById("feed").innerHTML=(d.live_feed||[]).length?d.live_feed.map(f=>{
+    const t=new Date(f.at).toLocaleTimeString("ko-KR",{hour:"2-digit",minute:"2-digit",second:"2-digit"});
+    return `<div class="fr"><span class="ft">${t}</span><span class="fs">${esc(f.s)}</span><span class="fe" style="color:${EVCOLOR[f.e]||'#EDE5D8'}">${EVLABEL[f.e]||esc(f.e)}</span><span class="fd">${esc(f.d)}</span></div>`;
+  }).join(""):`<div class="muted">최근 이벤트 없음</div>`;
+
+  barChart("daily",d.daily,"sessions");
+  hourChart("hourly",d.hourly);
+  rows("refs",d.referrers,"");
+  const dv=d.device||{mobile:0,desktop:0},tot=dv.mobile+dv.desktop||1;
+  document.getElementById("device").innerHTML=
+    `<div class="row"><span class="k">📱 모바일</span><span class="bar"><i style="width:${Math.round(dv.mobile/tot*100)}%"></i></span><span class="v">${fmt(dv.mobile)} (${Math.round(dv.mobile/tot*100)}%)</span></div>`+
+    `<div class="row"><span class="k">💻 데스크톱</span><span class="bar"><i style="width:${Math.round(dv.desktop/tot*100)}%"></i></span><span class="v">${fmt(dv.desktop)} (${Math.round(dv.desktop/tot*100)}%)</span></div>`;
+  const dl=d.deeplinks||[];
+  document.getElementById("deep").innerHTML=dl.length?dl.map(([k2,v])=>`<div class="row"><span class="k">🔗 ?${esc(k2)}=1</span><span class="v">${fmt(v)}회</span></div>`).join(""):`<div class="muted" style="padding:6px 0">딥링크 유입 없음</div>`;
+  rows("tabs",(d.tabs||[]).map(([v,n])=>[{liquor:"🛒 주락 딜",pick:"🌟 주락 픽",colkage:"🍽 콜키지",learn:"📚 알쓸신주"}[v]||v,n]),"");
+
+  funnel("funnel",d.funnel||{visit:0,search:0,detail:0,ai:0});
+  rows("topq",d.top_search,"","회");
+  rows("zeroq",d.zero_search,"r","회");
+  rows("topp",d.top_product,"","회");
+
+  const a=d.ai_usage||{},bt=(a.bartender_ai+a.bartender_local)||1;
+  document.getElementById("ai").innerHTML=
+    `<div class="row"><span class="k">🥃 추천 열람 (AI)</span><span class="bar g"><i style="width:${Math.round((a.bartender_ai||0)/bt*100)}%"></i></span><span class="v">${fmt(a.bartender_ai)}</span></div>`+
+    `<div class="row"><span class="k">🥃 추천 열람 (로컬)</span><span class="v">${fmt(a.bartender_local)}</span></div>`+
+    `<div class="row"><span class="k">💬 토킹바 오픈</span><span class="v">${fmt(a.talkbar_open)}</span></div>`+
+    `<div class="row"><span class="k">💬 토킹바 발화</span><span class="v">${fmt(a.talkbar_msg)}</span></div>`;
+  barChart("signup",d.signup||[],"n","#8FB4D9");
+
+  document.getElementById("taste").innerHTML=(d.recent_taste||[]).length?d.recent_taste.map(t=>
+    `<div class="row"><span class="k">${esc(t.product_name)} <span class="tag">${esc(t.category||"")}</span></span><span class="v">${fmt(t.price)}원</span></div>`).join(""):`<div class="muted">데이터 없음</div>`;
+  document.getElementById("chat").innerHTML=(d.recent_chat||[]).length?d.recent_chat.slice().reverse().map(c=>{
+    const t=new Date(c.created_at).toLocaleString("ko-KR",{month:"2-digit",day:"2-digit",hour:"2-digit",minute:"2-digit"});
+    return `<div class="chat ${c.role==='user'?'u':''}"><span class="who">${c.role==='user'?'손님':'바텐더'}</span><span class="tm">${t}</span><br>${esc(c.text).slice(0,200)}</div>`;
+  }).join(""):`<div class="muted">아직 대화가 없어요</div>`;
+
+  const open=Date.now()>=TB_LAUNCH;
+  document.getElementById("status").innerHTML=[
+    ["🤖 토킹바 공개",open?"정식 오픈":"베타 (운영자만) · 7/11 0시 오픈"],
+    ["🧠 AI 프로바이더","서버 시크릿 (Claude Opus 우선 → Gemini 무료)"],
+    ["📦 재고 갱신","매일 18시 (launchd)"],
+    ["🌟 데일리샷/픽","데일리샷 매일 9시 · 픽 월·수·금 8시반"],
+    ["🍽 콜키지","월·수·금 8시"],
+    ["🔔 ntfy 토픽","traders-liquor-kr-alerts"],
+  ].map(([k2,v])=>`<div class="st"><span class="sk">${k2}<span class="lock">🔒</span></span><span class="sv">${esc(v)}</span></div>`).join("");
+
+  document.getElementById("upd").textContent="갱신 "+new Date(d.generated_at).toLocaleTimeString("ko-KR");
+}
+
+setupCtrls();
+load();
+</script>
+</body>
+</html>
