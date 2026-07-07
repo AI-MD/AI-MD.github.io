@@ -948,26 +948,29 @@ function _bartenderShell(body,sub){
     <div style="padding:16px 20px">${body}</div></div></div>`;
 }
 function showBartender(){
-  track("bartender_open",{ai:!!(USER&&SUPA&&DATA)});
-  if(USER&&SUPA&&DATA){  // 회원: AI 바텐더 (서버 취향 데이터 기반) — 실패 시 로컬 추천으로 폴백
-    _bartenderShell(`<div style="text-align:center;padding:26px 0;color:var(--sub)"><div class="sp" style="margin:0 auto 12px"></div>AI 바텐더가 취향을 읽는 중…</div>`,"AI가 고르는 한 잔");
-    aiBartender().then(j=>{const ov=document.getElementById("ov");if(!ov)return; try{if(j)renderAIBartender(j); else renderLocalBartender();}catch(e){renderLocalBartender();}});
-    return;
-  }
-  renderLocalBartender();
+  const ai=!!(USER&&SUPA&&DATA);
+  track("bartender_open",{ai});
+  renderLocalBartender(ai);  // 0초: 로컬 추천 즉시 표시 — AI는 도착하면 업그레이드 (1~3초 목표·미도착 시 그대로 유지)
+  if(!ai)return;
+  const seq=(window._btSeq=(window._btSeq||0)+1);  // 모달 재오픈 경합 방지
+  aiBartender().then(j=>{
+    if(window._btSeq!==seq)return;                    // 그 사이 재오픈됐으면 무시
+    if(!document.getElementById("btMark"))return;     // 바텐더 모달이 닫혔거나 다른 모달이면 무시
+    try{ if(j){renderAIBartender(j);} else {const s=document.getElementById("btStat");if(s)s.remove();} }catch(e){}
+  });
 }
-function _aiCandidates(){  // 취향 카테고리 우선 + 평점순 재고 후보 80종 (recommend·talkbar 공용)
+function _aiCandidates(n){  // 취향 카테고리 우선 + 평점순 재고 후보 (recommend 40·talkbar 70 — 프롬프트 짧을수록 응답 빠름)
   const cats={}; _views().forEach(x=>{cats[x.cat]=(cats[x.cat]||0)+1;});
   const pool=DATA.products.filter(p=>p.in_stock).slice();
   pool.sort((a,b)=>((cats[b.category]||0)-(cats[a.category]||0))||((b.rating||0)-(a.rating||0)));
-  return pool.slice(0,80).map(p=>({sku:p.sku,name:p.name,category:p.category,price:p.price,rating:p.rating,diff:p.price_diff_percent}));
+  return pool.slice(0,n||70).map(p=>({sku:p.sku,name:p.name,category:p.category,price:p.price,rating:p.rating,diff:p.price_diff_percent}));
 }
 async function aiBartender(){
   try{
     const {data:{session}}=await SUPA.auth.getSession();
     if(!session)return null;
-    const ac=new AbortController();const to=setTimeout(()=>ac.abort(),12000);  // 12초 넘으면 로컬 추천 폴백 (무한로딩 방지)
-    const r=await fetch(AUTH_CFG.url+"/functions/v1/recommend",{method:"POST",signal:ac.signal,headers:{"Content-Type":"application/json","Authorization":"Bearer "+session.access_token,"apikey":AUTH_CFG.anon},body:JSON.stringify({candidates:_aiCandidates(),nickname:displayName()})});
+    const ac=new AbortController();const to=setTimeout(()=>ac.abort(),5000);  // 5초 내 미도착 시 로컬 추천 유지 (즉시 폴백 설계)
+    const r=await fetch(AUTH_CFG.url+"/functions/v1/recommend",{method:"POST",signal:ac.signal,headers:{"Content-Type":"application/json","Authorization":"Bearer "+session.access_token,"apikey":AUTH_CFG.anon},body:JSON.stringify({candidates:_aiCandidates(40),nickname:displayName()})});
     clearTimeout(to);
     if(!r.ok)return null;
     const j=await r.json();
@@ -981,10 +984,10 @@ function renderAIBartender(j){
       <div style="flex:1;min-width:0"><div class="rt">${esc(p.name)}</div>
       <div class="rd">${esc(k.reason||"")}</div>
       <div class="rd">${p.rating?`★ ${p.rating} · `:""}${won(p.price)}</div></div></div>`;}).join("");
-  _bartenderShell(`<div class="sa" style="line-height:1.75">🤖 ${esc(j.greeting||"오늘은 이런 걸 권해드려요")}</div>${rows}
+  _bartenderShell(`<span id="btMark" style="display:none"></span><div class="sa" style="line-height:1.75">🤖 ${esc(j.greeting||"오늘은 이런 걸 권해드려요")}</div>${rows}
     <div class="sa" style="text-align:center;margin-top:10px;font-size:11.5px;color:var(--sub)">회원 취향 데이터 기반 AI 추천 · 본인만 접근 · 탈퇴 시 삭제</div>`,"AI가 고르는 한 잔");
 }
-function renderLocalBartender(){
+function renderLocalBartender(aiPending){
   const nm=(typeof displayName==="function"&&USER)?displayName():"";
   const r=bartenderRecs();
   let body;
@@ -999,7 +1002,8 @@ function renderLocalBartender(){
     body=`<div class="sa" style="line-height:1.75">🥃 ${nm?"<b>"+esc(nm)+"</b>님, ":""}<b>${esc(r.topCat)}</b>를 즐겨 보시는군요.<br>취향을 살짝 엿보니 — 오늘은 이런 걸 권해드려요 👇</div>${cards}
       <div class="sa" style="text-align:center;margin-top:10px;font-size:11.5px;color:var(--sub)">최근 조회 ${r.n}건 기반 · 이력은 <b>이 기기에만</b> 저장돼요</div>`;
   }
-  _bartenderShell(body);
+  if(aiPending)body=`<div id="btStat" class="sa" style="text-align:center;margin-bottom:10px;font-size:11.5px;color:var(--amberD)">🤖 AI 바텐더가 더 정밀한 추천을 고르는 중…</div>`+body;
+  _bartenderShell(`<span id="btMark" style="display:none"></span>`+body);
 }
 
 // ── 회원(카카오 로그인) 뼈대 ───────────────────────────────
