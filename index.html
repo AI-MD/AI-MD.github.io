@@ -483,7 +483,7 @@ fetch("data.json?t="+Date.now(),{cache:"no-store"}).then(r=>r.json()).then(d=>{
   render();
   const sku=qs.get("sku");
   if(sku){const p=DATA.products.find(x=>x.sku===sku);if(p)detail(p);}
-}).catch(e=>{document.getElementById("grid").innerHTML=`<div class="empty">데이터를 불러오지 못했습니다. (data.json)</div>`;});
+}).catch(e=>{document.getElementById("grid").innerHTML=`<div class="empty">데이터를 불러오지 못했습니다.<br>네트워크 확인 후 다시 시도해 주세요.<div style="margin-top:12px"><button class="srcbtn" onclick="location.reload()" style="cursor:pointer">🔄 다시 시도</button></div></div>`;});
 
 // ── 콜키지프리 뷰 ─────────────────────────────
 let CDATA=null, cmap=null, cmarkers=null, cshown=40, cloaded=false, CLOC=null, cnear=false, cusermk=null;
