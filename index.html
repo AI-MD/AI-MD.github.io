@@ -256,7 +256,6 @@
   <div class="warn">🌟 <b>주락 픽</b> · 트레이더스엔 없는 <b>애호가의 명주</b>를 데일리샷 <b>최저가·평점</b>으로 큐레이션 — 주 3회 갱신, <b>가격은 판매처·시점에 따라 다를 수 있어요.</b></div>
   <main><div class="wrap">
   <div class="crow">
-    <div class="search" style="flex:1;min-width:160px"><span>🔍</span><input id="pq" placeholder="명주 검색 (예: 맥캘란, 야마자키)…"></div>
     <select id="pcat"><option value="">전체 종류</option></select>
     <select id="psort"><option value="review">인기순</option><option value="price_asc">낮은 가격순</option><option value="price_desc">높은 가격순</option><option value="rating">평점순</option></select>
   </div>
@@ -309,6 +308,7 @@ function computeStore(p){ // store filter: recompute price/stock for selected st
   return {price:s.p||p.price,inv:s.q||0,cnt:has?1:0,in:has};
 }
 
+function fmtInv(n){return n>=10000?(n/10000).toFixed(1).replace(/\.0$/,"")+"만":n.toLocaleString();}  // 재고 수치 읽기 쉽게
 function card(p){
   const cs=computeStore(p);
   const rr=p.rating?`${stars(p.rating)}<span class="rn">${p.rating}</span><span class="rc2">(${p.review_count})</span>`:`<span class="nr">평점 없음</span>`;
@@ -316,7 +316,7 @@ function card(p){
   return `<button class="card" data-sku="${p.sku}">
     <div class="cimg">${p.image?`<img src="${p.image}" loading="lazy" referrerpolicy="no-referrer" onerror="this.onerror=null;this.outerHTML='<span class=&quot;fb&quot;>${CAT_ICON[p.category]||"🍾"}</span>'"/>`:`<span class="fb">${CAT_ICON[p.category]||"🍾"}</span>`}
       <span class="catchip">${CAT_ICON[p.category]||""} ${p.category}</span>
-      <span class="stkchip" style="background:${cs.in?"#1F9E5A":"#B9AE9E"}">${cs.in?`재고 ${cs.inv.toLocaleString()}`:"품절"}</span></div>
+      <span class="stkchip" style="background:${cs.in?"#1F9E5A":"#B9AE9E"}">${cs.in?`재고 ${fmtInv(cs.inv)}`:"품절"}</span></div>
     <div class="cbody"><div class="cname">${esc(p.name)}</div>
       <div class="rr">${rr}${viv}</div>
       <div class="pr"><span class="price">${won(cs.price)}</span>${p.discount_percent>0?`<span class="disc">${p.discount_percent}%↓</span>`:""}</div>
@@ -350,7 +350,8 @@ function render(){
   list.sort((a,b)=>{const f=key[state.sort];const x=f(a),y=f(b);return typeof x==="string"?x.localeCompare(y):x-y;});
   const shown=list.slice(0,state.shown);
   document.getElementById("rc").innerHTML=(state.watchOnly?`⭐ <b>내 관심상품</b> · `:"")+`총 <b>${list.length}</b>종 중 <b>${shown.length}</b>개 표시${state.watchOnly?` · <a href="#" onclick="clearWatchOnly();return false" style="color:var(--amberD);font-weight:700">전체 보기</a>`:` · 재고 보유 ${s.in_stock_skus}종`}`;
-  document.getElementById("grid").innerHTML=list.length?shown.map(card).join(""):`<div class="empty"><div style="font-size:44px">🍾</div><div style="margin-top:12px">결과가 없습니다</div></div>`;
+  window._dealCount=list.length;
+  document.getElementById("grid").innerHTML=list.length?shown.map(card).join(""):`<div class="empty"><div style="font-size:44px">🍾</div><div style="margin-top:12px">${state.q?`‘<b>${esc(state.q)}</b>’ — 지금 트레이더스엔 없네요.<br><span style="font-size:12.5px">철자를 바꿔보시거나, 아래 <b>주락 픽</b> 결과를 확인해 보세요.</span>`:"조건에 맞는 술이 없습니다 — 필터를 조금 풀어보세요."}</div></div>`;
   const more=document.getElementById("more");
   if(list.length>shown.length){
     more.innerHTML=`<button class="distbtn on" style="padding:11px 22px;font-size:14px" onclick="showMore()">더 보기 (${(list.length-shown.length).toLocaleString()}개 더)</button>`;
@@ -740,7 +741,7 @@ function renderLearn(){
 }
 
 // ── 🌟 주락 픽 (애호가의 명주) ──────────────────────
-let PDATA=null, ploaded=false, pshown=24;
+let PDATA=null, ploaded=false, pshown=24, pickQ="";
 function loadPick(){
   if(ploaded)return; ploaded=true;
   document.getElementById("prc").textContent="명주 불러오는 중…";
@@ -755,7 +756,7 @@ function loadPick(){
 }
 function pickFiltered(){
   let list=PDATA.items.slice();
-  const q=(document.getElementById("pq").value||"").toLowerCase().trim();
+  const q=(pickQ||"").toLowerCase().trim();  // 검색은 상단 통합 검색창으로 일원화
   const c=document.getElementById("pcat").value, s=document.getElementById("psort").value;
   if(c)list=list.filter(i=>i.category===c);
   if(q)list=list.filter(i=>((i.name||"")+" "+(i.subcategory||"")).toLowerCase().includes(q));
@@ -777,7 +778,7 @@ function pickCard(i){
 function renderPick(){
   if(!PDATA)return;
   const list=pickFiltered(), shown=list.slice(0,pshown);
-  document.getElementById("prc").innerHTML=`🌟 애호가의 명주 <b>${list.length}</b>종 <span style="color:var(--sub)">· 갱신 ${PDATA.updated_at?new Date(PDATA.updated_at).toLocaleDateString("ko-KR"):""}</span>`;
+  document.getElementById("prc").innerHTML=`🌟 애호가의 명주 <b>${list.length}</b>종${pickQ?` · 🔍 ‘<b>${esc(pickQ)}</b>’ <a href="#" onclick="clearPickQ();return false" style="color:var(--amberD);font-weight:700;text-decoration:none">✕ 지우기</a>`:""} <span style="color:var(--sub)">· 갱신 ${PDATA.updated_at?new Date(PDATA.updated_at).toLocaleDateString("ko-KR"):""}</span>`;
   document.getElementById("pgrid").innerHTML=list.length?shown.map(pickCard).join(""):`<div class="empty"><div style="font-size:44px">🌟</div><div style="margin-top:12px">결과가 없습니다</div></div>`;
   document.getElementById("pmore").innerHTML=list.length>shown.length?`<button class="distbtn on" style="padding:11px 22px;cursor:pointer" onclick="pshown+=24;renderPick()">더 보기 (${(list.length-shown.length).toLocaleString()}종)</button>`:"";
 }
@@ -789,13 +790,14 @@ function renderCrossPick(){
   if(!PDATA){el.innerHTML=""; if(!ploaded)loadPick(); return;}
   const m=PDATA.items.filter(i=>((i.name||"")+" "+(i.subcategory||"")).toLowerCase().includes(q));
   if(!m.length){el.innerHTML="";return;}
-  el.innerHTML=`<div class="xph">🌟 <b>주락 픽</b>에서도 <b>${m.length}</b>종 — 트레이더스 밖 명주${m.length>4?` <button class="distbtn" style="padding:6px 12px;margin-left:6px" onclick="goPickSearch()">픽에서 모두 보기 →</button>`:""}</div><div class="grid">${m.slice(0,4).map(pickCard).join("")}</div>`;
+  const head=(window._dealCount===0)?`🌟 트레이더스엔 없지만, <b>데일리샷에서 구할 수 있어요</b> — <b>${m.length}</b>종`:`🌟 <b>주락 픽</b>에서도 <b>${m.length}</b>종 — 트레이더스 밖 명주`;
+  el.innerHTML=`<div class="xph">${head}${m.length>4?` <button class="distbtn" style="padding:6px 12px;margin-left:6px" onclick="goPickSearch()">픽에서 모두 보기 →</button>`:""}</div><div class="grid">${m.slice(0,4).map(pickCard).join("")}</div>`;
 }
-function goPickSearch(){const pq=document.getElementById("pq");if(pq)pq.value=state.q||"";pshown=24;switchView("pick");if(PDATA)renderPick();}
+function goPickSearch(){pickQ=state.q||"";pshown=24;switchView("pick");if(PDATA)renderPick();}
+function clearPickQ(){pickQ="";pshown=24;renderPick();}
 // ── 더보기 내비 (콜키지·알쓸신주) ─────────────
 function toggleMoreNav(ev){ev.stopPropagation();const m=document.getElementById("moreNav");if(m)m.hidden=!m.hidden;}
 document.addEventListener("click",e=>{const m=document.getElementById("moreNav");if(m&&!m.hidden&&!e.target.closest("#navMore")&&!e.target.closest("#moreNav"))m.hidden=true;});
-document.getElementById("pq").oninput=()=>{pshown=24;renderPick();};
 document.getElementById("pcat").onchange=()=>{pshown=24;renderPick();};
 document.getElementById("psort").onchange=()=>{pshown=24;renderPick();};
 
