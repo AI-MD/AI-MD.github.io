@@ -903,7 +903,12 @@ function renderBottle(){
   if(bnearOn&&BLOC){
     L.circleMarker([BLOC.lat,BLOC.lng],{radius:8,color:"#3A6AB0",fillColor:"#3A6AB0",fillOpacity:.9,weight:3}).bindPopup("📍 내 위치").addTo(bmarkers);
     bmap.setView([BLOC.lat,BLOC.lng],13);
-  } else if(pts.length){bmap.fitBounds(pts,{padding:[30,30],maxZoom:13});}
+  } else {
+    // 기본 상태(무필터)는 서울 중심 고정 — 전국 fitBounds는 지도가 주변국까지 축소돼 보임. 필터·검색 시에만 결과에 맞춰 줌.
+    const filtered=!!((document.getElementById("bq").value||"").trim()||document.getElementById("bregion").value||document.getElementById("bkind").value);
+    if(filtered&&pts.length)bmap.fitBounds(pts,{padding:[30,30],maxZoom:13});
+    else bmap.setView([37.5665,126.9784],11);
+  }
   setTimeout(()=>bmap.invalidateSize(),120);
 }
 document.getElementById("bq").oninput=()=>{bshown=40;renderBottle();};
