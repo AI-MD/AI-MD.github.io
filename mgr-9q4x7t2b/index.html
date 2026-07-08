@@ -164,7 +164,7 @@ const SUPA_URL="https://hzliwugasthzxamfpwxo.supabase.co";
 const ANON="sb_publishable_mpTkGUSL4hPWbpv5SHyGYg_kHjkg8aP";
 const REF="hzliwugasthzxamfpwxo";
 const SITE="https://jurak.kr";
-const TB_LAUNCH=Date.parse("2026-07-10T15:00:00Z"); // 7/11 00:00 KST
+const TB_LAUNCH=Date.parse("2026-07-08T12:00:00Z"); // 7/8 조기 정식 오픈
 const esc=s=>String(s??"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
 const fmt=n=>Number(n||0).toLocaleString();
 const hAgo=iso=>{const h=(Date.now()-Date.parse(iso))/3600000;return h;};
@@ -230,10 +230,12 @@ function renderOps(fr,d){
     const sub=f.na?esc(f.err||"불러오기 실패"):`${fmt(f.cnt)}종 · 갱신 ${f.sched}`;
     return `<div class="opsc ${cls}"><div class="oh">${sig} ${esc(f.name)}</div><div class="obig">${big}</div><div class="osub">${sub}</div></div>`;
   }).join("");
-  // AI 오늘 상태
+  // AI 오늘 상태 + 무료 쿼터 게이지 (admin-stats가 ai_requests/quota 제공 — 구버전 응답 방어)
   if(d){
     const ta=d.today_ai||{},open=Date.now()>=TB_LAUNCH;
-    html+=`<div class="opsc ok"><div class="oh">🤖 AI 기능 (오늘)</div><div class="obig" style="font-size:14px;color:var(--ink)">추천 ${fmt(ta.bartender)} · 토킹바 ${fmt(ta.talkbar_open)}회/${fmt(ta.talkbar_msg)}발화</div><div class="osub">토킹바: ${open?"정식 오픈":"베타(운영자만) · 7/11 0시 오픈"}</div></div>`;
+    const q=ta.ai_requests,QM=ta.quota||1000,pct=(q!=null)?Math.round(q/QM*100):null;
+    const gauge=(pct!=null)?` · 쿼터 ${fmt(q)}/${fmt(QM)} ${pct>=80?"🔴":pct>=50?"🟡":"🟢"}${pct}%`:"";
+    html+=`<div class="opsc ${pct!=null&&pct>=80?"warn":"ok"}"><div class="oh">🤖 AI 기능 (오늘)</div><div class="obig" style="font-size:14px;color:var(--ink)">추천 ${fmt(ta.bartender)} · 토킹바 ${fmt(ta.talkbar_open)}회/${fmt(ta.talkbar_msg)}발화</div><div class="osub">토킹바: ${open?"정식 오픈 · 1인 30발화/일":"베타(운영자만)"}${gauge}</div></div>`;
   }
   document.getElementById("ops").innerHTML=html;
 }

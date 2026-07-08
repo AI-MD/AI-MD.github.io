@@ -288,7 +288,7 @@
     <span class="charm">
       <button class="charmbtn" onclick="showGuide()" title="지금 살 만한 술 큐레이션 — 입문·버번·특가">📖 큐레이션</button>
       <button class="charmbtn" onclick="showBartender()" title="조회 이력으로 취향을 읽어 골라드립니다">🥃 오늘의 추천 한 잔</button>
-      <button class="charmbtn gold" onclick="tbEntry()" title="대화로 고르는 AI 바텐더 — 7/11 오픈">🤖 AI 바텐더 · 7/11 영입</button>
+      <button class="charmbtn gold" onclick="tbEntry()" title="대화로 술을 고르는 AI 바텐더 — 회원 무료">🤖 AI 바텐더 · OPEN</button>
     </span>
   </div>
 </div></div>
@@ -1178,8 +1178,8 @@ function bartenderRecs(){
   return {topCat,mid,recs:pool.slice(0,4),n:v.length};
 }
 function _tbTry(n){ if(localStorage.getItem("jurak_talkbar_seen")||n>8)return; setTimeout(()=>{ if(document.getElementById("ov")){_tbTry(n+1);return;} showTalkbar(); },1000); }
-// ── 🤖 AI 바텐더 토킹바 (혼술바 챗봇) — 2026-07-11 00:00 KST 대중 오픈, 그 전엔 베타 테스터만 ──
-const TB_LAUNCH=Date.parse("2026-07-10T15:00:00Z");                       // = 7/11 00:00 KST
+// ── 🤖 AI 바텐더 토킹바 (혼술바 챗봇) — 2026-07-08 조기 정식 오픈 (서버 TALKBAR_LAUNCH와 동기) ──
+const TB_LAUNCH=Date.parse("2026-07-08T12:00:00Z");                       // = 7/8 21:00 KST 오픈
 const TB_BETA=["3cd90412-0113-435f-a312-d98d826357ec"];                   // 베타 테스터(운영자) — 서버에서도 동일하게 검증
 function talkbarAllowed(){return !!(USER&&SUPA&&DATA)&&(Date.now()>=TB_LAUNCH||TB_BETA.includes(USER.id));}
 function tbEntry(){ if(talkbarAllowed())tbEnterChat(); else showTalkbar(); }
@@ -1261,7 +1261,7 @@ async function tbSend(){
   }
   window._tbWait=false;
   if(res&&res.ok&&res.j.reply)window._tbMsgs.push({role:"assistant",text:res.j.reply,skus:res.j.skus||[]});
-  else if(res&&res.status===403)window._tbMsgs.push({role:"assistant",text:"토킹바는 7월 11일 0시에 정식 오픈해요 🗓 조금만 기다려 주세요!",skus:[]});
+  else if(res&&res.status===403)window._tbMsgs.push({role:"assistant",text:"지금은 입장이 어려워요 🙏 잠시 후 다시 찾아주세요!",skus:[]});
   else window._tbMsgs.push({role:"assistant",text:"바가 잠깐 붐볐어요 🙏 방금 그 말, 한 번만 다시 걸어주시겠어요?",skus:[]});
   tbRender();
 }
@@ -1275,16 +1275,16 @@ function showTalkbar(){
   document.getElementById("modalRoot").innerHTML=`<div class="overlay" id="ov" onclick="closeModal()"><div class="modalSm" onclick="event.stopPropagation()">
     <div style="position:relative;background:linear-gradient(135deg,#2B2622,#6E460F);color:#fff;padding:22px 20px 20px">
       <button class="close" style="position:absolute;top:12px;right:12px;background:rgba(255,255,255,.18);color:#fff" onclick="closeModal()">✕</button>
-      <div style="font-size:11.5px;font-weight:800;letter-spacing:.05em;color:#F7CE68">COMING SOON · 회원 먼저</div>
+      <div style="font-size:11.5px;font-weight:800;letter-spacing:.05em;color:#F7CE68">NOW OPEN · 회원 전용</div>
       <div style="font-size:22px;font-weight:900;margin-top:6px;letter-spacing:-.01em">🤖 AI 바텐더 토킹바</div>
-      <div style="font-size:13.5px;opacity:.85;margin-top:4px">곧, 대화로 술을 고르는 시간</div>
-      <div style="display:inline-block;margin-top:13px;background:#F7CE68;color:#3A2A08;font-weight:900;font-size:13px;padding:6px 13px;border-radius:20px">🗓 2026. 7. 11 오픈 예정</div>
+      <div style="font-size:13.5px;opacity:.85;margin-top:4px">대화로 술을 고르는 시간, 지금 영업 중</div>
+      <div style="display:inline-block;margin-top:13px;background:#F7CE68;color:#3A2A08;font-weight:900;font-size:13px;padding:6px 13px;border-radius:20px">🍸 정식 오픈 · 회원 무료</div>
     </div>
     <div style="padding:16px 20px">
-      <div class="sa" style="line-height:1.7;margin-bottom:8px">예산·취향·기분을 말하면 <b>AI 바텐더</b>가 딱 맞는 한 잔을 골라드려요. <b>로그인 회원께 먼저</b> 열립니다 🍸</div>
+      <div class="sa" style="line-height:1.7;margin-bottom:8px">예산·취향·기분을 말하면 <b>AI 바텐더</b>가 딱 맞는 한 잔을 골라드려요. <b>카카오 로그인</b>만 하면 무료입니다 🍸</div>
       ${feats.map(f=>`<div class="benerow"><div class="bi">${f[0]}</div><div><div class="bt">${f[1]}</div><div class="bd">${f[2]}</div></div></div>`).join("")}
-      ${talkbarAllowed()?`<button class="kbtn" style="margin-top:14px;background:linear-gradient(135deg,#C98A2B,#8C5A16);color:#fff" onclick="tbEnterChat()">🥃 지금 입장하기 (베타)</button>`:`<button class="kbtn" style="margin-top:14px;background:linear-gradient(135deg,#C98A2B,#8C5A16);color:#fff" onclick="closeModal()">🔔 출시되면 가장 먼저 만나기</button>`}
-      <div class="sa" style="text-align:center;margin-top:9px;font-size:11.5px;color:var(--sub)">출시 소식은 알림(앱·메일)으로 전해드릴게요</div>
+      ${talkbarAllowed()?`<button class="kbtn" style="margin-top:14px;background:linear-gradient(135deg,#C98A2B,#8C5A16);color:#fff" onclick="tbEnterChat()">🥃 지금 입장하기</button>`:`<button class="kbtn" style="margin-top:14px" onclick="closeModal();showLogin()"><span style="font-size:18px">💬</span> 카카오 로그인하고 입장하기</button>`}
+      <div class="sa" style="text-align:center;margin-top:9px;font-size:11.5px;color:var(--sub)">하루 30잔(발화)까지 무료 · 지나친 음주는 건강을 해칩니다</div>
     </div></div></div>`;
 }
 function showPrivacy(){
@@ -1526,7 +1526,7 @@ function refreshAuthUI(){
   } else {b.innerHTML="🙋 로그인"; b.onclick=showLogin;}
 }
 const BENEFITS=[
-  ["🤖","AI 바텐더 토킹바 · 7/11 오픈","대화로 술을 고르는 회원 전용 기능 — 곧 만나요"],
+  ["🤖","AI 바텐더 토킹바 · OPEN","대화로 술을 고르는 회원 전용 기능 — 지금 바로"],
   ["🥃","AI 맞춤 추천","조회 취향이 내 계정에 안전히 저장돼 볼수록 똑똑해지는 추천"],
   ["💬","카카오톡으로 직접 알림","앱 설치 없이 '나에게 보내기'로 특가·재입고를 카톡으로"],
   ["🎯","내 관심 상품만 콕","전체 알림 대신 워치리스트에 담은 술만 골라서"],
@@ -1575,9 +1575,9 @@ function showAccount(){
         </div>
         ${MYWATCH.size?`<button class="distbtn on" style="width:100%;margin-top:10px;cursor:pointer;border:none" onclick="closeModal();showMyWatch()">⭐ 내 관심상품 모아보기</button>`:`<div class="sa" style="margin-top:10px;font-size:12px">상품 상세에서 <b>☆ 관심 등록</b>, 콜키지 식당에서 <b>☆ 즐겨찾기</b>를 눌러보세요.</div>`}
       </div>
-      <div style="margin-top:14px;padding:12px 14px;border-radius:12px;background:linear-gradient(135deg,#2B2622,#6E460F);color:#fff;cursor:pointer" onclick="closeModal();showTalkbar()">
-        <div style="font-size:11px;font-weight:800;color:#F7CE68">COMING SOON · 7. 11</div>
-        <div style="font-weight:800;font-size:14px;margin-top:2px">🤖 AI 바텐더 토킹바 — 회원 먼저 열려요 →</div></div>
+      <div style="margin-top:14px;padding:12px 14px;border-radius:12px;background:linear-gradient(135deg,#2B2622,#6E460F);color:#fff;cursor:pointer" onclick="closeModal();tbEntry()">
+        <div style="font-size:11px;font-weight:800;color:#F7CE68">NOW OPEN</div>
+        <div style="font-weight:800;font-size:14px;margin-top:2px">🤖 AI 바텐더 토킹바 — 지금 입장하기 →</div></div>
       <button class="distbtn" style="margin-top:12px;cursor:pointer" onclick="logout()">로그아웃</button>
     </div></div></div>`;
 }
