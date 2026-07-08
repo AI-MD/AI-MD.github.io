@@ -197,6 +197,9 @@
     background:linear-gradient(135deg,#CE9235,#8C5A16);color:#fff;font-size:26px;cursor:pointer;
     box-shadow:0 6px 18px rgba(140,90,22,.45);display:flex;align-items:center;justify-content:center}
   .fab:active{transform:scale(.94)}
+  .gsec{margin-top:16px}.gsec:first-child{margin-top:4px}
+  .gsec .gt{font-weight:800;font-size:15px;color:var(--ink)}
+  .gsec .gs{font-size:11.5px;color:var(--sub);margin:1px 0 7px}
   .recrow{display:flex;gap:11px;align-items:center;padding:11px;border:1px solid var(--line);border-radius:12px;margin:9px 0;cursor:pointer;background:var(--card)}
   .recrow img{width:48px;height:48px;object-fit:contain;border:1px solid var(--line);border-radius:8px;background:#fff}
   .recrow .rt{font-weight:800;font-size:13.5px;line-height:1.35;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
@@ -247,6 +250,7 @@
   <div class="hsline">
     <span>🍶 <b>합리적으로 사고, 즐겁게 마시다</b> — 트레이더스 24개 지점 <b id="hsN">–</b>종의 재고·최저가, 그 밖의 명주까지 한 번에.</span>
     <span class="charm">
+      <button class="charmbtn" onclick="showGuide()" title="지금 살 만한 술 큐레이션 — 입문·버번·특가">📖 큐레이션</button>
       <button class="charmbtn" onclick="showBartender()" title="조회 이력으로 취향을 읽어 골라드립니다">🥃 오늘의 추천 한 잔</button>
       <button class="charmbtn gold" onclick="tbEntry()" title="대화로 고르는 AI 바텐더 — 7/11 오픈">🤖 AI 바텐더 · 7/11 영입</button>
     </span>
@@ -1075,6 +1079,41 @@ function showPrivacy(){
     <div class="hero" style="align-items:center"><div style="flex:1"><div class="hname">🔒 개인정보 처리방침</div><div class="sa">주락 酒樂 · 최소 수집 원칙</div></div><button class="close" onclick="closeModal()">✕</button></div>
     <div style="padding:14px 20px;overflow-y:auto">${rows.map(r=>`<div class="lrow"><span class="lt">${r[0]}</span><span class="ld">${r[1]}</span></div>`).join("")}
     <div class="sa" style="margin-top:12px;font-size:11.5px">비상업·개인 참고용 서비스입니다. 데이터 권리는 각 사(이마트/트레이더스·데일리샷·카카오)에 있습니다.</div></div></div></div>`;
+}
+// ── 📖 큐레이션 가이드 (데이터 기반 셀렉션 — 30~40대 남성 취향) ─────────────
+function _guideCollections(){
+  const P=(DATA&&DATA.products)||[];
+  const inb=p=>p.in_stock&&p.price;
+  const byRate=(a,b)=>((b.rating||0)-(a.rating||0))||((b.review_count||0)-(a.review_count||0));
+  const isBourbon=p=>/버번|버본|짐빔|짐 빔|메이커스|와일드\s?터키|버팔로|우드포드|놉\s?크릭|에반\s?윌리엄스|벤치마크|포\s?로지스|불렛|four roses/i.test(p.name);
+  return [
+    {t:"🥃 첫 위스키, 5만원 이하",s:"입문 가성비 — 평점 높은 순",
+      items:P.filter(p=>inb(p)&&p.category==="위스키"&&p.price<=50000).sort(byRate).slice(0,5)},
+    {t:"🌾 버번 로드맵",s:"싼 것부터 차근차근, 버번 완전정복",
+      items:P.filter(p=>inb(p)&&isBourbon(p)).sort((a,b)=>a.price-b.price).slice(0,5)},
+    {t:"👑 10만원대 프리미엄 싱글몰트",s:"한 병 제대로, 소장 가치",
+      items:P.filter(p=>inb(p)&&p.category==="위스키"&&p.price>=80000&&p.price<=200000).sort(byRate).slice(0,5)},
+    {t:"🍷 3만원대 데일리 와인",s:"평점 좋은 가성비 와인",
+      items:P.filter(p=>inb(p)&&p.category==="와인"&&p.price<=38000).sort((a,b)=>((b.vivino_score||b.rating||0)-(a.vivino_score||a.rating||0))).slice(0,5)},
+    {t:"🔥 지금 가장 싼 특가",s:"데일리샷 대비 20% 이상 저렴",
+      items:P.filter(p=>inb(p)&&p.price_diff_percent!=null&&p.price_diff_percent<=-20).sort((a,b)=>(a.price_diff_percent||0)-(b.price_diff_percent||0)).slice(0,5)},
+  ].filter(c=>c.items.length>=3);
+}
+function _guideItem(p){
+  return `<div class="recrow" onclick="closeModal();detail(DATA.products.find(x=>x.sku==='${p.sku}'))">
+    ${p.image?`<img src="${p.image}" referrerpolicy="no-referrer" onerror="this.style.display='none'">`:`<div style="width:48px;height:48px;text-align:center;line-height:48px;font-size:24px">${CAT_ICON[p.category]||"🍾"}</div>`}
+    <div style="flex:1;min-width:0"><div class="rt">${esc(p.name)}</div>
+    <div class="rd">${p.rating?`★ ${p.rating} · `:""}${won(p.price)}${p.price_diff_percent!=null&&p.price_diff_percent<=-20?' · <b style="color:#B0431F">🔥특가</b>':""}</div></div></div>`;
+}
+function showGuide(){
+  track("guide_open",{});
+  if(!DATA){document.getElementById("modalRoot").innerHTML=`<div class="overlay" id="ov" onclick="closeModal()"><div class="modalSm" onclick="event.stopPropagation()"><div style="padding:30px;text-align:center;color:var(--sub)">잠시 후 다시 열어주세요 🍶</div></div></div>`;return;}
+  const cols=_guideCollections();
+  const body=cols.length?cols.map(c=>`<div class="gsec"><div class="gt">${c.t}</div><div class="gs">${esc(c.s)}</div>${c.items.map(_guideItem).join("")}</div>`).join(""):`<div style="padding:20px;text-align:center;color:var(--sub)">지금은 큐레이션을 준비 중이에요.</div>`;
+  document.getElementById("modalRoot").innerHTML=`<div class="overlay" id="ov" onclick="closeModal()"><div class="modalSm" onclick="event.stopPropagation()">
+    <div class="hero" style="align-items:center"><div style="flex:1"><div class="hname">📖 주락 큐레이션 가이드</div><div class="sa">지금 살 만한 술, 골라뒀어요</div></div><button class="close" onclick="closeModal()">✕</button></div>
+    <div style="padding:6px 20px 16px;overflow-y:auto">${body}
+    <div class="sa" style="text-align:center;margin-top:12px;font-size:11px;color:var(--sub)">재고·가격 기준 자동 큐레이션 · 카드를 누르면 상세로</div></div></div></div>`;
 }
 function _bartenderShell(body,sub){
   document.getElementById("modalRoot").innerHTML=`<div class="overlay" id="ov" onclick="closeModal()"><div class="modalSm" onclick="event.stopPropagation()">
