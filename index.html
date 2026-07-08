@@ -1002,20 +1002,30 @@ async function tbSend(){
   window._tbMsgs.push({role:"user",text:q});
   window._tbWait=true; tbRender();
   track("talkbar_msg",{len:q.length});
-  try{
+  const msgs=window._tbMsgs.filter(m=>m.text).map(m=>({role:m.role,text:m.text})).slice(-30);
+  // 간헐적 과부하(429/503)·콜드스타트 대비: 최대 2회 시도(서버도 자체 재시도)
+  async function _once(){
     const {data:{session}}=await SUPA.auth.getSession();
-    const ac=new AbortController();const to=setTimeout(()=>ac.abort(),20000);  // 20초 타임아웃 (무한로딩 방지)
-    const r=await fetch(AUTH_CFG.url+"/functions/v1/talkbar",{method:"POST",signal:ac.signal,
-      headers:{"Content-Type":"application/json","Authorization":"Bearer "+session.access_token,"apikey":AUTH_CFG.anon},
-      body:JSON.stringify({messages:window._tbMsgs.filter(m=>m.text).map(m=>({role:m.role,text:m.text})).slice(-30),candidates:_aiCandidates(),nickname:displayName()})});
-    clearTimeout(to);
-    const j=await r.json().catch(()=>({}));
-    window._tbWait=false;
-    if(r.ok&&j.reply)window._tbMsgs.push({role:"assistant",text:j.reply,skus:j.skus||[]});
-    else if(r.status===403)window._tbMsgs.push({role:"assistant",text:"토킹바는 7월 11일 0시에 정식 오픈해요 🗓 조금만 기다려 주세요!",skus:[]});
-    else window._tbMsgs.push({role:"assistant",text:"죄송해요, 바가 잠시 붐비네요 🙏 잠깐 뒤에 다시 말 걸어주세요.",skus:[]});
-    tbRender();
-  }catch(e){window._tbWait=false;window._tbMsgs.push({role:"assistant",text:"연결이 잠시 불안하네요. 다시 한 번 부탁드려요 🙏",skus:[]});tbRender();}
+    const ac=new AbortController();const to=setTimeout(()=>ac.abort(),28000);
+    try{
+      const r=await fetch(AUTH_CFG.url+"/functions/v1/talkbar",{method:"POST",signal:ac.signal,
+        headers:{"Content-Type":"application/json","Authorization":"Bearer "+session.access_token,"apikey":AUTH_CFG.anon},
+        body:JSON.stringify({messages:msgs,candidates:_aiCandidates(45),nickname:displayName()})});
+      clearTimeout(to);
+      const j=await r.json().catch(()=>({}));
+      return {status:r.status,ok:r.ok,j};
+    }finally{clearTimeout(to);}
+  }
+  let res=null;
+  for(let i=0;i<2;i++){
+    try{ res=await _once(); if(res.ok||res.status===403)break; }catch(e){ res=null; }
+    if(i===0)await new Promise(r=>setTimeout(r,900));  // 첫 실패 시 잠깐 뒤 재시도
+  }
+  window._tbWait=false;
+  if(res&&res.ok&&res.j.reply)window._tbMsgs.push({role:"assistant",text:res.j.reply,skus:res.j.skus||[]});
+  else if(res&&res.status===403)window._tbMsgs.push({role:"assistant",text:"토킹바는 7월 11일 0시에 정식 오픈해요 🗓 조금만 기다려 주세요!",skus:[]});
+  else window._tbMsgs.push({role:"assistant",text:"바가 잠깐 붐볐어요 🙏 방금 그 말, 한 번만 다시 걸어주시겠어요?",skus:[]});
+  tbRender();
 }
 function showTalkbar(){
   try{localStorage.setItem("jurak_talkbar_seen","1");}catch(e){}
