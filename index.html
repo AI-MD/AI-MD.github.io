@@ -313,7 +313,7 @@
 </div></header>
 <div class="herosearch"><div class="hwrap">
   <div class="hsline">
-    <span>🍶 <b>합리적으로 사고, 즐겁게 마시다</b> — 트레이더스 24개 지점 <b id="hsN">–</b>종의 재고·최저가, 그 밖의 명주까지 한 번에.</span>
+    <span>🍶 <b>가격만 비교하지 않습니다</b> — 트레이더스 24개 지점 <b id="hsN">–</b>종의 <b>지점별 재고 수량</b>까지. 헛걸음 없이, 아무것도 팔지 않는 중립 정보로.</span>
     <span class="charm">
       <button class="charmbtn" onclick="showGuide()" title="지금 살 만한 술 큐레이션 — 입문·버번·특가">📖 큐레이션</button>
       <button class="charmbtn" onclick="showBartender()" title="조회 이력으로 취향을 읽어 골라드립니다">🥃 오늘의 추천 한 잔</button>
@@ -389,7 +389,7 @@
   <div style="font-weight:800;color:var(--amberD);margin-bottom:6px">🍶 주락 酒樂 · 합리적으로 사고, 즐겁게 마시다</div>
   👁 오늘 <b id="vtoday">–</b> · 누적 <b id="vtotal">–</b> 방문 &nbsp;·&nbsp; 🔔 구독자 <b id="vsubs">–</b>명 &nbsp;·&nbsp; 조회 전용 · 주류 재고 하루 1회 · 콜키지프리 주 3회 갱신
   <div style="margin-top:8px;font-weight:700">⚠️ 지나친 음주는 건강을 해칩니다 · 임신 중 음주는 태아의 건강을 해칩니다 · 만 19세 미만 이용 불가</div>
-  <div style="margin-top:8px"><a href="/report/" style="color:var(--amberD);font-weight:700;text-decoration:none">📊 특가 리포트</a> &nbsp;·&nbsp; <a href="#" onclick="showPrivacy();return false" style="color:var(--amberD);font-weight:700;text-decoration:none">개인정보 처리방침</a></div>
+  <div style="margin-top:8px"><a href="/report/" style="color:var(--amberD);font-weight:700;text-decoration:none">📊 특가 리포트</a> &nbsp;·&nbsp; <a href="/store/" style="color:var(--amberD);font-weight:700;text-decoration:none">🏬 지점별 재고</a> &nbsp;·&nbsp; <a href="#" onclick="showPrivacy();return false" style="color:var(--amberD);font-weight:700;text-decoration:none">개인정보 처리방침</a></div>
 </footer>
 <div id="modalRoot"></div>
 
@@ -775,6 +775,7 @@ fetch("data.json?t="+Date.now(),{cache:"no-store"}).then(r=>r.json()).then(d=>{
   if(qs.get("test")==="1"){setTimeout(()=>showTasteTest(),300);}  // 취향 테스트 공유 딥링크
   if(qs.get("bottle")==="1"){setTimeout(()=>switchView("bottle"),100);}  // 바틀샵 지도 딥링크
   const q0=qs.get("q"); if(q0){const qi=document.getElementById("q");qi.value=q0;state.q=q0;}  // 검색 딥링크 (?q= — SEO SearchAction)
+  const st0=qs.get("store"); if(st0&&BRANCH[st0]){state.store=st0;document.getElementById("store").value=st0;}  // 지점 딥링크 (?store= — 지점 페이지 연동)
   render();
   renderBrief();
   const sku=qs.get("sku");
