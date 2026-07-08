@@ -231,6 +231,8 @@
     .overlay.chat{padding:0;align-items:stretch}
     .overlay.chat .modalSm{max-width:none;height:100%;max-height:100%;border-radius:0}
     .tbrow{padding-bottom:calc(10px + env(safe-area-inset-bottom))}
+    /* iOS는 input 글자 16px 미만이면 포커스 시 자동 확대 → 화면 점프·레이아웃 밀림. 모바일 입력류는 16px 고정 */
+    input,select,textarea{font-size:16px !important}
   }
   .tbmsg{max-width:84%;padding:9px 13px;border-radius:14px;margin:5px 0;font-size:13.5px;line-height:1.55;white-space:pre-wrap;word-break:break-word;width:fit-content}
   .tbmsg.u{background:var(--amber);color:#fff;margin-left:auto;border-bottom-right-radius:4px}
@@ -239,6 +241,7 @@
   .tbrow{display:flex;gap:8px;padding:10px 14px;border-top:1px solid var(--line)}
   .tbrow input{flex:1;min-width:0;border:1px solid var(--line);border-radius:10px;padding:10px 13px;font:inherit;font-size:13.5px;outline:none}
   .tbrow input:focus{border-color:var(--amber)}
+  .tbrow button{flex-shrink:0;white-space:nowrap}
   /* 주류 공부 */
   .lcard{background:var(--card);border:1px solid var(--line);border-radius:14px;margin:12px 0;overflow:hidden}
   .lcard>summary{padding:15px 16px;font-weight:800;font-size:15.5px;cursor:pointer;list-style:none;display:flex;justify-content:space-between;align-items:center}
