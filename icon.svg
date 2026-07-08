@@ -1,28 +1,38 @@
-<svg viewBox="0 0 512 512" xmlns="http://www.w3.org/2000/svg">
+<?xml version="1.0" encoding="UTF-8"?>
+<svg width="512" height="512" viewBox="0 0 512 512" xmlns="http://www.w3.org/2000/svg">
   <defs>
     <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1">
-      <stop offset="0" stop-color="#F8D26B"/><stop offset="1" stop-color="#A85F12"/>
+      <stop offset="0" stop-color="#2E2415"/><stop offset="0.55" stop-color="#221910"/><stop offset="1" stop-color="#171009"/>
     </linearGradient>
-    <linearGradient id="liq" x1="0" y1="0" x2="0" y2="1">
-      <stop offset="0" stop-color="#EF9A2E"/><stop offset="1" stop-color="#B9691A"/>
+    <linearGradient id="gold" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#F0D48A"/><stop offset="0.5" stop-color="#D9A94E"/><stop offset="1" stop-color="#B8791A"/>
     </linearGradient>
+    <linearGradient id="liquid" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#E8B75A"/><stop offset="1" stop-color="#9C6414"/>
+    </linearGradient>
+    <radialGradient id="glow" cx="0.5" cy="0.32" r="0.75">
+      <stop offset="0" stop-color="#E5C57F" stop-opacity="0.16"/><stop offset="1" stop-color="#E5C57F" stop-opacity="0"/>
+    </radialGradient>
   </defs>
-  <rect width="512" height="512" rx="118" fill="url(#bg)"/>
-  <!-- sparkles -->
-  <g fill="#FFFDF5">
-    <circle cx="132" cy="120" r="7" opacity=".95"/>
-    <circle cx="392" cy="138" r="5" opacity=".85"/>
-    <circle cx="404" cy="360" r="6" opacity=".8"/>
-    <path d="M150 386 l6 16 16 6 -16 6 -6 16 -6 -16 -16 -6 16 -6z" opacity=".9"/>
-    <path d="M372 96 l5 13 13 5 -13 5 -5 13 -5 -13 -13 -5 13 -5z" opacity=".85"/>
-  </g>
-  <!-- whisky glass -->
-  <g transform="translate(168,132)">
-    <path d="M6 4 H170 L152 250 a30 30 0 0 1 -30 26 H54 a30 30 0 0 1 -30 -26 Z"
-          fill="#FFFDF7" fill-opacity=".20" stroke="#FFFDF7" stroke-width="9" stroke-linejoin="round"/>
-    <path d="M34 132 H142 L134 240 a26 26 0 0 1 -26 22 H60 a26 26 0 0 1 -26 -22 Z" fill="url(#liq)"/>
-    <rect x="58" y="150" width="46" height="46" rx="12" fill="#FFFFFF" fill-opacity=".42" transform="rotate(-8 81 173)"/>
-    <rect x="100" y="176" width="38" height="38" rx="10" fill="#FFFFFF" fill-opacity=".34" transform="rotate(10 119 195)"/>
-    <rect x="30" y="34" width="15" height="170" rx="7" fill="#FFFFFF" fill-opacity=".28"/>
+  <!-- 배경: 에스프레소 라운드 스퀘어 + 은은한 상단 광 -->
+  <rect width="512" height="512" rx="116" fill="url(#bg)"/>
+  <rect width="512" height="512" rx="116" fill="url(#glow)"/>
+  <!-- 이너 골드 라인 (프리미엄 프레임) -->
+  <rect x="22" y="22" width="468" height="468" rx="98" fill="none" stroke="url(#gold)" stroke-width="4" opacity="0.55"/>
+  <!-- 온더락 글라스 (크게, 중앙) -->
+  <g transform="translate(256 252)">
+    <!-- 잔 바디 (살짝 벌어진 텀블러) -->
+    <path d="M -122 -108 L -108 132 Q -106 150 -86 150 L 86 150 Q 106 150 108 132 L 122 -108 Z"
+          fill="none" stroke="url(#gold)" stroke-width="19" stroke-linejoin="round"/>
+    <!-- 위스키 -->
+    <path d="M -111 24 L -105 117 Q -104 132 -86 132 L 86 132 Q 104 132 105 117 L 111 24 Z"
+          fill="url(#liquid)"/>
+    <!-- 얼음 (기울어진 사각, 액면에 반쯤 잠김) -->
+    <g transform="translate(8 40) rotate(-14)">
+      <rect x="-38" y="-38" width="76" height="76" rx="14" fill="#F7EFDF" opacity="0.93"/>
+      <path d="M -20 -38 L 8 38" stroke="#D8CBAF" stroke-width="5.5" opacity="0.55"/>
+    </g>
+    <!-- 액체 표면 라인 -->
+    <line x1="-109" y1="24" x2="109" y2="24" stroke="#F0D48A" stroke-width="8" stroke-linecap="round"/>
   </g>
 </svg>
