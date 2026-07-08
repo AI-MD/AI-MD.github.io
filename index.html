@@ -232,6 +232,37 @@
   .lrow{padding:10px 0;border-top:1px solid var(--line)}
   .lrow .lt{font-weight:800;display:block;margin-bottom:1px}
   .lrow .ld{color:var(--sub)}
+  /* 모션 — 절제된 마이크로 인터랙션 (색 추가 없이 깊이·움직임으로 프리미엄 감도) */
+  @keyframes fadeIn{from{opacity:0}to{opacity:1}}
+  @keyframes rise{from{opacity:0;transform:translateY(14px)}to{opacity:1;transform:none}}
+  @keyframes shimmer{from{background-position:200% 0}to{background-position:-200% 0}}
+  .card{transition:transform .18s ease,box-shadow .18s ease,border-color .18s ease}
+  @media(hover:hover){
+    .card:hover{transform:translateY(-3px);box-shadow:0 8px 26px rgba(38,33,26,.13);border-color:#D9CDB9}
+    .viewnav button:not(.on):hover{border-color:#D9BE8A;color:var(--amberD)}
+    .cattab:not(.on):hover{border-color:#D9BE8A;color:var(--amberD)}
+  }
+  .card:active{transform:scale(.985)}
+  .cattab,.viewnav button,.distbtn,.charmbtn,.srcbtn{transition:transform .15s ease,box-shadow .15s ease,background .15s ease,border-color .15s ease,color .15s ease}
+  .cattab:active,.viewnav button:active,.charmbtn:active,.distbtn:active{transform:scale(.96)}
+  .overlay{animation:fadeIn .18s ease}
+  .modal,.modalSm{animation:rise .22s cubic-bezier(.16,1,.3,1)}
+  .skel{border:1px solid var(--line);border-radius:16px;background:var(--card);overflow:hidden}
+  .skel .b{background:linear-gradient(90deg,#F0EBE2 25%,#FAF7F1 50%,#F0EBE2 75%);background-size:200% 100%;animation:shimmer 1.4s infinite}
+  @media(prefers-reduced-motion:reduce){*,*::before,*::after{animation:none!important;transition:none!important}}
+  /* ☀️ 오늘의 브리핑 — 접속하자마자 '얻어가는' 카드 스트립 (매일 갱신) */
+  .brief{display:flex;gap:10px;overflow-x:auto;padding:2px 0 6px;scroll-snap-type:x proximity;-ms-overflow-style:none;scrollbar-width:none}
+  .brief::-webkit-scrollbar{display:none}
+  .bcard{flex:0 0 auto;width:252px;scroll-snap-align:start;background:var(--card);border:1px solid var(--line);border-radius:14px;padding:12px 14px;box-shadow:var(--sh);cursor:pointer;text-align:left;transition:transform .18s ease,box-shadow .18s ease}
+  @media(hover:hover){.bcard:hover{transform:translateY(-2px);box-shadow:0 6px 20px rgba(38,33,26,.12)}}
+  .bcard .bk{font-size:11px;font-weight:800;color:var(--amberD);letter-spacing:.04em}
+  .bcard .bv{font-size:13.5px;font-weight:700;margin-top:5px;line-height:1.45;color:var(--ink);display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
+  .bcard .bm{font-size:12px;color:var(--sub);margin-top:4px;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
+  /* 🧭 1분 취향 테스트 */
+  .qzopt{display:block;width:100%;text-align:left;background:var(--card);border:1px solid var(--line);border-radius:12px;padding:13px 15px;font-size:14px;font-weight:700;color:var(--ink);margin:8px 0;transition:border-color .15s,background .15s}
+  .qzopt:hover{border-color:var(--amber);background:#FBF7EF}
+  .qzbar{height:4px;border-radius:2px;background:#EDE7DB;margin:2px 0 14px;overflow:hidden}
+  .qzbar i{display:block;height:100%;background:var(--amber);border-radius:2px;transition:width .25s}
 </style>
 <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" crossorigin=""/>
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" crossorigin=""></script>
@@ -274,7 +305,7 @@
   <select id="pageSize"><option value="20">20개씩</option><option value="50" selected>50개씩</option><option value="100">100개씩</option></select>
   <label class="toggle"><div class="track" id="track"><div class="thumb"></div></div><span>재고있는 것만</span></label>
 </div></div></div>
-<main><div class="wrap"><div class="rc" id="rc"></div><div class="grid" id="grid"><div class="loading"><div class="sp"></div> 데이터 불러오는 중…</div></div><div id="more" style="text-align:center;margin:22px 0"></div><div id="crossPick"></div></div></main>
+<main><div class="wrap"><div id="brief"></div><div class="rc" id="rc"></div><div class="grid" id="grid"></div><div id="more" style="text-align:center;margin:22px 0"></div><div id="crossPick"></div></div></main>
 </div><!-- /viewLiquor -->
 <section id="viewColkage" hidden>
   <div class="warn">🍷 <b>서울·수도권 콜키지프리 식당</b> — 내 술을 가져가 마실 수 있는 곳(카카오맵 평점 3.5+). 주 3회 갱신 · ⚠ <b>콜키지 정책은 매장 사정으로 바뀔 수 있으니 방문 전 전화 확인</b> 권장.</div>
@@ -335,6 +366,26 @@ const esc=s=>(s||"").replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"
 const regionOf=a=>!a?"기타":(a.split(" ")[0].replace("특별자치도","").replace("특별시","").replace("광역시","").replace("도","").slice(0,2)||"기타");
 const stars=r=>r?`<span class="stars">${"★".repeat(Math.round(r))}${"☆".repeat(5-Math.round(r))}</span>`:"";
 
+// ── 🔎 검색 관용 — 공백 무시·초성·별칭/오타 매칭 (무결과 검색 구제, 데이터 1순위 과제) ─────
+const _CHO=["ㄱ","ㄲ","ㄴ","ㄷ","ㄸ","ㄹ","ㅁ","ㅂ","ㅃ","ㅅ","ㅆ","ㅇ","ㅈ","ㅉ","ㅊ","ㅋ","ㅌ","ㅍ","ㅎ"];
+const _cho=s=>[...s].map(c=>{const k=c.charCodeAt(0)-44032;return(k>=0&&k<11172)?_CHO[Math.floor(k/588)]:c;}).join("");
+const _norm=s=>(s||"").toLowerCase().replace(/\s+/g,"");
+const ALIAS={ // 오타·별칭 → 상품명에 실제로 들어가는 표기
+  "맥켈란":"맥캘란","맥컬란":"맥캘란","멕켈란":"맥캘란","밸베니":"발베니","글랜피딕":"글렌피딕","글랜리벳":"글렌리벳",
+  "죠니워커":"조니워커","죠니":"조니워커","잭다니엘스":"잭다니엘","잭디":"잭다니엘","탈리스카":"탈리스커","아드베그":"아드벡",
+  "라프로잉":"라프로익","라가":"라가불린","리갈":"시바스","히비끼":"히비키","야마자끼":"야마자키","제머슨":"제임슨",
+  "글렌모렌치":"글렌모렌지","커밸란":"카발란","버본":"버번","와일드터키":"와일드 터키","메이커스마크":"메이커스","놉크릭":"놉 크릭",
+  "돔페리뇽":"돔 페리뇽","동페리뇽":"돔 페리뇽","동페리":"돔 페리뇽","모엣샹동":"모엣","베가시실리아":"베가 시실리아",
+};
+function matchName(name,q){
+  const n=_norm(name), qq=_norm(q);
+  if(!qq)return true;
+  if(n.includes(qq))return true;
+  const al=ALIAS[qq]; if(al&&n.includes(_norm(al)))return true;
+  if(/^[ㄱ-ㅎ]{2,}$/.test(qq)&&_cho(n).includes(qq))return true;  // 초성 검색 (예: ㅂㄹㅂㄴ → 발베니)
+  return false;
+}
+
 function dsBadge(p){
   if(p.price_diff_percent==null)return "";
   const d=p.price_diff_percent, cheap=d<0, eq=Math.abs(d)<.5;
@@ -371,9 +422,10 @@ const SPECIAL="🔥특가";
 const isSpecial=p=>p.price_diff_percent!=null&&p.price_diff_percent<=-20&&p.in_stock;
 function render(){
   const s=DATA.stats;
+  const bf=document.getElementById("brief");if(bf)bf.style.display=((state.q||"").trim()||state.watchOnly)?"none":"";  // 검색·관심모드 중엔 브리핑 숨김
   // 카테고리 외 필터(검색·지점·재고)를 먼저 적용 → 탭 개수와 목록에 공통 반영
   let base=DATA.products.slice();
-  if(state.q&&state.q.trim()){const q=state.q.toLowerCase().trim();base=base.filter(p=>p.name.toLowerCase().includes(q));}
+  if(state.q&&state.q.trim())base=base.filter(p=>matchName(p.name,state.q));  // 초성·별칭·공백무시 관용 매칭
   if(state.store)base=base.filter(p=>(p.stores||[]).some(x=>x.id===state.store));
   if(state.inStock)base=base.filter(p=>computeStore(p).in);
   if(state.watchOnly)base=base.filter(p=>MYWATCH.has(p.sku));
@@ -546,43 +598,47 @@ async function webpushUnsub(){
   const st=document.getElementById("wpState");
   try{const reg=await navigator.serviceWorker.ready;const sub=await reg.pushManager.getSubscription();if(sub)await sub.unsubscribe();}catch(e){}
   if(st)st.textContent="알림을 껐어요. (서버의 오래된 구독은 발송 시 자동 정리됩니다)";
-  const btn=document.getElementById("wpBtn");if(btn){btn.textContent="📲 이 브라우저로 바로 받기";btn.onclick=webpushToggle;}
+  const btn=document.getElementById("wpBtn");if(btn){btn.textContent="🔔 알림 켜기";btn.onclick=webpushToggle;}
 }
 function showAlert(){
+  // UX: '탭 한 번' 웹푸시를 유일한 주인공으로, ntfy·이메일은 접힌 보조 경로로 — 선택지 과부하 제거
   const T=NTFY_TOPIC;
   document.getElementById("modalRoot").innerHTML=`<div class="overlay" id="ov" onclick="closeModal()"><div class="modalSm" onclick="event.stopPropagation()">
-    <div class="hero" style="align-items:center"><div style="flex:1"><div class="hname">🔔 주락 딜 알림 <span style="font-weight:700;color:var(--sub);font-size:13px">무료</span></div><div class="sa">좋은 술을 놓치지 않게 — <b>로그인·개인정보 없이</b> 폰이나 메일로</div></div><button class="close" onclick="closeModal()">✕</button></div>
-    <div style="padding:18px 20px;overflow-y:auto">
-      <div style="background:#FBF7F0;border:1px solid var(--line);border-radius:12px;padding:12px 14px;margin-bottom:16px;font-size:13px;line-height:1.7">
-        이런 소식을 <b>하루 2회(오전 9시·오후 6시)</b> 정리해 보내드려요:<br>
-        🔥 <b>특가</b>(데일리샷 20%↓) · 💸 <b>최저가 변동</b> · 🎉 <b>재입고</b> · 🆕 <b>신상 입고</b> · ⏰ <b>품절임박</b>
-      </div>
-      <div style="background:linear-gradient(135deg,#2A2013,#3A2C18);border:1px solid #5C4826;border-radius:12px;padding:13px 15px;margin-bottom:16px">
-        <div style="color:#E5C57F;font-weight:800;font-size:13.5px">📲 가장 간편 — 이 브라우저로 바로 받기</div>
-        <div style="color:#C7B592;font-size:12px;margin-top:3px;line-height:1.6">앱 설치·로그인 없이, 지금 이 폰/PC로 푸시 알림을 받아요. <span style="color:#9C8C6E">(아이폰은 홈 화면에 추가 후)</span></div>
-        <button id="wpBtn" class="distbtn on" style="border:none;margin-top:10px;width:100%;padding:10px;cursor:pointer" onclick="webpushToggle()">📲 이 브라우저로 바로 받기</button>
+    <div class="hero" style="align-items:center"><div style="flex:1"><div class="hname">🔔 주락 딜 알림 <span style="font-weight:700;color:var(--sub);font-size:13px">무료</span></div><div class="sa">🔥특가 · 🎉재입고 · 💸최저가 변동을 <b>하루 2회(9시·18시)</b></div></div><button class="close" onclick="closeModal()">✕</button></div>
+    <div style="padding:16px 20px;overflow-y:auto">
+      <div style="background:linear-gradient(135deg,#2A2013,#3A2C18);border:1px solid #5C4826;border-radius:12px;padding:14px 15px">
+        <div style="color:#E5C57F;font-weight:800;font-size:14px">📲 탭 한 번이면 끝 — 이 브라우저로 받기</div>
+        <div style="color:#C7B592;font-size:12px;margin-top:3px;line-height:1.6">앱 설치·로그인·이메일, 아무것도 필요 없어요. <span style="color:#9C8C6E">(아이폰은 홈 화면에 추가한 뒤 그 안에서)</span></div>
+        <button id="wpBtn" class="distbtn on" style="border:none;margin-top:10px;width:100%;padding:12px;font-size:13.5px;cursor:pointer" onclick="webpushToggle()">🔔 알림 켜기</button>
         <div id="wpState" class="sa" style="margin-top:8px;font-size:12px;color:#C7B592"></div>
       </div>
-      <div class="sl" style="margin-bottom:8px;color:var(--sub)">또는 — 앱/이메일로 받기</div>
-      <div class="alstep"><b>①</b> <b>ntfy</b> 앱 설치 (무료)
-        <div style="display:flex;gap:8px;margin-top:8px">
-          <a class="distbtn on" style="text-decoration:none;padding:7px 12px" href="https://apps.apple.com/app/ntfy/id1625396347" target="_blank">App Store</a>
-          <a class="distbtn on" style="text-decoration:none;padding:7px 12px" href="https://play.google.com/store/apps/details?id=io.heckel.ntfy" target="_blank">Play Store</a>
+      <details class="lcard" style="margin:12px 0 0">
+        <summary style="font-size:13.5px;padding:12px 14px">📧 이메일로 받는 게 편해요</summary>
+        <div style="padding:0 14px 14px">
+          <div style="display:flex;gap:8px">
+            <input id="subEmail" type="email" placeholder="your@email.com" style="flex:1;min-width:0;background:var(--card);border:1px solid var(--line);border-radius:10px;padding:9px 11px;font-size:13px;outline:none">
+            <button class="distbtn on" style="border:none;cursor:pointer" onclick="subscribeEmail()">구독</button>
+          </div>
+          <div class="sa" id="subMsg" style="margin-top:8px"></div>
         </div>
-      </div>
-      <div class="alstep"><b>②</b> 앱에서 <b>+</b> → 아래 토픽 입력 (로그인 없음)
-        <div class="topicbox" onclick="copyTopic()"><span id="topicval">${T}</span><span class="copy">복사</span></div>
-      </div>
-      <div class="alstep"><b>③</b> 끝! 알림이 뜨면 눌러서 페이지로 이동돼요.</div>
-      <div class="sa" style="margin-top:14px">💻 <b>PC</b>는 앱 없이 → <a href="https://ntfy.sh/app" target="_blank" style="color:var(--amberD);font-weight:700">ntfy.sh/app</a> 열기 → <b>+ Subscribe</b> → 토픽 <b>${T}</b> 입력 → 브라우저 알림 허용<br><span style="color:#B9AE9E">(주소창에 토픽을 직접 붙이면 404가 날 수 있어요. 반드시 <b>ntfy.sh/app</b> 에서 추가하세요.)</span></div>
-      <div style="margin-top:16px;padding-top:14px;border-top:1px solid var(--line)">
-        <div class="sl" style="margin-bottom:6px">📧 앱이 부담되면 — 이메일로 받기 (하루 2회 · 오전 9시·오후 6시 발송)</div>
-        <div style="display:flex;gap:8px">
-          <input id="subEmail" type="email" placeholder="your@email.com" style="flex:1;background:var(--card);border:1px solid var(--line);border-radius:10px;padding:9px 11px;font-size:13px;outline:none">
-          <button class="distbtn on" style="border:none" onclick="subscribeEmail()">구독</button>
+      </details>
+      <details class="lcard" style="margin:8px 0 0">
+        <summary style="font-size:13.5px;padding:12px 14px">📱 ntfy 앱으로 받을래요 (마니아용)</summary>
+        <div style="padding:0 14px 14px">
+          <div class="alstep" style="border-top:none;padding-top:4px"><b>①</b> <b>ntfy</b> 앱 설치 (무료)
+            <div style="display:flex;gap:8px;margin-top:8px">
+              <a class="distbtn on" style="text-decoration:none;padding:7px 12px" href="https://apps.apple.com/app/ntfy/id1625396347" target="_blank">App Store</a>
+              <a class="distbtn on" style="text-decoration:none;padding:7px 12px" href="https://play.google.com/store/apps/details?id=io.heckel.ntfy" target="_blank">Play Store</a>
+            </div>
+          </div>
+          <div class="alstep"><b>②</b> 앱에서 <b>+</b> → 아래 토픽 입력 (로그인 없음)
+            <div class="topicbox" onclick="copyTopic()"><span id="topicval">${T}</span><span class="copy">복사</span></div>
+          </div>
+          <div class="alstep"><b>③</b> 끝! 알림을 누르면 주락으로 이동해요.</div>
+          <div class="sa" style="margin-top:10px;font-size:11.5px">💻 PC는 <a href="https://ntfy.sh/app" target="_blank" style="color:var(--amberD);font-weight:700">ntfy.sh/app</a> → + Subscribe → 위 토픽 입력</div>
         </div>
-        <div class="sa" id="subMsg" style="margin-top:8px"></div>
-      </div>
+      </details>
+      <div class="sa" style="text-align:center;margin-top:12px;font-size:11px;color:var(--sub)">언제든 같은 버튼으로 끌 수 있어요 · 광고 없이 술 소식만</div>
     </div></div></div>`;
   setTimeout(webpushRefreshState,30);
 }
@@ -622,6 +678,8 @@ document.getElementById("grid").onclick=e=>{const c=e.target.closest(".card");if
   fetch(`https://abacus.jasoncameron.dev/hit/${ns}/d${today}`).then(r=>r.json()).then(d=>put("vtoday",d.value)).catch(()=>{});
 })();
 
+// 첫 로드: 스피너 대신 스켈레톤 — 레이아웃을 미리 보여줘 체감 속도↑
+document.getElementById("grid").innerHTML=Array.from({length:8},()=>`<div class="skel"><div class="b" style="height:156px"></div><div style="padding:12px 13px 14px"><div class="b" style="height:14px;border-radius:7px;width:85%"></div><div class="b" style="height:14px;border-radius:7px;width:55%;margin-top:8px"></div><div class="b" style="height:19px;border-radius:7px;width:45%;margin-top:12px"></div></div></div>`).join("");
 fetch("data.json?t="+Date.now(),{cache:"no-store"}).then(r=>r.json()).then(d=>{
   DATA=d;
   document.getElementById("upd").textContent="갱신 "+new Date(d.updated_at).toLocaleString("ko-KR",{month:"2-digit",day:"2-digit",hour:"2-digit",minute:"2-digit"});
@@ -633,7 +691,9 @@ fetch("data.json?t="+Date.now(),{cache:"no-store"}).then(r=>r.json()).then(d=>{
   if(qs.get("special")==="1"){state.cat=SPECIAL;state.shown=state.pageSize;}
   if(qs.get("pick")==="1"){setTimeout(()=>switchView("pick"),100);}
   if(qs.get("talkbar")==="1"){setTimeout(()=>tbEntry(),400);}  // 베타/오픈 시 채팅, 그 외 티저
+  if(qs.get("test")==="1"){setTimeout(()=>showTasteTest(),300);}  // 취향 테스트 공유 딥링크
   render();
+  renderBrief();
   const sku=qs.get("sku");
   if(sku){const p=DATA.products.find(x=>x.sku===sku);if(p)detail(p);}
 }).catch(e=>{document.getElementById("grid").innerHTML=`<div class="empty">데이터를 불러오지 못했습니다.<br>네트워크 확인 후 다시 시도해 주세요.<div style="margin-top:12px"><button class="srcbtn" onclick="location.reload()" style="cursor:pointer">🔄 다시 시도</button></div></div>`;});
@@ -871,6 +931,42 @@ function renderLearn(){
     ["사케/청주","쌀 발효. <b>정미율</b>이 낮을수록 고급(다이긴죠 ≤50%, 긴죠 ≤60%)"],
     ["하이볼","위스키+탄산수. 가볍게 즐기는 입문 스타일"],
   ])+
+  S("🥤 홈 하이볼 완전정복","기본만 지키면 바 부럽지 않습니다.",[
+    ["황금 비율","위스키 1 : 탄산수 <b>3~4</b>. 얼음은 크고 많이, 잔은 미리 차갑게"],
+    ["만드는 순서","① 잔에 얼음 가득 → ② 위스키 30~45ml → ③ 저어서 먼저 차갑게 → ④ 탄산수는 <b>얼음을 피해</b> 따르기 → ⑤ 딱 한 번만 젓기 (기포 보존)"],
+    ["어울리는 위스키","가벼운 블렌디드(가쿠빈·듀어스·짐빔)나 버번. 비싼 싱글몰트보다 <b>깔끔한 술</b>이 오히려 잘 어울려요"],
+    ["레몬 한 조각의 차이","레몬 필을 비틀어 향만 입히면 클래식. 오이·생강·자몽으로 변주도 좋습니다"],
+    ["진저 하이볼","탄산수 대신 진저에일 — 달콤하게 입문하기 좋은 변형"],
+    ["도수 감각","위스키 40% 기준 1:4면 약 8% — 맥주보다 살짝 높은 정도라 식사와도 무난"],
+  ])+
+  S("🍯 안주 페어링의 정석","같은 술이 두 배 맛있어지는 조합.",[
+    ["버번 × 육포·바비큐","바닐라 단맛과 훈연 감칠맛 — 미국식 정석 조합"],
+    ["셰리 위스키 × 다크초콜릿","건포도·견과 풍미와 카카오가 서로를 끌어올립니다"],
+    ["피트 위스키 × 블루치즈","강한 스모크에는 강한 치즈 — 의외의 클래식"],
+    ["레드와인 × 스테이크","탄닌이 지방을 씻어내 다음 한 입이 계속 새로워져요"],
+    ["화이트와인 × 해산물","산도가 비린 맛을 잡고 감칠맛을 살립니다"],
+    ["스파클링 × 튀김·치킨","기포가 기름기를 리셋 — 치킨엔 맥주만큼 샴페인도 진리"],
+    ["사케 × 회·초밥","쌀의 감칠맛과 생선의 감칠맛은 같은 방향"],
+    ["하이볼 × 야키토리·감바스","탄산과 가벼움이 짭짤한 안주와 무한 반복"],
+  ])+
+  S("🇯🇵🇹🇼 위스키 원정 — 일본·대만 성지","여행 갈 때 캐리어 한 칸은 비워두세요. <b>국내 입국 면세 한도: 주류 2병(합 2L·$400 이하)</b>",[
+    ["도쿄 · 리커즈 하세가와","도쿄역 야에스 지하상가의 전설적 바틀샵. 일본 위스키·한정판이 촘촘합니다"],
+    ["도쿄 · 신주쿠 일대","이세탄 신주쿠 주류코너(백화점 최강 라인업)와 돈키호테·빅카메라 면세 코너 — 의외로 가쿠빈·히비키 가성비"],
+    ["교토·오사카 · 리커마운틴","서일본 체인 바틀샵. 산토리·닛카 로컬 보틀 탐색에 좋아요"],
+    ["산토리 야마자키 증류소","오사카 근교 — 견학은 <b>추첨제 사전예약</b>. 증류소 한정판 굿즈·시음"],
+    ["대만 · 카발란 증류소","이란(宜蘭)현. 투어·시음 가능, 증류소 한정판은 여기서만"],
+    ["타이베이 · 橡木桶(오크배럴)","대만 전역 체인 주류샵. 카발란·난터우 옴마(OMAR) 라인업이 강점"],
+    ["공항 면세점 팁","대만 공항엔 카발란 면세 한정판, 일본 공항엔 히비키·야마자키가 간헐 입고 — 출국 전 재고 확인"],
+  ])+
+  S("🍸 국내 성지 — 바틀샵 & 위스키 바","트레이더스 밖에서 즐기는 법. <b>가격·영업은 방문 전 확인</b>을 권해요.",[
+    ["보틀벙커","롯데마트의 초대형 주류 전문관(잠실 제타플렉스 등). 와인·위스키 스펙트럼이 국내 최대급 <a href='https://map.kakao.com/link/search/보틀벙커' target='_blank' rel='noopener' style='color:var(--amberD);font-weight:700'>🗺 지도</a>"],
+    ["와인앤모어","신세계 주류 체인 — 접근성 좋고 세일 때 가성비 <a href='https://map.kakao.com/link/search/와인앤모어' target='_blank' rel='noopener' style='color:var(--amberD);font-weight:700'>🗺 지도</a>"],
+    ["남대문 주류상가","아는 사람만 아는 클래식 위스키 성지. 발품 = 가격 <a href='https://map.kakao.com/link/search/남대문 주류상가' target='_blank' rel='noopener' style='color:var(--amberD);font-weight:700'>🗺 지도</a>"],
+    ["동네 바틀샵","벙크보틀 등 큐레이션형 바틀샵이 늘고 있어요 — 시음회·오픈런 이벤트는 각 샵 인스타 공지 <a href='https://map.kakao.com/link/search/바틀샵' target='_blank' rel='noopener' style='color:var(--amberD);font-weight:700'>🗺 내 주변 바틀샵</a>"],
+    ["청담 · 스피크이지 바","르챔버·앨리스 — 클래식 칵테일과 위스키, 어른의 첫 바 경험으로 제격 <a href='https://map.kakao.com/link/search/청담 위스키바' target='_blank' rel='noopener' style='color:var(--amberD);font-weight:700'>🗺 지도</a>"],
+    ["위스키 바 고르는 법","백바에 <b>싱글몰트가 30병 이상</b> + 잔술(글라스) 가격표가 명확하면 신뢰. 첫 방문엔 바텐더에게 취향을 말하고 맡겨보세요"],
+    ["콜키지와 연결","좋은 병을 샀다면 🍽 <b>콜키지 다이닝</b> 탭에서 들고 갈 식당을 찾아보세요 — 주락의 동선은 이렇게 완성됩니다"],
+  ])+
   S("👅 테이스팅 & 용어사전","한 잔을 200% 즐기는 법.",[
     ["시음 5단계","① 색 → ② 향(노징) → ③ 맛 → ④ 바디 → ⑤ 피니시(여운)"],
     ["노징(Nosing)","코로 향을 맡는 것. 입 벌리고 살짝 들이마시면 알코올 자극↓"],
@@ -902,7 +998,7 @@ function pickFiltered(){
   const q=(pickQ||"").toLowerCase().trim();  // 검색은 상단 통합 검색창으로 일원화
   const c=document.getElementById("pcat").value, s=document.getElementById("psort").value;
   if(c)list=list.filter(i=>i.category===c);
-  if(q)list=list.filter(i=>((i.name||"")+" "+(i.subcategory||"")).toLowerCase().includes(q));
+  if(q)list=list.filter(i=>matchName((i.name||"")+" "+(i.subcategory||""),q));
   const key={review:i=>-(i.review_count||0),price_asc:i=>i.price||9e9,price_desc:i=>-(i.price||0),rating:i=>-(i.rating||0)};
   const f=key[s]||key.review; list.sort((a,b)=>f(a)-f(b));
   return list;
@@ -931,7 +1027,7 @@ function renderCrossPick(){
   const q=(state.q||"").toLowerCase().trim();
   if(!q){el.innerHTML="";return;}
   if(!PDATA){el.innerHTML=""; if(!ploaded)loadPick(); return;}
-  const m=PDATA.items.filter(i=>((i.name||"")+" "+(i.subcategory||"")).toLowerCase().includes(q));
+  const m=PDATA.items.filter(i=>matchName((i.name||"")+" "+(i.subcategory||""),q));
   if(!m.length){el.innerHTML="";return;}
   const head=(window._dealCount===0)?`🌟 트레이더스엔 없지만, <b>데일리샷에서 구할 수 있어요</b> — <b>${m.length}</b>종`:`🌟 <b>주락 픽</b>에서도 <b>${m.length}</b>종 — 트레이더스 밖 명주`;
   el.innerHTML=`<div class="xph">${head}${m.length>4?` <button class="distbtn" style="padding:6px 12px;margin-left:6px" onclick="goPickSearch()">픽에서 모두 보기 →</button>`:""}</div><div class="grid">${m.slice(0,4).map(pickCard).join("")}</div>`;
@@ -1115,6 +1211,85 @@ function showGuide(){
     <div style="padding:6px 20px 16px;overflow-y:auto">${body}
     <div class="sa" style="text-align:center;margin-top:12px;font-size:11px;color:var(--sub)">재고·가격 기준 자동 큐레이션 · 카드를 누르면 상세로</div></div></div></div>`;
 }
+// ── ☀️ 오늘의 브리핑 — 접속하자마자 '오늘 얻어가는 것' 4장 (날짜 시드로 매일 갱신) ─────────
+function _seedPick(arr,salt){
+  if(!arr||!arr.length)return null;
+  const d=new Date(Date.now()+9*3600*1000).toISOString().slice(0,10)+salt;
+  let h=0;for(let i=0;i<d.length;i++)h=(h*31+d.charCodeAt(i))>>>0;
+  return arr[h%arr.length];
+}
+function renderBrief(){
+  const el=document.getElementById("brief"); if(!el||!DATA)return;
+  const P=DATA.products;
+  const sp=P.filter(isSpecial).sort((a,b)=>(a.price_diff_percent||0)-(b.price_diff_percent||0))[0];
+  const hi=_seedPick(P.filter(p=>p.in_stock&&(p.rating||0)>=4.5&&(p.review_count||0)>=30),"hero");
+  const g=_seedPick(GLOSSARY,"gloss");
+  const qz=_qzProfile();
+  const cards=[];
+  if(sp)cards.push(`<button class="bcard" onclick="detail(DATA.products.find(x=>x.sku==='${sp.sku}'))"><div class="bk">🔥 오늘의 특가</div><div class="bv">${esc(sp.name)}</div><div class="bm">데일리샷보다 <b style="color:#D8562F">${Math.abs(sp.price_diff_percent)}% 저렴</b> · ${won(sp.price)}</div></button>`);
+  if(hi)cards.push(`<button class="bcard" onclick="detail(DATA.products.find(x=>x.sku==='${hi.sku}'))"><div class="bk">⭐ 오늘 주목할 한 병</div><div class="bv">${esc(hi.name)}</div><div class="bm">★ ${hi.rating} (${(hi.review_count||0).toLocaleString()}) · ${won(hi.price)}</div></button>`);
+  cards.push(qz?`<button class="bcard" onclick="showTasteTest()"><div class="bk">🧭 내 취향</div><div class="bv">${esc(qz.title)}</div><div class="bm">다시 테스트하고 오늘의 추천 받기 →</div></button>`:`<button class="bcard" onclick="showTasteTest()"><div class="bk">🧭 1분 취향 테스트</div><div class="bv">네 가지 질문으로 내 술 찾기</div><div class="bm">지금 재고에서 딱 맞는 한 병을 골라드려요 →</div></button>`);
+  if(g)cards.push(`<button class="bcard" onclick="switchView('learn')"><div class="bk">📚 오늘의 술 상식</div><div class="bv">${esc(g.t)}</div><div class="bm">${esc(g.d)}</div></button>`);
+  el.innerHTML=`<div class="rc" style="margin:4px 0 8px">☀️ <b>오늘의 브리핑</b> <span style="font-size:12px">· 매일 바뀝니다</span></div><div class="brief">${cards.join("")}</div>`;
+}
+
+// ── 🧭 1분 취향 테스트 — 4문항 → 지금 재고에서 맞춤 한 병 (?test=1 딥링크·결과 공유) ─────
+const QZ=[
+ {q:"오늘은 어떤 자리인가요?",k:"scene",o:[["🛋 혼자 조용히 한 잔","solo"],["👥 친구들과 함께","party"],["🎁 선물할 술을 찾는 중","gift"]]},
+ {q:"끌리는 맛의 방향은?",k:"taste",o:[["🍯 달콤하고 부드럽게","sweet"],["🔥 스모키하고 묵직하게","smoky"],["🍋 상큼하고 가볍게","fresh"],["🌰 고소하고 클래식하게","classic"]]},
+ {q:"예산은 어느 정도?",k:"budget",o:[["5만원 이하","lo"],["5~15만원","mid"],["15만원 이상","hi"]]},
+ {q:"주종을 고른다면?",k:"cat",o:[["🥃 위스키","위스키"],["🍷 와인","와인"],["🥂 스파클링","스파클링"],["🎲 뭐든 좋아요",""]]},
+];
+function _qzProfile(){try{return JSON.parse(localStorage.getItem("jurak_taste")||"null");}catch(e){return null;}}
+function showTasteTest(){
+  if(!DATA){document.getElementById("modalRoot").innerHTML=`<div class="overlay" id="ov" onclick="closeModal()"><div class="modalSm" onclick="event.stopPropagation()"><div style="padding:30px;text-align:center;color:var(--sub)">잠시 후 다시 열어주세요 🍶</div></div></div>`;return;}
+  track("taste_test",{}); window._qzA={}; _qzStep(0);
+}
+function _qzStep(i){
+  if(i>=QZ.length){_qzResult();return;}
+  const st=QZ[i];
+  const opts=st.o.map(o=>`<button class="qzopt" onclick="window._qzA['${st.k}']='${o[1]}';_qzStep(${i+1})">${o[0]}</button>`).join("");
+  document.getElementById("modalRoot").innerHTML=`<div class="overlay" id="ov" onclick="closeModal()"><div class="modalSm" onclick="event.stopPropagation()">
+    <div class="hero" style="align-items:center"><div style="flex:1"><div class="hname">🧭 1분 취향 테스트</div><div class="sa">${i+1} / ${QZ.length}</div></div><button class="close" onclick="closeModal()">✕</button></div>
+    <div style="padding:16px 20px 20px"><div class="qzbar"><i style="width:${i/QZ.length*100}%"></i></div>
+    <div style="font-weight:800;font-size:16px;margin-bottom:10px">${st.q}</div>${opts}</div></div></div>`;
+}
+function _qzResult(){
+  const a=window._qzA||{}, P=(DATA&&DATA.products)||[];
+  const bud={lo:p=>p.price<=50000,mid:p=>p.price>50000&&p.price<=150000,hi:p=>p.price>150000}[a.budget]||(()=>true);
+  const RX={sweet:/셰리|쉐리|포트|버번|허니|꿀|카라멜|스위트|모스카토|리큐르|PX|소테른/i,
+            smoky:/피트|피티드|스모키|스모크|아일라|라프로익|아드벡|라가불린|탈리스커|보모어|옥토모어/i,
+            fresh:/스파클링|브뤼|프로세코|까바|샴페인|소비뇽|리슬링|화이트|진|하이볼|토닉/i};
+  let pool=P.filter(p=>p.in_stock&&p.price&&bud(p));
+  if(a.cat)pool=pool.filter(p=>p.category===a.cat);
+  const rx=RX[a.taste];
+  let hits=rx?pool.filter(p=>rx.test(p.name+" "+((p.tasting_notes||[]).map(n=>n.label+" "+n.value).join(" ")))):pool.filter(p=>p.rating);
+  if(hits.length<3)hits=pool;
+  const bySc={gift:(x,y)=>((y.rating||0)-(x.rating||0))||((y.review_count||0)-(x.review_count||0)),
+              party:(x,y)=>((y.rating||0)-(x.rating||0))||(x.price-y.price)}[a.scene]||((x,y)=>((y.rating||0)-(x.rating||0))||((y.review_count||0)-(x.review_count||0)));
+  hits=hits.slice().sort(bySc);
+  const picks=hits.slice(0,3);
+  const title=(({solo:"혼술",party:"모임",gift:"선물"})[a.scene]||"")+" "+(({sweet:"달콤파",smoky:"스모키파",fresh:"클린파",classic:"클래식파"})[a.taste]||"애호가");
+  try{localStorage.setItem("jurak_taste",JSON.stringify({title:title.trim(),a,t:Date.now()}));}catch(e){}
+  track("taste_result",{title:title.trim(),n:picks.length});
+  const body=picks.length?`<div class="sa" style="line-height:1.7">당신은 <b style="color:var(--amberD)">${esc(title.trim())}</b> — 지금 트레이더스 재고에서 이 세 병을 권해드려요 👇</div>${picks.map(_guideItem).join("")}`
+    :`<div class="sa" style="line-height:1.7">조건에 딱 맞는 재고가 지금은 없네요 — 예산이나 주종을 바꿔 다시 해보세요.</div>`;
+  document.getElementById("modalRoot").innerHTML=`<div class="overlay" id="ov" onclick="closeModal()"><div class="modalSm" onclick="event.stopPropagation()">
+    <div class="hero" style="align-items:center"><div style="flex:1"><div class="hname">🧭 나의 술 취향</div><div class="sa">지금 재고 기준 맞춤 추천</div></div><button class="close" onclick="closeModal()">✕</button></div>
+    <div style="padding:16px 20px;overflow-y:auto">${body}
+      <div style="display:flex;gap:8px;margin-top:14px">
+        <button class="distbtn on" id="qzsh" style="flex:1;border:none;padding:11px;cursor:pointer" onclick="qzShare()">📤 친구에게 테스트 공유</button>
+        <button class="distbtn" style="padding:11px 14px;cursor:pointer" onclick="showTasteTest()">↺ 다시</button>
+      </div>
+      <div class="sa" style="text-align:center;margin-top:10px;font-size:11px;color:var(--sub)">결과는 이 기기에만 저장 · 재고가 바뀌면 추천도 바뀝니다</div></div></div></div>`;
+  renderBrief();
+}
+function qzShare(){
+  const u=location.origin+location.pathname+"?test=1";
+  if(navigator.share){navigator.share({title:"주락 1분 취향 테스트",text:"네 가지 질문으로 내 술 찾기 — 주락 酒樂",url:u}).catch(()=>{});}
+  else{try{navigator.clipboard.writeText(u);}catch(e){} const b=document.getElementById("qzsh");if(b)b.textContent="✅ 링크 복사됨!";}
+}
+
 function _bartenderShell(body,sub){
   document.getElementById("modalRoot").innerHTML=`<div class="overlay" id="ov" onclick="closeModal()"><div class="modalSm" onclick="event.stopPropagation()">
     <div class="hero" style="align-items:center"><div style="flex:1"><div class="hname">🥃 바텐더 추천</div><div class="sa">${sub||"당신의 취향을 아는 한 잔"}</div></div><button class="close" onclick="closeModal()">✕</button></div>
@@ -1165,8 +1340,9 @@ function renderLocalBartender(aiPending){
   const r=bartenderRecs();
   let body;
   if(!r){
-    body=`<div class="sa" style="line-height:1.75">🥃 어서 오세요${nm?", <b>"+esc(nm)+"</b>님":""}!<br>아직 취향을 몰라서요 — <b>상품 몇 개를 눌러 구경</b>하시면 그걸 바탕으로 딱 맞는 술을 골라드릴게요.</div>
-      <button class="distbtn on" style="width:100%;margin-top:14px;border:none;cursor:pointer" onclick="closeModal();goHome()">🍶 둘러보러 가기</button>`;
+    body=`<div class="sa" style="line-height:1.75">🥃 어서 오세요${nm?", <b>"+esc(nm)+"</b>님":""}!<br>아직 취향을 몰라서요 — <b>1분 취향 테스트</b>로 시작하시거나, 상품 몇 개를 눌러 구경해 보세요.</div>
+      <button class="distbtn on" style="width:100%;margin-top:14px;border:none;cursor:pointer;padding:11px" onclick="showTasteTest()">🧭 1분 취향 테스트로 시작하기</button>
+      <button class="distbtn" style="width:100%;margin-top:8px;cursor:pointer;padding:11px" onclick="closeModal();goHome()">🍶 둘러보러 가기</button>`;
   }else{
     const cards=r.recs.map(p=>`<div class="recrow" onclick="closeModal();detail(DATA.products.find(x=>x.sku==='${p.sku}'))">
       ${p.image?`<img src="${p.image}" referrerpolicy="no-referrer" onerror="this.style.display='none'">`:`<div style="width:48px;height:48px;text-align:center;line-height:48px;font-size:24px">${CAT_ICON[p.category]||"🍾"}</div>`}
