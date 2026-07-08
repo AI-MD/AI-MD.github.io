@@ -2,7 +2,7 @@
 <html lang="ko">
 <head>
 <meta charset="UTF-8" />
-<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0, interactive-widget=resizes-content" />
 <title>주락 酒樂 — 합리적으로 사고, 즐겁게 마시다</title>
 <meta name="description" content="주락(酒樂) — 트레이더스 전국 24개 지점 주류 재고·최저가 비교 + 서울·수도권 콜키지프리 식당(평점3.5+·지도)까지. 합리적으로 사고, 즐겁게 마시다." />
 <link rel="manifest" href="/manifest.json" />
@@ -189,7 +189,14 @@
   .recrow .rd{color:var(--sub);font-size:12px;margin-top:2px}
   /* 토킹바 채팅 */
   .tbmodal{display:flex;flex-direction:column}
-  .tbbody{overflow-y:auto;padding:14px 16px;min-height:240px;max-height:46vh;background:var(--bg)}
+  .tbbody{overflow-y:auto;padding:14px 16px;flex:1 1 auto;min-height:180px;background:var(--bg)}
+  .overlay.chat{align-items:flex-end}
+  .overlay.chat .modalSm{max-height:100%}
+  @media(max-width:640px){
+    .overlay.chat{padding:0;align-items:stretch}
+    .overlay.chat .modalSm{max-width:none;height:100%;max-height:100%;border-radius:0}
+    .tbrow{padding-bottom:calc(10px + env(safe-area-inset-bottom))}
+  }
   .tbmsg{max-width:84%;padding:9px 13px;border-radius:14px;margin:5px 0;font-size:13.5px;line-height:1.55;white-space:pre-wrap;word-break:break-word;width:fit-content}
   .tbmsg.u{background:var(--amber);color:#fff;margin-left:auto;border-bottom-right-radius:4px}
   .tbmsg.b{background:var(--card);border:1px solid var(--line);border-bottom-left-radius:4px}
@@ -348,7 +355,7 @@ function render(){
   const s=DATA.stats;
   // 카테고리 외 필터(검색·지점·재고)를 먼저 적용 → 탭 개수와 목록에 공통 반영
   let base=DATA.products.slice();
-  if(state.q){const q=state.q.toLowerCase();base=base.filter(p=>p.name.toLowerCase().includes(q));}
+  if(state.q&&state.q.trim()){const q=state.q.toLowerCase().trim();base=base.filter(p=>p.name.toLowerCase().includes(q));}
   if(state.store)base=base.filter(p=>(p.stores||[]).some(x=>x.id===state.store));
   if(state.inStock)base=base.filter(p=>computeStore(p).in);
   if(state.watchOnly)base=base.filter(p=>MYWATCH.has(p.sku));
@@ -472,7 +479,17 @@ function detail(p){
   document.getElementById("ov").onclick=closeModal;
   document.querySelectorAll(".tab").forEach(t=>t.onclick=()=>{document.querySelectorAll(".tab").forEach(x=>x.classList.remove("on"));t.classList.add("on");document.getElementById("tabc").innerHTML=t.dataset.tab==="stores"?storesHtml(!!USER_LOC):(t.dataset.tab==="seller"?sellerHtml:revHtml);});
 }
-function closeModal(){document.getElementById("modalRoot").innerHTML="";}
+let _vvFn=null;
+function _bindKb(){  // 모바일 키보드가 올라올 때 오버레이를 '보이는 영역'에 맞춰 채팅창이 튀지 않게
+  if(!window.visualViewport)return; _unbindKb();
+  const vv=window.visualViewport;
+  _vvFn=()=>{const ov=document.getElementById("ov");if(!ov)return;
+    ov.style.height=vv.height+"px";ov.style.top=vv.offsetTop+"px";ov.style.bottom="auto";
+    const b=document.getElementById("tbBody");if(b)b.scrollTop=b.scrollHeight;};
+  vv.addEventListener("resize",_vvFn);vv.addEventListener("scroll",_vvFn);_vvFn();
+}
+function _unbindKb(){if(_vvFn&&window.visualViewport){window.visualViewport.removeEventListener("resize",_vvFn);window.visualViewport.removeEventListener("scroll",_vvFn);}_vvFn=null;}
+function closeModal(){_unbindKb();document.getElementById("modalRoot").innerHTML="";}
 // ── 웹푸시(익명·무료) — 앱 설치 없이 이 브라우저로 알림 ─────────────
 function _wpB64ToU8(b64){const pad="=".repeat((4-b64.length%4)%4);const s=(b64+pad).replace(/-/g,"+").replace(/_/g,"/");const r=atob(s);const a=new Uint8Array(r.length);for(let i=0;i<r.length;i++)a[i]=r.charCodeAt(i);return a;}
 function webpushSupported(){return ("serviceWorker" in navigator)&&("PushManager" in window)&&("Notification" in window);}
@@ -944,7 +961,7 @@ function showAdultGate(){
 function showTalkbarChat(){
   track("talkbar_open",{});
   window._tbMsgs=window._tbMsgs||[];
-  document.getElementById("modalRoot").innerHTML=`<div class="overlay" id="ov" onclick="closeModal()"><div class="modalSm tbmodal" onclick="event.stopPropagation()">
+  document.getElementById("modalRoot").innerHTML=`<div class="overlay chat" id="ov" onclick="closeModal()"><div class="modalSm tbmodal" onclick="event.stopPropagation()">
     <div class="hero" style="align-items:center"><div style="flex:1"><div class="hname">🤖 AI 바텐더 토킹바</div><div class="sa">나만 아는 심야 바, 오늘도 한 잔${Date.now()<TB_LAUNCH?" · <b>베타</b>":""}</div></div><button class="close" onclick="closeModal()">✕</button></div>
     <div id="tbBody" class="tbbody"></div>
     <div class="tbrow"><input id="tbIn" placeholder="예산·기분·안주를 말씀해 보세요…" maxlength="300"/><button class="distbtn on" style="padding:10px 16px" onclick="tbSend()">전송</button></div>
@@ -961,7 +978,8 @@ function showTalkbarChat(){
     window._tbMsgs.push({role:"assistant",text:greets[Math.floor(Math.random()*greets.length)],skus:[]});
   }
   tbRender();
-  document.getElementById("tbIn").focus();
+  _bindKb();  // 모바일 키보드 대응(visualViewport)
+  setTimeout(()=>{const i=document.getElementById("tbIn");if(i)i.focus();},250);
 }
 function tbRender(){
   const b=document.getElementById("tbBody"); if(!b)return;
