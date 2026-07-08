@@ -284,6 +284,12 @@
   .qzopt:hover{border-color:var(--amber);background:#FBF7EF}
   .qzbar{height:4px;border-radius:2px;background:#EDE7DB;margin:2px 0 14px;overflow:hidden}
   .qzbar i{display:block;height:100%;background:var(--amber);border-radius:2px;transition:width .25s}
+  /* 🗄 내 위스키 셀러 */
+  .cellst{display:flex;gap:8px;margin:10px 0}
+  .cellst button{flex:1;padding:10px 6px;border:1px solid var(--line);border-radius:12px;background:var(--card);font-weight:700;font-size:13px;color:var(--sub);cursor:pointer}
+  .cellst button.on{background:var(--amber);border-color:var(--amber);color:#fff}
+  .starrow{display:flex;gap:6px;font-size:28px;cursor:pointer;user-select:none;justify-content:center;margin:6px 0 2px}
+  .starrow span{color:#D8D0C4}.starrow span.on{color:#E8A81C}
   /* 📈 가격 추이 스파크라인 + 🏆 역대 최저 */
   .atl{font-size:11px;font-weight:800;color:#1F7A44;background:#E7F6EE;border-radius:7px;padding:2px 7px;white-space:nowrap}
   .spark{display:block;width:100%;height:64px}
@@ -609,9 +615,10 @@ function detail(p){
         <div class="hname">${esc(p.name)}</div><div class="rr">${rr}${viv}</div>
         <div style="display:flex;align-items:baseline;gap:8px;margin:8px 0;flex-wrap:wrap"><span class="hprice">${won(p.price)}</span>${p.unit_price_text?`<span class="hunit">${esc(p.unit_price_text)}</span>`:""}${p.atl&&p.in_stock?`<span class="atl">🏆 역대 최저</span>`:""}</div>
         ${dsBadge(p)}</div><button class="close" onclick="closeModal()">✕</button></div>
-    <div style="display:flex;gap:8px;padding:10px 20px 0">
+    <div style="display:flex;gap:8px;padding:10px 20px 0;flex-wrap:wrap">
       <button class="distbtn${MYWATCH.has(p.sku)?" on":""}" id="wbtn" style="cursor:pointer" onclick="detailWatch('${p.sku}')">${MYWATCH.has(p.sku)?"⭐ 관심중":"☆ 관심 등록"}</button>
       <button class="distbtn" style="cursor:pointer" onclick="detailTarget('${p.sku}')">💰 목표가${MYTARGET[p.sku]?` ${MYTARGET[p.sku].toLocaleString()}원`:" 설정"}</button>
+      <button class="distbtn${MYCELLAR[p.sku]?" on":""}" style="cursor:pointer" onclick="showCellarEdit('${p.sku}')">🗄 ${MYCELLAR[p.sku]?CELL_LABEL[MYCELLAR[p.sku].status].slice(2).trim():"셀러 기록"}</button>
     </div>
     ${sparkline(p)}
     ${p.tasting_notes&&p.tasting_notes.length?`<div class="tasting"><div class="sl">🥃 테이스팅 노트 <span class="src">데일리샷</span></div><div class="tchips">${p.tasting_notes.map(n=>`<div class="tchip"><b>${esc(n.label)}</b> ${esc(n.value)}</div>`).join("")}</div></div>`:""}
@@ -1440,6 +1447,7 @@ function _qzResult(){
   const picks=hits.slice(0,3);
   const title=(({solo:"혼술",party:"모임",gift:"선물"})[a.scene]||"")+" "+(({sweet:"달콤파",smoky:"스모키파",fresh:"클린파",classic:"클래식파"})[a.taste]||"애호가");
   try{localStorage.setItem("jurak_taste",JSON.stringify({title:title.trim(),a,t:Date.now()}));}catch(e){}
+  window._qzLast={title:title.trim(),names:picks.map(p=>p.name)};  // 공유 카드용
   track("taste_result",{title:title.trim(),n:picks.length});
   const body=picks.length?`<div class="sa" style="line-height:1.7">당신은 <b style="color:var(--amberD)">${esc(title.trim())}</b> — 지금 트레이더스 재고에서 이 세 병을 권해드려요 👇</div>${picks.map(_guideItem).join("")}`
     :`<div class="sa" style="line-height:1.7">조건에 딱 맞는 재고가 지금은 없네요 — 예산이나 주종을 바꿔 다시 해보세요.</div>`;
@@ -1453,10 +1461,38 @@ function _qzResult(){
       <div class="sa" style="text-align:center;margin-top:10px;font-size:11px;color:var(--sub)">결과는 이 기기에만 저장 · 재고가 바뀌면 추천도 바뀝니다</div></div></div></div>`;
   renderBrief();
 }
-function qzShare(){
-  const u=location.origin+location.pathname+"?test=1";
-  if(navigator.share){navigator.share({title:"주락 1분 취향 테스트",text:"네 가지 질문으로 내 술 찾기 — 주락 酒樂",url:u}).catch(()=>{});}
-  else{try{navigator.clipboard.writeText(u);}catch(e){} const b=document.getElementById("qzsh");if(b)b.textContent="✅ 링크 복사됨!";}
+// 공유: ①결과 이미지 카드(카톡·인스타 스토리용) → ②링크 공유 → ③클립보드 순 폴백
+function _qzCardBlob(title,names){
+  return new Promise(res=>{
+    const W=1080,H=1080,c=document.createElement("canvas");c.width=W;c.height=H;const x=c.getContext("2d");
+    const g=x.createLinearGradient(0,0,W,H);g.addColorStop(0,"#2E2415");g.addColorStop(.55,"#221910");g.addColorStop(1,"#171009");
+    x.fillStyle=g;x.fillRect(0,0,W,H);
+    x.strokeStyle="rgba(217,169,78,.55)";x.lineWidth=6;x.beginPath();x.roundRect(46,46,W-92,H-92,58);x.stroke();
+    const F="'Pretendard Variable',Pretendard,'Apple SD Gothic Neo',sans-serif";
+    x.fillStyle="#E5C57F";x.font="800 40px "+F;x.fillText("🥃 주락 취향 테스트",110,170);
+    x.fillStyle="#F3E8D2";x.font="900 88px "+F;x.fillText("나는",110,320);
+    x.fillStyle="#F0D48A";x.font="900 104px "+F;x.fillText(title,110,445);
+    x.fillStyle="#B4A17C";x.font="500 36px "+F;x.fillText("지금 트레이더스 재고에서 고른 내 술 👇",110,540);
+    x.fillStyle="#EDE4D3";x.font="700 44px "+F;
+    (names||[]).slice(0,3).forEach((n,i)=>{const t=n.length>18?n.slice(0,18)+"…":n;x.fillText(`${i+1}. ${t}`,110,630+i*78);});
+    x.fillStyle="#E5C57F";x.font="800 46px "+F;x.fillText("jurak.kr/?test=1",110,H-110);
+    x.fillStyle="#B4A17C";x.font="500 30px "+F;x.textAlign="right";x.fillText("너의 취향도 궁금해",W-110,H-110);
+    c.toBlob(res,"image/png");
+  });
+}
+async function qzShare(){
+  const d=window._qzLast||{}, u=location.origin+location.pathname+"?test=1";
+  const txt=`내 술 취향: ${d.title||"?"} 🥃 너도 해봐 — ${u}`;
+  try{
+    const blob=await _qzCardBlob(d.title||"주락 애호가",d.names||[]);
+    const file=new File([blob],"jurak-taste.png",{type:"image/png"});
+    if(navigator.canShare&&navigator.canShare({files:[file]})){
+      await navigator.share({files:[file],title:"주락 취향 테스트",text:txt});
+      track("taste_share",{m:"image"});return;
+    }
+  }catch(e){ if(e&&e.name==="AbortError")return; }
+  if(navigator.share){navigator.share({title:"주락 1분 취향 테스트",text:txt,url:u}).catch(()=>{});track("taste_share",{m:"link"});}
+  else{try{navigator.clipboard.writeText(u);}catch(e){} const b=document.getElementById("qzsh");if(b)b.textContent="✅ 링크 복사됨!";track("taste_share",{m:"copy"});}
 }
 
 function _bartenderShell(body,sub){
@@ -1617,8 +1653,10 @@ function showAccount(){
           <div style="flex:1;background:var(--card);border:1px solid var(--line);border-radius:10px;padding:10px 4px"><div style="font-weight:800;font-size:18px;color:var(--amberD)">${MYWATCH.size}</div><div class="sa" style="font-size:11.5px">⭐ 관심상품</div></div>
           <div style="flex:1;background:var(--card);border:1px solid var(--line);border-radius:10px;padding:10px 4px"><div style="font-weight:800;font-size:18px;color:var(--amberD)">${Object.keys(MYTARGET).length}</div><div class="sa" style="font-size:11.5px">💰 목표가</div></div>
           <div style="flex:1;background:var(--card);border:1px solid var(--line);border-radius:10px;padding:10px 4px"><div style="font-weight:800;font-size:18px;color:var(--amberD)">${MYFAVR.size}</div><div class="sa" style="font-size:11.5px">🍽 즐겨찾기</div></div>
+          <div style="flex:1;background:var(--card);border:1px solid var(--line);border-radius:10px;padding:10px 4px"><div style="font-weight:800;font-size:18px;color:var(--amberD)">${Object.keys(MYCELLAR).length}</div><div class="sa" style="font-size:11.5px">🗄 셀러</div></div>
         </div>
-        ${MYWATCH.size?`<button class="distbtn on" style="width:100%;margin-top:10px;cursor:pointer;border:none" onclick="closeModal();showMyWatch()">⭐ 내 관심상품 모아보기</button>`:`<div class="sa" style="margin-top:10px;font-size:12px">상품 상세에서 <b>☆ 관심 등록</b>, 콜키지 식당에서 <b>☆ 즐겨찾기</b>를 눌러보세요.</div>`}
+        <button class="distbtn on" style="width:100%;margin-top:10px;cursor:pointer;border:none;padding:11px" onclick="showCellar()">🗄 내 위스키 셀러 열기</button>
+        ${MYWATCH.size?`<button class="distbtn" style="width:100%;margin-top:8px;cursor:pointer;padding:11px" onclick="closeModal();showMyWatch()">⭐ 내 관심상품 모아보기</button>`:`<div class="sa" style="margin-top:10px;font-size:12px">상품 상세에서 <b>☆ 관심 등록</b>·<b>🗄 셀러 기록</b>을 눌러보세요.</div>`}
       </div>
       <div style="margin-top:14px;padding:12px 14px;border-radius:12px;background:linear-gradient(135deg,#2B2622,#6E460F);color:#fff;cursor:pointer" onclick="closeModal();tbEntry()">
         <div style="font-size:11px;font-weight:800;color:#F7CE68">NOW OPEN</div>
@@ -1637,23 +1675,85 @@ function saveNick(){
     msg.style.color="#1F9E5A";msg.textContent="✅ 저장됐어요! 이제 이 닉네임으로 표시됩니다.";
   });
 }
-function logout(){ if(SUPA)SUPA.auth.signOut(); USER=null; MYWATCH=new Set();MYTARGET={};MYFAVR=new Set(); refreshAuthUI(); if(CDATA)renderColkage(); closeModal(); }
+function logout(){ if(SUPA)SUPA.auth.signOut(); USER=null; MYWATCH=new Set();MYTARGET={};MYFAVR=new Set();MYCELLAR={}; refreshAuthUI(); if(CDATA)renderColkage(); closeModal(); }
 
 // ── 회원 개인 데이터 (Supabase, 본인 행만 RLS) ─────────────
-let MYWATCH=new Set(), MYTARGET={}, MYFAVR=new Set(), _curP=null;
+let MYWATCH=new Set(), MYTARGET={}, MYFAVR=new Set(), MYCELLAR={}, _curP=null;
 async function loadMyData(){
-  MYWATCH=new Set(); MYTARGET={}; MYFAVR=new Set();
+  MYWATCH=new Set(); MYTARGET={}; MYFAVR=new Set(); MYCELLAR={};
   if(!SUPA||!USER) return;
   try{
-    const [w,t,f]=await Promise.all([
+    const [w,t,f,c]=await Promise.all([
       SUPA.from("watchlist").select("sku"),
       SUPA.from("price_targets").select("sku,target_price"),
-      SUPA.from("fav_restaurants").select("place_id")
+      SUPA.from("fav_restaurants").select("place_id"),
+      SUPA.from("cellar").select("sku,status,rating,note,product_name,category")
     ]);
     (w.data||[]).forEach(r=>MYWATCH.add(r.sku));
     (t.data||[]).forEach(r=>{MYTARGET[r.sku]=r.target_price;});
     (f.data||[]).forEach(r=>MYFAVR.add(r.place_id));
+    (c.data||[]).forEach(r=>{MYCELLAR[r.sku]=r;});
   }catch(e){}
+}
+// ── 🗄 내 위스키 셀러 — 마신/보유/위시 + 별점·한줄노트 (재방문 락인, 경쟁사 전무 기능) ─────
+const CELL_LABEL={drank:"🥃 마셨어요",have:"📦 보유 중",wish:"⭐ 위시"};
+function showCellarEdit(sku){
+  if(!authReady()||!USER){showLogin();return;}
+  const p=DATA&&DATA.products.find(x=>x.sku===sku);
+  const cur=MYCELLAR[sku]||{};
+  const name=(p&&p.name)||cur.product_name||sku;
+  window._ce={sku,status:cur.status||"drank",rating:cur.rating||0,name,category:(p&&p.category)||cur.category||""};
+  const chips=Object.entries(CELL_LABEL).map(([k,v])=>`<button id="cst_${k}" class="${window._ce.status===k?"on":""}" onclick="window._ce.status='${k}';Object.keys(CELL_LABEL).forEach(x=>document.getElementById('cst_'+x).classList.toggle('on',x==='${k}'))">${v}</button>`).join("");
+  const stars=[1,2,3,4,5].map(i=>`<span id="cstar${i}" class="${i<=window._ce.rating?"on":""}" onclick="window._ce.rating=(window._ce.rating===${i}?0:${i});for(let j=1;j<=5;j++)document.getElementById('cstar'+j).classList.toggle('on',j<=window._ce.rating)">★</span>`).join("");
+  document.getElementById("modalRoot").innerHTML=`<div class="overlay" id="ov" onclick="closeModal()"><div class="modalSm" onclick="event.stopPropagation()">
+    <div class="hero" style="align-items:center"><div style="flex:1;min-width:0"><div class="hname">🗄 셀러 기록</div><div class="sa" style="white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${esc(name)}</div></div><button class="close" onclick="closeModal()">✕</button></div>
+    <div style="padding:16px 20px">
+      <div class="cellst">${chips}</div>
+      <div class="starrow">${stars}</div>
+      <div class="sa" style="text-align:center;font-size:11.5px;margin-bottom:10px">별을 눌러 내 평점 (다시 누르면 해제)</div>
+      <input id="cellNote" type="text" maxlength="200" placeholder="한줄 노트 — 예: 셰리향 진함, 하이볼로 최고" value="${esc(cur.note||"")}"
+        style="width:100%;background:var(--card);border:1px solid var(--line);border-radius:10px;padding:10px 12px;font-size:14px;outline:none">
+      <div style="display:flex;gap:8px;margin-top:14px">
+        <button class="distbtn on" style="flex:1;border:none;padding:12px;cursor:pointer" onclick="saveCellar()">💾 저장</button>
+        ${cur.status?`<button class="distbtn" style="padding:12px 14px;cursor:pointer;color:#B0431F" onclick="delCellar('${esc(sku)}')">삭제</button>`:""}
+      </div>
+      <div class="sa" id="cellMsg" style="margin-top:8px"></div>
+    </div></div></div>`;
+}
+async function saveCellar(){
+  const ce=window._ce, msg=document.getElementById("cellMsg");
+  msg.style.color="var(--sub)";msg.textContent="저장 중…";
+  const row={user_id:USER.id,sku:ce.sku,product_name:ce.name,category:ce.category,status:ce.status,
+             rating:ce.rating||null,note:(document.getElementById("cellNote").value||"").trim().slice(0,200)||null,
+             updated_at:new Date().toISOString()};
+  const {error}=await SUPA.from("cellar").upsert(row,{onConflict:"user_id,sku"});
+  if(error){msg.style.color="#D8562F";msg.textContent="저장 실패 — 잠시 후 다시.";return;}
+  MYCELLAR[ce.sku]=row; track("cellar_save",{st:ce.status});
+  const p=DATA&&DATA.products.find(x=>x.sku===ce.sku);
+  if(p)detail(p); else showCellar();
+}
+async function delCellar(sku){
+  await SUPA.from("cellar").delete().eq("user_id",USER.id).eq("sku",sku);
+  delete MYCELLAR[sku];
+  const p=DATA&&DATA.products.find(x=>x.sku===sku);
+  if(p)detail(p); else showCellar();
+}
+function showCellar(){
+  const rows=Object.values(MYCELLAR);
+  const sec=(st)=>{
+    const list=rows.filter(r=>r.status===st);
+    if(!list.length)return "";
+    return `<div class="gsec"><div class="gt">${CELL_LABEL[st]} <span class="sub" style="font-weight:600">${list.length}병</span></div>`+
+      list.map(r=>`<div class="recrow" onclick="showCellarEdit('${esc(r.sku)}')">
+        <div style="flex:1;min-width:0"><div class="rt">${esc(r.product_name||r.sku)}</div>
+        <div class="rd">${r.rating?`<span class="stars">${"★".repeat(r.rating)}</span> `:""}${r.note?esc(r.note):`<span style="color:#B9AE9E">노트 없음 — 눌러서 기록</span>`}</div></div></div>`).join("")+`</div>`;
+  };
+  const body=rows.length?sec("drank")+sec("have")+sec("wish")
+    :`<div class="sa" style="line-height:1.75;text-align:center;padding:10px 0">아직 비어있어요 🗄<br>상품 상세에서 <b>🗄 셀러 기록</b>을 눌러<br>마신 술·보유한 술·위시를 모아보세요.</div>`;
+  document.getElementById("modalRoot").innerHTML=`<div class="overlay" id="ov" onclick="closeModal()"><div class="modalSm" onclick="event.stopPropagation()">
+    <div class="hero" style="align-items:center"><div style="flex:1"><div class="hname">🗄 내 위스키 셀러</div><div class="sa">마신 술 · 보유 · 위시 ${rows.length}병</div></div><button class="close" onclick="closeModal()">✕</button></div>
+    <div style="padding:14px 20px;overflow-y:auto">${body}
+    <div class="sa" style="text-align:center;margin-top:12px;font-size:11px;color:var(--sub)">내 계정에만 저장 · 탈퇴 시 삭제</div></div></div></div>`;
 }
 async function toggleWatch(sku,name){
   if(!authReady()||!USER){showLogin();return false;}
