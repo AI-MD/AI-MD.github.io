@@ -133,6 +133,8 @@ svg{display:block}
     <div class="card"><h2>🔍 인기 검색어</h2><div id="topq"></div></div>
     <div class="card"><h2>🚫 무결과 검색어 <span class="hint">재고·픽 발굴 재료</span></h2><div id="zeroq"></div></div>
     <div class="card"><h2>👁 많이 본 상품</h2><div id="topp"></div></div>
+    <div class="card"><h2>🧭 취향 테스트 <span class="hint">시작→완주</span></h2><div id="tasteTest"></div></div>
+    <div class="card"><h2>☀️ 브리핑 · 📖 큐레이션 · 🔔 구독 <span class="hint">참여 지표</span></h2><div id="engage"></div></div>
   </div>
 
   <div class="sec">⑥ AI · 회원</div>
@@ -205,6 +207,7 @@ async function freshness(){
     {url:SITE+"/data.json",name:"🍾 재고 (data.json)",warnH:30,sched:"매일 18시"},
     {url:SITE+"/dailyshot_top.json",name:"🌟 주락 픽",warnH:96,sched:"월·수·금 8시반"},
     {url:SITE+"/colkage.json",name:"🍽 콜키지",warnH:96,sched:"월·수·금 8시"},
+    {url:SITE+"/bottleshops.json",name:"🥃 바틀샵·바",warnH:192,sched:"주 1회 (월 8:15)"},
   ];
   const out=await Promise.all(items.map(async it=>{
     try{
@@ -301,8 +304,8 @@ function funnel(el,f){
   }).join("");
 }
 
-const EVLABEL={page_view:"방문",search:"검색",view:"탭이동",product_view:"상품",dwell:"체류",bartender_open:"추천열람",talkbar_open:"토킹바",talkbar_msg:"토킹바발화"};
-const EVCOLOR={search:"#E5C57F",product_view:"#8FB4D9",bartender_open:"#4CBF7E",talkbar_msg:"#4CBF7E",talkbar_open:"#4CBF7E",page_view:"#C9A45C",dwell:"#A89983",view:"#C9A45C"};
+const EVLABEL={page_view:"방문",search:"검색",view:"탭이동",product_view:"상품",dwell:"체류",bartender_open:"추천열람",talkbar_open:"토킹바",talkbar_msg:"토킹바발화",taste_test:"취향테스트",taste_result:"취향완주",guide_open:"큐레이션",brief_click:"브리핑클릭",webpush_sub:"웹푸시구독"};
+const EVCOLOR={search:"#E5C57F",product_view:"#8FB4D9",bartender_open:"#4CBF7E",talkbar_msg:"#4CBF7E",talkbar_open:"#4CBF7E",page_view:"#C9A45C",dwell:"#A89983",view:"#C9A45C",taste_test:"#E5C57F",taste_result:"#4CBF7E",guide_open:"#E5C57F",brief_click:"#E5C57F",webpush_sub:"#4CBF7E"};
 
 function render(d){
   const k=d.kpi;
@@ -312,7 +315,7 @@ function render(d){
   document.getElementById("kpis").innerHTML=[
     ["오늘 방문 세션",k.today_sessions],["오늘 이벤트",k.today_events],["7일 세션",k.week_sessions],
     ["평균 체류(초)",k.avg_dwell],["세션당 이벤트",k.avg_events_per_session],["검색 도달률",k.search_reach_rate+"%"],
-    ["회원 수",k.members],["취향 기록",k.taste_count],["토킹바 대화",k.talkbar_count],
+    ["회원 수",k.members],["취향 기록",k.taste_count],["토킹바 대화",k.talkbar_count],["🔔 웹푸시 구독",k.webpush_subs??"–"],
   ].map(([t,n])=>`<div class="kpi"><div class="n">${typeof n==='string'?n:fmt(n)}</div><div class="t">${t}</div></div>`).join("");
 
   spark("minute",d.minute,"#4CBF7E");
@@ -330,12 +333,25 @@ function render(d){
     `<div class="row"><span class="k">💻 데스크톱</span><span class="bar"><i style="width:${Math.round(dv.desktop/tot*100)}%"></i></span><span class="v">${fmt(dv.desktop)} (${Math.round(dv.desktop/tot*100)}%)</span></div>`;
   const dl=d.deeplinks||[];
   document.getElementById("deep").innerHTML=dl.length?dl.map(([k2,v])=>`<div class="row"><span class="k">🔗 ?${esc(k2)}=1</span><span class="v">${fmt(v)}회</span></div>`).join(""):`<div class="muted" style="padding:6px 0">딥링크 유입 없음</div>`;
-  rows("tabs",(d.tabs||[]).map(([v,n])=>[{liquor:"🛒 주락 딜",pick:"🌟 주락 픽",colkage:"🍽 콜키지",learn:"📚 알쓸신주"}[v]||v,n]),"");
+  rows("tabs",(d.tabs||[]).map(([v,n])=>[{liquor:"🛒 주락 딜",pick:"🌟 주락 픽",colkage:"🍽 콜키지",learn:"📚 알쓸신주",bottle:"🥃 바틀샵·바"}[v]||v,n]),"");
 
   funnel("funnel",d.funnel||{visit:0,search:0,detail:0,ai:0});
   rows("topq",d.top_search,"","회");
   rows("zeroq",d.zero_search,"r","회");
   rows("topp",d.top_product,"","회");
+  // 🧭 취향 테스트 · ☀️ 참여 지표 (구버전 함수 응답엔 engage가 없어도 콘솔이 깨지지 않게 방어)
+  const en=d.engage||{};
+  document.getElementById("tasteTest").innerHTML=("taste_test" in en)?
+    `<div class="row"><span class="k">시작</span><span class="v">${fmt(en.taste_test)}회</span></div>`+
+    `<div class="row"><span class="k">완주</span><span class="bar g"><i style="width:${en.taste_complete_rate||0}%"></i></span><span class="v">${fmt(en.taste_result)}회 (${en.taste_complete_rate||0}%)</span></div>`+
+    ((en.taste_titles||[]).length?`<div class="muted" style="text-align:left;padding:6px 0 2px">완주자 취향 분포</div>`+
+      en.taste_titles.map(([t,v])=>`<div class="row"><span class="k">${esc(t)}</span><span class="v">${fmt(v)}명</span></div>`).join(""):"")
+    :`<div class="muted">admin-stats 함수 재배포 후 표시됩니다</div>`;
+  document.getElementById("engage").innerHTML=("brief_click" in en)?
+    `<div class="row"><span class="k">☀️ 브리핑 카드 클릭</span><span class="v">${fmt(en.brief_click)}회</span></div>`+
+    `<div class="row"><span class="k">📖 큐레이션 열람</span><span class="v">${fmt(en.guide_open)}회</span></div>`+
+    `<div class="row"><span class="k">🔔 웹푸시 구독 완료</span><span class="v">${fmt(en.webpush_sub_clicks)}회</span></div>`
+    :`<div class="muted">admin-stats 함수 재배포 후 표시됩니다</div>`;
 
   const a=d.ai_usage||{},bt=(a.bartender_ai+a.bartender_local)||1;
   document.getElementById("ai").innerHTML=
@@ -359,7 +375,9 @@ function render(d){
     ["📦 재고 갱신","매일 18시 (launchd)"],
     ["🌟 데일리샷/픽","데일리샷 매일 9시 · 픽 월·수·금 8시반"],
     ["🍽 콜키지","월·수·금 8시"],
+    ["🥃 바틀샵·바","주 1회 (월 8:15)"],
     ["🔔 ntfy 토픽","traders-liquor-kr-alerts"],
+    ["🎯 맞춤 웹푸시","⭐관심상품·💰목표가 회원 대상 (push-personal)"],
   ].map(([k2,v])=>`<div class="st"><span class="sk">${k2}<span class="lock">🔒</span></span><span class="sv">${esc(v)}</span></div>`).join("");
 
   document.getElementById("upd").textContent="갱신 "+new Date(d.generated_at).toLocaleTimeString("ko-KR");
