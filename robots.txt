@@ -4,3 +4,5 @@ Disallow: /data.json
 Disallow: /colkage.json
 Disallow: /bottleshops.json
 Disallow: /dailyshot_top.json
+
+Sitemap: https://jurak.kr/sitemap.xml

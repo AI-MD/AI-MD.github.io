@@ -3,13 +3,31 @@
 <head>
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0, interactive-widget=resizes-content" />
-<title>주락 酒樂 — 합리적으로 사고, 즐겁게 마시다</title>
-<meta name="description" content="주락(酒樂) — 트레이더스 전국 24개 지점 주류 재고·최저가 비교 + 서울·수도권 콜키지프리 식당(평점3.5+·지도)까지. 합리적으로 사고, 즐겁게 마시다." />
+<title>주락 酒樂 | 트레이더스 위스키 재고·최저가 조회 & 콜키지프리·바틀샵 지도</title>
+<meta name="description" content="이마트 트레이더스 전국 24개 지점 위스키·와인 재고와 가격을 매일 확인하고 데일리샷 최저가와 비교하세요. 서울·수도권 콜키지프리 식당, 전국 바틀샵·위스키바 지도, AI 바텐더 추천까지 — 무료." />
+<meta name="keywords" content="트레이더스 위스키 재고, 트레이더스 위스키 가격, 트레이더스 와인, 위스키 최저가, 콜키지프리 식당, 콜키지 프리, 바틀샵 지도, 위스키바, 데일리샷 비교, 주락" />
+<link rel="canonical" href="https://jurak.kr/" />
+<!-- 검색엔진 소유 확인 — 콘솔에서 발급받은 코드로 교체 (Google Search Console · 네이버 서치어드바이저)
+<meta name="google-site-verification" content="" />
+<meta name="naver-site-verification" content="" /> -->
+<link rel="preconnect" href="https://cdn.jsdelivr.net" crossorigin />
+<link rel="preconnect" href="https://unpkg.com" crossorigin />
+<link rel="preconnect" href="https://hzliwugasthzxamfpwxo.supabase.co" />
+<script type="application/ld+json">
+{"@context":"https://schema.org","@graph":[
+ {"@type":"WebSite","@id":"https://jurak.kr/#website","url":"https://jurak.kr/","name":"주락 酒樂",
+  "alternateName":"주락","description":"트레이더스 주류 재고·최저가 비교, 콜키지프리 식당, 바틀샵 지도, AI 바텐더 추천",
+  "inLanguage":"ko-KR",
+  "potentialAction":{"@type":"SearchAction","target":{"@type":"EntryPoint","urlTemplate":"https://jurak.kr/?q={search_term_string}"},"query-input":"required name=search_term_string"}},
+ {"@type":"Organization","@id":"https://jurak.kr/#org","name":"주락 酒樂","url":"https://jurak.kr/",
+  "logo":"https://jurak.kr/icon-512.png","email":"k2p2048@gmail.com"}
+]}
+</script>
 <!-- 공유 링크 미리보기 (카카오톡·인스타·트위터·커뮤니티) -->
 <meta property="og:type" content="website" />
 <meta property="og:site_name" content="주락 酒樂" />
-<meta property="og:title" content="주락 酒樂 — 합리적으로 사고, 즐겁게 마시다" />
-<meta property="og:description" content="트레이더스 전국 24개 지점 주류 재고·최저가를 한눈에. 콜키지프리 식당·AI 바텐더까지. 설치 없이 무료." />
+<meta property="og:title" content="주락 酒樂 — 트레이더스 위스키·와인 재고·최저가 한눈에" />
+<meta property="og:description" content="트레이더스 전국 24개 지점 주류 재고·최저가 비교, 콜키지프리 식당, 바틀샵 지도, AI 바텐더까지. 설치 없이 무료." />
 <meta property="og:url" content="https://jurak.kr/" />
 <meta property="og:image" content="https://jurak.kr/icon-512.png" />
 <meta property="og:image:width" content="512" />
@@ -273,8 +291,16 @@
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" crossorigin=""></script>
 </head>
 <body>
+<noscript>
+  <div style="max-width:720px;margin:40px auto;padding:0 20px;line-height:1.8">
+    <h1>주락 酒樂 — 트레이더스 위스키·와인 재고·최저가 조회</h1>
+    <p>이마트 트레이더스 전국 24개 지점의 위스키·와인·주류 재고와 가격을 매일 갱신해 데일리샷 최저가와 비교합니다.
+    서울·수도권 콜키지프리 식당 지도, 전국 바틀샵·위스키바 지도, 위스키·와인 지식(알쓸신주), AI 바텐더 추천을 무료로 제공합니다.
+    이 서비스는 JavaScript가 필요합니다 — 브라우저에서 JavaScript를 켜 주세요.</p>
+  </div>
+</noscript>
 <header><div class="hin">
-  <div class="logo" onclick="goHome()" style="cursor:pointer" title="홈으로"><span class="ic">🍶</span><div><div class="t">주락 <span style="font-weight:700;opacity:.6">酒樂</span></div><div class="s">합리적으로 사고, 즐겁게 마시다</div></div></div>
+  <div class="logo" onclick="goHome()" style="cursor:pointer" title="홈으로"><span class="ic">🍶</span><div><h1 class="t" style="font-size:17px">주락 <span style="font-weight:700;opacity:.6">酒樂</span></h1><div class="s">합리적으로 사고, 즐겁게 마시다</div></div></div>
   <div class="search hsearch"><span>🔍</span><input id="q" placeholder="어떤 술을 찾으세요? — 딜+픽 통합 검색 (예: 발베니, 야마자키)" /></div>
   <div style="display:flex;align-items:center;gap:8px">
     <span class="upd" id="upd">불러오는 중…</span>
@@ -303,7 +329,7 @@
   </div>
 </div>
 <div id="viewLiquor">
-<div class="warn">🛒 <b>주락 딜</b> · 이마트 트레이더스 <b>전국 24개 지점 주류 재고·가격</b>과 <b>데일리샷 최저가 비교</b>를 한눈에 — 하루 1회 갱신이라 <b>현장 실물과 다를 수 있으니 방문 전 확인</b>하세요. (조회 전용)</div>
+<div class="warn"><h2 style="display:inline;font-size:inherit;font-weight:800;margin:0">🛒 이마트 트레이더스 위스키·와인 재고와 가격</h2> · <b>전국 24개 지점</b>과 <b>데일리샷 최저가 비교</b>를 한눈에 — 하루 1회 갱신이라 <b>현장 실물과 다를 수 있으니 방문 전 확인</b>하세요. (조회 전용)</div>
 <div class="catbar"><div class="wrap"><div class="cattabs" id="cattabs"></div></div></div>
 <div class="filter"><div class="wrap"><div class="frow">
   <select id="store"><option value="">전지점 집계</option></select>
@@ -314,7 +340,7 @@
 <main><div class="wrap"><div id="brief"></div><div class="rc" id="rc"></div><div class="grid" id="grid"></div><div id="more" style="text-align:center;margin:22px 0"></div><div id="crossPick"></div></div></main>
 </div><!-- /viewLiquor -->
 <section id="viewColkage" hidden>
-  <div class="warn">🍷 <b>서울·수도권 콜키지프리 식당</b> — 내 술을 가져가 마실 수 있는 곳(카카오맵 평점 3.5+). 주 3회 갱신 · ⚠ <b>콜키지 정책은 매장 사정으로 바뀔 수 있으니 방문 전 전화 확인</b> 권장.</div>
+  <div class="warn"><h2 style="display:inline;font-size:inherit;font-weight:800;margin:0">🍷 서울·수도권 콜키지프리 식당 지도</h2> — 내 술을 가져가 마실 수 있는 곳(카카오맵 평점 3.5+). 주 3회 갱신 · ⚠ <b>콜키지 정책은 매장 사정으로 바뀔 수 있으니 방문 전 전화 확인</b> 권장.</div>
   <main><div class="wrap">
   <div class="crow">
     <div class="search" style="flex:1;min-width:160px"><span>🔍</span><input id="cq" placeholder="식당·지역 검색 (예: 강남, 스시)…" /></div>
@@ -327,7 +353,7 @@
   <div id="cmore" style="text-align:center;margin:22px 0"></div>
 </div></main></section>
 <section id="viewBottle" hidden>
-  <div class="warn">🥃 <b>바틀샵·위스키바 지도</b> — 전국 바틀샵과 위스키·몰트 바를 한눈에(카카오맵 기반). 주 1회 갱신 · ⚠ <b>취급 주류·영업시간은 매장 사정으로 바뀔 수 있으니 방문 전 확인</b> 권장.</div>
+  <div class="warn"><h2 style="display:inline;font-size:inherit;font-weight:800;margin:0">🥃 전국 바틀샵·위스키바 지도</h2> — 바틀샵과 위스키·몰트 바를 한눈에(카카오맵 기반). 주 1회 갱신 · ⚠ <b>취급 주류·영업시간은 매장 사정으로 바뀔 수 있으니 방문 전 확인</b> 권장.</div>
   <main><div class="wrap">
   <div class="crow">
     <div class="search" style="flex:1;min-width:160px"><span>🔍</span><input id="bq" placeholder="상호·지역 검색 (예: 성수, 몰트바)…" /></div>
@@ -341,12 +367,12 @@
   <div id="bmore" style="text-align:center;margin:22px 0"></div>
 </div></main></section>
 <section id="viewLearn" hidden>
-  <div class="warn">📚 <b>알쓸신주</b> — 알아두면 쓸모있는 신비한 술 지식. 위스키 증류소·숙성·캐스크부터 와인 포도품종·빈티지, 테이스팅 용어까지.</div>
+  <div class="warn"><h2 style="display:inline;font-size:inherit;font-weight:800;margin:0">📚 알쓸신주 — 위스키·와인 지식 사전</h2> · 위스키 증류소·숙성·캐스크부터 와인 포도품종·빈티지, 하이볼 레시피, 테이스팅 용어까지.</div>
   <main><div class="wrap">
   <div id="learnBody"></div>
 </div></main></section>
 <section id="viewPick" hidden>
-  <div class="warn">🌟 <b>주락 픽</b> · 트레이더스엔 없는 <b>애호가의 명주</b>를 데일리샷 <b>최저가·평점</b>으로 큐레이션 — 주 3회 갱신, <b>가격은 판매처·시점에 따라 다를 수 있어요.</b></div>
+  <div class="warn"><h2 style="display:inline;font-size:inherit;font-weight:800;margin:0">🌟 주락 픽 — 위스키·와인 명주 최저가 큐레이션</h2> · 트레이더스엔 없는 <b>애호가의 명주</b>를 데일리샷 <b>최저가·평점</b>으로 — 주 3회 갱신, <b>가격은 판매처·시점에 따라 다를 수 있어요.</b></div>
   <main><div class="wrap">
   <div class="crow">
     <select id="pcat"><option value="">전체 종류</option></select>
@@ -745,6 +771,7 @@ fetch("data.json?t="+Date.now(),{cache:"no-store"}).then(r=>r.json()).then(d=>{
   if(qs.get("talkbar")==="1"){setTimeout(()=>tbEntry(),400);}  // 베타/오픈 시 채팅, 그 외 티저
   if(qs.get("test")==="1"){setTimeout(()=>showTasteTest(),300);}  // 취향 테스트 공유 딥링크
   if(qs.get("bottle")==="1"){setTimeout(()=>switchView("bottle"),100);}  // 바틀샵 지도 딥링크
+  const q0=qs.get("q"); if(q0){const qi=document.getElementById("q");qi.value=q0;state.q=q0;}  // 검색 딥링크 (?q= — SEO SearchAction)
   render();
   renderBrief();
   const sku=qs.get("sku");
