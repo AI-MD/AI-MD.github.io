@@ -359,6 +359,7 @@
 <footer style="text-align:center;padding:20px 16px 40px;color:var(--sub);font-size:12px;border-top:1px solid var(--line)">
   <div style="font-weight:800;color:var(--amberD);margin-bottom:6px">🍶 주락 酒樂 · 합리적으로 사고, 즐겁게 마시다</div>
   👁 오늘 <b id="vtoday">–</b> · 누적 <b id="vtotal">–</b> 방문 &nbsp;·&nbsp; 🔔 구독자 <b id="vsubs">–</b>명 &nbsp;·&nbsp; 조회 전용 · 주류 재고 하루 1회 · 콜키지프리 주 3회 갱신
+  <div style="margin-top:8px;font-weight:700">⚠️ 지나친 음주는 건강을 해칩니다 · 임신 중 음주는 태아의 건강을 해칩니다 · 만 19세 미만 이용 불가</div>
   <div style="margin-top:8px"><a href="#" onclick="showPrivacy();return false" style="color:var(--amberD);font-weight:700;text-decoration:none">개인정보 처리방침</a></div>
 </footer>
 <div id="modalRoot"></div>
@@ -382,7 +383,7 @@ const kakaoView=(name,lat,lng,addr)=>(lat&&lng)?`https://map.kakao.com/link/map/
 const kakaoTo=(name,lat,lng)=>(lat&&lng)?`https://map.kakao.com/link/to/${encodeURIComponent(name||"목적지")},${lat},${lng}`:"";
 
 const won=n=>n>0?n.toLocaleString()+"원":"가격 정보 없음";
-const esc=s=>(s||"").replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
+const esc=s=>(s||"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
 const regionOf=a=>!a?"기타":(a.split(" ")[0].replace("특별자치도","").replace("특별시","").replace("광역시","").replace("도","").slice(0,2)||"기타");
 const stars=r=>r?`<span class="stars">${"★".repeat(Math.round(r))}${"☆".repeat(5-Math.round(r))}</span>`:"";
 
@@ -428,7 +429,7 @@ function card(p){
   const rr=p.rating?`${stars(p.rating)}<span class="rn">${p.rating}</span><span class="rc2">(${p.review_count})</span>`:`<span class="nr">평점 없음</span>`;
   const viv=p.vivino_score?`<span class="vivino">Vivino ${p.vivino_score}</span>`:"";
   return `<button class="card" data-sku="${p.sku}">
-    <div class="cimg">${p.image?`<img src="${p.image}" loading="lazy" referrerpolicy="no-referrer" onerror="this.onerror=null;this.outerHTML='<span class=&quot;fb&quot;>${CAT_ICON[p.category]||"🍾"}</span>'"/>`:`<span class="fb">${CAT_ICON[p.category]||"🍾"}</span>`}
+    <div class="cimg">${p.image?`<img src="${esc(p.image)}" loading="lazy" referrerpolicy="no-referrer" onerror="this.onerror=null;this.outerHTML='<span class=&quot;fb&quot;>${CAT_ICON[p.category]||"🍾"}</span>'"/>`:`<span class="fb">${CAT_ICON[p.category]||"🍾"}</span>`}
       <span class="catchip">${CAT_ICON[p.category]||""} ${p.category}</span>
       <span class="stkchip" style="background:${cs.in?"#1F9E5A":"#B9AE9E"}">${cs.in?`재고 ${fmtInv(cs.inv)}`:"품절"}</span></div>
     <div class="cbody"><div class="cname">${esc(p.name)}</div>
@@ -548,7 +549,7 @@ function detail(p){
       const up=rv.upvotes>0?`<span class="rc2">👍 ${rv.upvotes}</span>`:"";
       revHtml+=`<div class="rev"><div class="h">${stars(rv.rate)}${pt}${up}</div><div class="txt">${esc(rv.text)}</div></div>`;
     });
-    if(p.dailyshot_url) revHtml+=`<a class="more" href="${p.dailyshot_url}" target="_blank">데일리샷에서 더 보기 →</a>`;
+    if(p.dailyshot_url) revHtml+=`<a class="more" href="${esc(p.dailyshot_url)}" target="_blank">데일리샷에서 더 보기 →</a>`;
   } else { revHtml=`<div class="empty">리뷰가 없습니다.</div>`; }
   // 데일리샷 최저가처
   let sellerHtml="";
@@ -565,7 +566,7 @@ function detail(p){
         <div style="display:flex;gap:8px;margin-top:12px;flex-wrap:wrap">
           ${map?`<a class="distbtn on" style="text-decoration:none;padding:7px 12px" href="${map}" target="_blank" rel="noopener">📍 카카오맵</a>`:""}
           ${to?`<a class="distbtn" style="text-decoration:none;padding:7px 12px" href="${to}" target="_blank" rel="noopener">🚗 길찾기</a>`:""}
-          ${p.dailyshot_url?`<a class="distbtn" style="text-decoration:none;padding:7px 12px" href="${p.dailyshot_url}" target="_blank" rel="noopener">데일리샷 상품 →</a>`:""}
+          ${p.dailyshot_url?`<a class="distbtn" style="text-decoration:none;padding:7px 12px" href="${esc(p.dailyshot_url)}" target="_blank" rel="noopener">데일리샷 상품 →</a>`:""}
         </div>
       </div>
       <div class="sa" style="margin-top:12px">💸 최저가가 바뀌면 🔔 <b>가격변동 알림</b>으로 받아보세요 (특가·재입고와 같은 토픽).</div>
@@ -574,7 +575,7 @@ function detail(p){
   const viv=p.vivino_score?`<span class="vivino">Vivino ${p.vivino_score}</span>`:"";
   const rr=p.rating?`${stars(p.rating)}<span class="rn">${p.rating}</span><span class="rc2">· 리뷰 ${p.review_count}</span>`:`<span class="nr">평점 없음</span>`;
   document.getElementById("modalRoot").innerHTML=`<div class="overlay" id="ov"><div class="modal" onclick="event.stopPropagation()">
-    <div class="hero"><div class="im">${p.image?`<img src="${p.image}" referrerpolicy="no-referrer" onerror="this.onerror=null;this.outerHTML='<span style=&quot;font-size:40px&quot;>${CAT_ICON[p.category]}</span>'"/>`:`<span style="font-size:40px">${CAT_ICON[p.category]}</span>`}</div>
+    <div class="hero"><div class="im">${p.image?`<img src="${esc(p.image)}" referrerpolicy="no-referrer" onerror="this.onerror=null;this.outerHTML='<span style=&quot;font-size:40px&quot;>${CAT_ICON[p.category]}</span>'"/>`:`<span style="font-size:40px">${CAT_ICON[p.category]}</span>`}</div>
       <div style="flex:1;min-width:0"><span class="hcat">${CAT_ICON[p.category]} ${p.category}</span>
         <div class="hname">${esc(p.name)}</div><div class="rr">${rr}${viv}</div>
         <div style="display:flex;align-items:baseline;gap:8px;margin:8px 0;flex-wrap:wrap"><span class="hprice">${won(p.price)}</span>${p.unit_price_text?`<span class="hunit">${esc(p.unit_price_text)}</span>`:""}${p.atl&&p.in_stock?`<span class="atl">🏆 역대 최저</span>`:""}</div>
@@ -630,7 +631,10 @@ async function webpushToggle(){
     let sub=await reg.pushManager.getSubscription();
     if(!sub)sub=await reg.pushManager.subscribe({userVisibleOnly:true,applicationServerKey:_wpB64ToU8(VAPID_PUBLIC)});
     const j=sub.toJSON();
-    const r=await fetch(AUTH_CFG.url+"/rest/v1/push_subscriptions",{method:"POST",headers:{"Content-Type":"application/json","apikey":AUTH_CFG.anon,"Authorization":"Bearer "+AUTH_CFG.anon,"Prefer":"return=minimal"},body:JSON.stringify({endpoint:sub.endpoint,p256dh:j.keys.p256dh,auth:j.keys.auth,user_agent:(navigator.userAgent||"").slice(0,300),user_id:(typeof USER!=="undefined"&&USER&&USER.id)||null})});
+    // (보안) 로그인 사용자는 본인 JWT로 삽입 — RLS가 user_id 스푸핑을 차단(auth.uid()=user_id 강제)
+    let bearer=AUTH_CFG.anon, uid=null;
+    try{ if(SUPA&&USER){const {data:{session}}=await SUPA.auth.getSession(); if(session){bearer=session.access_token; uid=USER.id;}} }catch(e){}
+    const r=await fetch(AUTH_CFG.url+"/rest/v1/push_subscriptions",{method:"POST",headers:{"Content-Type":"application/json","apikey":AUTH_CFG.anon,"Authorization":"Bearer "+bearer,"Prefer":"return=minimal"},body:JSON.stringify({endpoint:sub.endpoint,p256dh:j.keys.p256dh,auth:j.keys.auth,user_agent:(navigator.userAgent||"").slice(0,300),user_id:uid})});
     if(!r.ok&&r.status!==409)throw new Error("save "+r.status);  // 409=이미 구독된 endpoint(정상)
     if(st)st.innerHTML="✅ <b>구독 완료!</b> 특가·재입고 소식을 이 기기로 바로 보내드릴게요.";
     try{track("webpush_sub",{});}catch(e){}
@@ -687,12 +691,17 @@ function showAlert(){
 }
 function copyTopic(){const t=NTFY_TOPIC;navigator.clipboard&&navigator.clipboard.writeText(t);const c=document.querySelector(".copy");if(c){c.textContent="복사됨!";setTimeout(()=>c.textContent="복사",1500);}}
 function subscribeEmail(){
+  // (보안) 공개 ntfy 토픽 대신 Supabase 쓰기전용 테이블로 수집 — 제3자가 구독자 이메일을 열람할 수 없음
   const el=document.getElementById("subEmail"), msg=document.getElementById("subMsg");
-  const em=(el.value||"").trim();
+  const em=(el.value||"").trim().toLowerCase();
   if(!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(em)){msg.style.color="#D8562F";msg.textContent="올바른 이메일을 입력해 주세요.";return;}
   msg.style.color="var(--sub)";msg.textContent="등록 중…";
-  fetch("https://ntfy.sh/traders-liquor-kr-subscribe",{method:"POST",body:"SUBSCRIBE "+em})
-    .then(()=>{msg.style.color="#1F9E5A";msg.textContent="✅ 구독 완료! 특가·재입고 소식을 메일로 보내드릴게요.";el.value="";})
+  fetch(AUTH_CFG.url+"/rest/v1/email_subscribers",{method:"POST",headers:{"Content-Type":"application/json","apikey":AUTH_CFG.anon,"Authorization":"Bearer "+AUTH_CFG.anon,"Prefer":"return=minimal"},body:JSON.stringify({email:em})})
+    .then(r=>{
+      if(r.ok){msg.style.color="#1F9E5A";msg.textContent="✅ 구독 완료! 특가·재입고 소식을 메일로 보내드릴게요.";el.value="";}
+      else if(r.status===409){msg.style.color="#1F9E5A";msg.textContent="이미 구독 중이에요 ✅";el.value="";}
+      else throw 0;
+    })
     .catch(()=>{msg.style.color="#D8562F";msg.textContent="잠시 후 다시 시도해 주세요.";});
 }
 
@@ -809,7 +818,7 @@ function renderColkage(){
         <div class="cmeta">📍 ${esc(i.address)}</div>
         <div class="cmeta" style="margin-top:6px">
           ${i.phone?`<a href="tel:${i.phone}" style="color:var(--amberD);font-weight:700">📞 ${i.phone}</a> · `:""}
-          <a href="${i.url}" target="_blank" rel="noopener" style="color:var(--amberD);font-weight:700">카카오맵 →</a> ·
+          <a href="${esc(i.url)}" target="_blank" rel="noopener" style="color:var(--amberD);font-weight:700">카카오맵 →</a> ·
           <a href="https://map.kakao.com/link/to/${encodeURIComponent(i.name)},${i.lat},${i.lng}" target="_blank" rel="noopener" style="color:var(--amberD);font-weight:700">길찾기</a> ·
           <a href="#" onclick="favR('${i.id}');return false" style="color:${MYFAVR.has(i.id)?"#B0431F":"var(--amberD)"};font-weight:700">${MYFAVR.has(i.id)?"⭐ 즐겨찾기중":"☆ 즐겨찾기"}</a>
         </div>
@@ -819,7 +828,7 @@ function renderColkage(){
   cmarkers.clearLayers();
   const pts=[];
   shown.forEach(i=>{
-    L.marker([i.lat,i.lng]).bindPopup(`<b>${esc(i.name)}</b><br>${i.rating?"★ "+i.rating+" · ":""}${esc(i.category)}${i._d!=null?" · 📍"+i._d.toFixed(1)+"km":""}<br>${esc(i.address)}<br><a href="${i.url}" target="_blank" rel="noopener">카카오맵 →</a> · <a href="https://map.kakao.com/link/to/${encodeURIComponent(i.name)},${i.lat},${i.lng}" target="_blank" rel="noopener">길찾기</a>`).addTo(cmarkers);
+    L.marker([i.lat,i.lng]).bindPopup(`<b>${esc(i.name)}</b><br>${i.rating?"★ "+i.rating+" · ":""}${esc(i.category)}${i._d!=null?" · 📍"+i._d.toFixed(1)+"km":""}<br>${esc(i.address)}<br><a href="${esc(i.url)}" target="_blank" rel="noopener">카카오맵 →</a> · <a href="https://map.kakao.com/link/to/${encodeURIComponent(i.name)},${i.lat},${i.lng}" target="_blank" rel="noopener">길찾기</a>`).addTo(cmarkers);
     pts.push([i.lat,i.lng]);
   });
   if(cnear&&CLOC){
@@ -888,7 +897,7 @@ function renderBottle(){
         <div class="cmeta">📍 ${esc(i.address)}</div>
         <div class="cmeta" style="margin-top:6px">
           ${i.phone?`<a href="tel:${i.phone}" style="color:var(--amberD);font-weight:700">📞 ${i.phone}</a> · `:""}
-          <a href="${i.url}" target="_blank" rel="noopener" style="color:var(--amberD);font-weight:700">카카오맵 →</a> ·
+          <a href="${esc(i.url)}" target="_blank" rel="noopener" style="color:var(--amberD);font-weight:700">카카오맵 →</a> ·
           <a href="https://map.kakao.com/link/to/${encodeURIComponent(i.name)},${i.lat},${i.lng}" target="_blank" rel="noopener" style="color:var(--amberD);font-weight:700">길찾기</a>
         </div>
       </div>
@@ -897,7 +906,7 @@ function renderBottle(){
   bmarkers.clearLayers();
   const pts=[];
   shown.forEach(i=>{
-    L.marker([i.lat,i.lng]).bindPopup(`<b>${esc(i.name)}</b><br>${i.kind==="shop"?"🥃 바틀샵":"🍸 위스키바"}${i.rating?" · ★ "+i.rating:""}<br>${esc(i.address)}<br><a href="${i.url}" target="_blank" rel="noopener">카카오맵 →</a>`).addTo(bmarkers);
+    L.marker([i.lat,i.lng]).bindPopup(`<b>${esc(i.name)}</b><br>${i.kind==="shop"?"🥃 바틀샵":"🍸 위스키바"}${i.rating?" · ★ "+i.rating:""}<br>${esc(i.address)}<br><a href="${esc(i.url)}" target="_blank" rel="noopener">카카오맵 →</a>`).addTo(bmarkers);
     pts.push([i.lat,i.lng]);
   });
   if(bnearOn&&BLOC){
@@ -1134,8 +1143,8 @@ function pickFiltered(){
 }
 function pickCard(i){
   const rr=i.rating?`${stars(i.rating)}<span class="rn">${i.rating}</span><span class="rc2">(${(i.review_count||0).toLocaleString()})</span>`:(i.vivino_score?`<span class="vivino">Vivino ${i.vivino_score}</span>`:`<span class="nr">평점 없음</span>`);
-  return `<a class="card" href="${i.url}" target="_blank" rel="noopener" style="text-decoration:none;color:inherit">
-    <div class="cimg">${i.image?`<img src="${i.image}" loading="lazy" referrerpolicy="no-referrer" onerror="this.onerror=null;this.outerHTML='<span class=&quot;fb&quot;>${CAT_ICON[i.category]||"🍾"}</span>'"/>`:`<span class="fb">${CAT_ICON[i.category]||"🍾"}</span>`}
+  return `<a class="card" href="${esc(i.url)}" target="_blank" rel="noopener" style="text-decoration:none;color:inherit">
+    <div class="cimg">${i.image?`<img src="${esc(i.image)}" loading="lazy" referrerpolicy="no-referrer" onerror="this.onerror=null;this.outerHTML='<span class=&quot;fb&quot;>${CAT_ICON[i.category]||"🍾"}</span>'"/>`:`<span class="fb">${CAT_ICON[i.category]||"🍾"}</span>`}
       <span class="catchip">${CAT_ICON[i.category]||""} ${esc(i.category)}</span>
       <span class="stkchip" style="background:#95610F">🌟 PICK</span></div>
     <div class="cbody"><div class="cname">${esc(i.name)}</div>
@@ -1230,7 +1239,7 @@ function tbRender(){
     if(m.role==="user")return `<div class="tbmsg u">${esc(m.text)}</div>`;
     const cards=(m.skus||[]).map(s=>{const p=DATA&&DATA.products.find(x=>x.sku===s);if(!p)return"";
       return `<div class="recrow" onclick="closeModal();detail(DATA.products.find(x=>x.sku==='${p.sku}'))">
-        ${p.image?`<img src="${p.image}" referrerpolicy="no-referrer" onerror="this.style.display='none'">`:`<div style="width:48px;height:48px;text-align:center;line-height:48px;font-size:24px">${CAT_ICON[p.category]||"🍾"}</div>`}
+        ${p.image?`<img src="${esc(p.image)}" referrerpolicy="no-referrer" onerror="this.style.display='none'">`:`<div style="width:48px;height:48px;text-align:center;line-height:48px;font-size:24px">${CAT_ICON[p.category]||"🍾"}</div>`}
         <div style="flex:1;min-width:0"><div class="rt">${esc(p.name)}</div>
         <div class="rd">${p.rating?`★ ${p.rating} · `:""}${won(p.price)}</div></div></div>`;}).join("");
     return `<div class="tbmsg b">${esc(m.text)}</div>${cards}`;
@@ -1294,10 +1303,10 @@ function showTalkbar(){
 }
 function showPrivacy(){
   const rows=[
-    ["1. 수집 항목·목적","· 카카오 로그인 시: <b>닉네임</b>(회원 식별·맞춤 추천/알림)<br>· 이메일 구독 시: <b>이메일</b>(특가·재입고 알림 발송)<br>· 조회 이력(취향 데이터): 비로그인 시 <b>브라우저(이 기기)에만</b> 저장 · <b>로그인 회원은 조회한 상품(이름·종류·가격)이 회원 DB에 저장</b>되어 AI 바텐더 추천에 활용 — 본인만 접근, 탈퇴 시 삭제<br>· 이용 통계: 검색어·화면 이동·머문 시간을 <b>익명 세션 ID</b>로 기록(개인 식별 불가, 서비스 개선용)"],
-    ["2. 보관·파기","회원 정보는 안전한 개인 저장소(Supabase)에 저장되며 <b>본인만 접근</b>합니다. <b>로그아웃·회원 탈퇴 시 즉시 삭제</b>되고, 이메일 구독 해지는 회신으로 처리합니다."],
+    ["1. 수집 항목·목적","· 카카오 로그인 시: <b>닉네임</b>(회원 식별·맞춤 추천/알림)<br>· 이메일 구독 시: <b>이메일</b>(특가·재입고 알림 발송)<br>· 웹푸시 알림 켤 때: <b>푸시 구독정보(브라우저 endpoint·암호화키)와 기기정보(user agent)</b>, 로그인 상태면 회원 ID(맞춤 알림용)<br>· 조회 이력(취향 데이터): 비로그인 시 <b>브라우저(이 기기)에만</b> 저장 · <b>로그인 회원은 조회한 상품(이름·종류·가격)이 회원 DB에 저장</b>되어 AI 바텐더 추천에 활용 — 본인만 접근, 탈퇴 시 삭제<br>· <b>AI 토킹바 대화 내용</b>: 취향 기반 추천을 위해 내 계정에 저장 — 본인만 접근, 탈퇴 시 삭제<br>· 이용 통계: 검색어·화면 이동·머문 시간을 <b>익명 세션 ID</b>로 기록(개인 식별 불가, 서비스 개선용)<br>· 위치정보('내 주변' 기능): <b>브라우저 안에서 거리 계산에만 사용, 서버로 전송·저장하지 않음</b>"],
+    ["2. 보관·파기","회원 정보는 안전한 개인 저장소(Supabase)에 저장되며 <b>본인만 접근</b>합니다. <b>로그아웃·회원 탈퇴 시 즉시 삭제</b>되고, 이메일 구독 해지는 회신으로, 웹푸시 해지는 알림 끄기 버튼으로 처리합니다."],
     ["3. 제3자 제공","<b>제공하지 않습니다.</b>"],
-    ["4. 이용 외부 서비스","카카오(로그인·지도), 데일리샷(가격·평점), OpenStreetMap(지도), ntfy(알림), Supabase(회원 DB)"],
+    ["4. 이용 외부 서비스","카카오(로그인·지도), 데일리샷(가격·평점), OpenStreetMap(지도), ntfy(앱 알림 발송), Supabase(회원 DB·통계), abacus(익명 방문자 수 집계)"],
     ["5. 문의","k2p2048@gmail.com (알림 메일 회신도 가능)"],
   ];
   document.getElementById("modalRoot").innerHTML=`<div class="overlay" id="ov" onclick="closeModal()"><div class="modalSm" onclick="event.stopPropagation()">
@@ -1326,7 +1335,7 @@ function _guideCollections(){
 }
 function _guideItem(p){
   return `<div class="recrow" onclick="closeModal();detail(DATA.products.find(x=>x.sku==='${p.sku}'))">
-    ${p.image?`<img src="${p.image}" referrerpolicy="no-referrer" onerror="this.style.display='none'">`:`<div style="width:48px;height:48px;text-align:center;line-height:48px;font-size:24px">${CAT_ICON[p.category]||"🍾"}</div>`}
+    ${p.image?`<img src="${esc(p.image)}" referrerpolicy="no-referrer" onerror="this.style.display='none'">`:`<div style="width:48px;height:48px;text-align:center;line-height:48px;font-size:24px">${CAT_ICON[p.category]||"🍾"}</div>`}
     <div style="flex:1;min-width:0"><div class="rt">${esc(p.name)}</div>
     <div class="rd">${p.rating?`★ ${p.rating} · `:""}${won(p.price)}${p.price_diff_percent!=null&&p.price_diff_percent<=-20?' · <b style="color:#B0431F">🔥특가</b>':""}</div></div></div>`;
 }
@@ -1457,7 +1466,7 @@ async function aiBartender(){
 function renderAIBartender(j){
   const rows=j.picks.map(k=>{const p=DATA.products.find(x=>x.sku===k.sku);if(!p)return"";
     return `<div class="recrow" onclick="closeModal();detail(DATA.products.find(x=>x.sku==='${p.sku}'))">
-      ${p.image?`<img src="${p.image}" referrerpolicy="no-referrer" onerror="this.style.display='none'">`:`<div style="width:48px;height:48px;text-align:center;line-height:48px;font-size:24px">${CAT_ICON[p.category]||"🍾"}</div>`}
+      ${p.image?`<img src="${esc(p.image)}" referrerpolicy="no-referrer" onerror="this.style.display='none'">`:`<div style="width:48px;height:48px;text-align:center;line-height:48px;font-size:24px">${CAT_ICON[p.category]||"🍾"}</div>`}
       <div style="flex:1;min-width:0"><div class="rt">${esc(p.name)}</div>
       <div class="rd">${esc(k.reason||"")}</div>
       <div class="rd">${p.rating?`★ ${p.rating} · `:""}${won(p.price)}</div></div></div>`;}).join("");
@@ -1474,7 +1483,7 @@ function renderLocalBartender(aiPending){
       <button class="distbtn" style="width:100%;margin-top:8px;cursor:pointer;padding:11px" onclick="closeModal();goHome()">🍶 둘러보러 가기</button>`;
   }else{
     const cards=r.recs.map(p=>`<div class="recrow" onclick="closeModal();detail(DATA.products.find(x=>x.sku==='${p.sku}'))">
-      ${p.image?`<img src="${p.image}" referrerpolicy="no-referrer" onerror="this.style.display='none'">`:`<div style="width:48px;height:48px;text-align:center;line-height:48px;font-size:24px">${CAT_ICON[p.category]||"🍾"}</div>`}
+      ${p.image?`<img src="${esc(p.image)}" referrerpolicy="no-referrer" onerror="this.style.display='none'">`:`<div style="width:48px;height:48px;text-align:center;line-height:48px;font-size:24px">${CAT_ICON[p.category]||"🍾"}</div>`}
       <div style="flex:1;min-width:0"><div class="rt">${esc(p.name)}</div>
       <div class="rd">${p.rating?`★ ${p.rating} · `:""}${won(p.price)}${p.price_diff_percent!=null&&p.price_diff_percent<=-20?' · <b style="color:#B0431F">🔥특가</b>':""}</div></div></div>`).join("");
     body=`<div class="sa" style="line-height:1.75">🥃 ${nm?"<b>"+esc(nm)+"</b>님, ":""}<b>${esc(r.topCat)}</b>를 즐겨 보시는군요.<br>취향을 살짝 엿보니 — 오늘은 이런 걸 권해드려요 👇</div>${cards}
