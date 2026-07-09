@@ -1501,7 +1501,7 @@ function _guideCollections(){
     {t:"🥃 첫 위스키, 5만원 이하",s:"입문 가성비 — 평점 높은 순",
       items:P.filter(p=>inb(p)&&p.category==="위스키"&&p.price<=50000).sort(byRate).slice(0,5)},
     {t:"🌾 버번 로드맵",s:"싼 것부터 차근차근, 버번 완전정복",
-      items:P.filter(p=>inb(p)&&isBourbon(p)).sort((a,b)=>a.price-b.price).slice(0,5)},
+      items:P.filter(p=>inb(p)&&isBourbon(p)&&p.category!=="하이볼"&&!/하이볼/.test(p.name)).sort((a,b)=>a.price-b.price).slice(0,5)},
     {t:"👑 10만원대 프리미엄 싱글몰트",s:"한 병 제대로, 소장 가치",
       items:P.filter(p=>inb(p)&&p.category==="위스키"&&p.price>=80000&&p.price<=200000).sort(byRate).slice(0,5)},
     {t:"🍷 3만원대 데일리 와인",s:"평점 좋은 가성비 와인",
