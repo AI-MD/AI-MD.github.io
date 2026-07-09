@@ -402,6 +402,20 @@
 <script>
 // 저장소 초기화: ?reset=1 접속 시 로그인 세션·팝업기록·조회이력 모두 삭제(쿠키 지우기 대용)
 if(new URLSearchParams(location.search).get("reset")==="1"){try{localStorage.clear();sessionStorage.clear();}catch(e){}location.replace(location.origin+location.pathname);}
+// OAuth 콜백 에러 표면화 — 로그인 실패가 '조용히 아무 일 없음'처럼 보이던 문제 방지 (해시를 먼저 캡처)
+window._authErr=(function(){
+  try{
+    const h=new URLSearchParams((location.hash||"").replace(/^#/,""));
+    const err=h.get("error");
+    if(!err)return null;
+    const info={err,desc:h.get("error_description")||""};
+    history.replaceState(null,"",location.pathname+location.search);
+    return info;
+  }catch(e){return null;}
+})();
+// 전역 에러 추적 — 사용자 화면의 조용한 실패를 통계로 수집 (개인정보 없음, 메시지 앞 120자만)
+window.addEventListener("error",e=>{try{track("js_error",{m:String(e.message||"").slice(0,120)});}catch(_){}});
+window.addEventListener("unhandledrejection",e=>{try{track("js_error",{m:("P:"+String(e.reason&&e.reason.message||e.reason||"")).slice(0,120)});}catch(_){}});
 const CAT_ICON={전체:"🍾",위스키:"🥃",와인:"🍷",스파클링:"🥂",브랜디:"🍸","사케·전통주":"🍶",하이볼:"🥤",리큐르:"🍹",진:"🌿",럼:"🥃",데킬라:"🌵",보드카:"❄️",기타:"🍾"};
 const CAT_ORDER=["위스키","와인","스파클링","브랜디","리큐르","진","럼","데킬라","보드카","사케·전통주","하이볼","기타"];
 const REPO="https://github.com/AI-MD/traders-liquor-tracker";
@@ -1296,6 +1310,7 @@ async function tbSend(){
   // 간헐적 과부하(429/503)·콜드스타트 대비: 최대 2회 시도(서버도 자체 재시도)
   async function _once(){
     const {data:{session}}=await SUPA.auth.getSession();
+    if(!session)return {status:401,ok:false,j:{}};   // 세션 만료 — 재로그인 안내로 연결
     const ac=new AbortController();const to=setTimeout(()=>ac.abort(),28000);
     try{
       const r=await fetch(AUTH_CFG.url+"/functions/v1/talkbar",{method:"POST",signal:ac.signal,
@@ -1313,6 +1328,7 @@ async function tbSend(){
   }
   window._tbWait=false;
   if(res&&res.ok&&res.j.reply)window._tbMsgs.push({role:"assistant",text:res.j.reply,skus:res.j.skus||[]});
+  else if(res&&res.status===401)window._tbMsgs.push({role:"assistant",text:"로그인이 풀린 것 같아요 🙏 우측 상단에서 다시 로그인하고 오시면 이어서 따라드릴게요.",skus:[]});
   else if(res&&res.status===403)window._tbMsgs.push({role:"assistant",text:"지금은 입장이 어려워요 🙏 잠시 후 다시 찾아주세요!",skus:[]});
   else window._tbMsgs.push({role:"assistant",text:"바가 잠깐 붐볐어요 🙏 방금 그 말, 한 번만 다시 걸어주시겠어요?",skus:[]});
   tbRender();
@@ -1587,14 +1603,34 @@ let SUPA=null, USER=null;
 function authReady(){ return !!SUPA; }
 function initAuth(){
   if(!(AUTH_CFG.url && AUTH_CFG.anon)) return;         // 미설정 → 로그인 비활성(무료 안내로 폴백)
-  const s=document.createElement("script");            // 설정됐을 때만 SDK 로드
-  s.src="https://unpkg.com/@supabase/supabase-js@2";
-  s.onload=()=>{
-    SUPA=window.supabase.createClient(AUTH_CFG.url,AUTH_CFG.anon);
-    SUPA.auth.getSession().then(({data})=>{USER=data.session&&data.session.user||null;loadMyData().then(()=>{refreshAuthUI();if(CDATA)renderColkage();});});
-    SUPA.auth.onAuthStateChange((_e,ss)=>{USER=ss&&ss.user||null;loadMyData().then(()=>{refreshAuthUI();if(CDATA)renderColkage();});});
-  };
-  document.head.appendChild(s);
+  // SDK 로드 — CDN 장애 대비 이중 폴백 (unpkg → jsdelivr). 둘 다 실패해도 사이트는 비회원 모드로 정상.
+  const SDK_URLS=["https://unpkg.com/@supabase/supabase-js@2","https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"];
+  function onSdk(){
+    try{
+      SUPA=window.supabase.createClient(AUTH_CFG.url,AUTH_CFG.anon);
+      SUPA.auth.getSession().then(({data})=>{USER=data&&data.session&&data.session.user||null;loadMyData().then(()=>{refreshAuthUI();if(CDATA)renderColkage();});}).catch(()=>{refreshAuthUI();});
+      SUPA.auth.onAuthStateChange((_e,ss)=>{try{USER=ss&&ss.user||null;loadMyData().then(()=>{refreshAuthUI();if(CDATA)renderColkage();});}catch(e){}});
+    }catch(e){try{track("js_error",{m:"initAuth:"+String(e).slice(0,100)});}catch(_){}}
+    if(window._authErr)setTimeout(showAuthError,400);   // OAuth 콜백 에러가 있었다면 친절 안내
+  }
+  function load(i){
+    if(i>=SDK_URLS.length){if(window._authErr)setTimeout(showAuthError,400);return;}  // 전체 실패 → 비회원 모드 유지
+    const s=document.createElement("script");s.src=SDK_URLS[i];
+    s.onload=onSdk; s.onerror=()=>load(i+1);
+    document.head.appendChild(s);
+  }
+  load(0);
+}
+function showAuthError(){
+  const info=window._authErr||{}; window._authErr=null;
+  if(document.getElementById("ov"))return setTimeout(showAuthError,1200);  // 기존 모달과 충돌 방지 — 닫힐 때까지 대기
+  try{track("auth_error",{e:String(info.err||"").slice(0,40),d:String(info.desc||"").slice(0,80)});}catch(e){}
+  document.getElementById("modalRoot").innerHTML=`<div class="overlay" id="ov" onclick="closeModal()"><div class="modalSm" onclick="event.stopPropagation()">
+    <div class="hero" style="align-items:center"><div style="flex:1"><div class="hname">🙏 로그인이 완료되지 못했어요</div><div class="sa">일시적인 문제일 수 있어요</div></div><button class="close" onclick="closeModal()">✕</button></div>
+    <div style="padding:16px 20px">
+      <div class="sa" style="line-height:1.75">카카오 로그인 처리 중 문제가 생겼어요. <b>다시 한 번 시도</b>하면 대부분 해결됩니다.<br>계속 반복되면 <b>k2p2048@gmail.com</b>으로 알려주세요 — 바로 고칠게요.</div>
+      <button class="kbtn" style="margin-top:14px" onclick="closeModal();kakaoLogin()"><span style="font-size:18px">💬</span> 다시 로그인 시도</button>
+    </div></div></div>`;
 }
 function displayName(){const md=(USER&&USER.user_metadata)||{};return md.nickname||"회원";}  // 실명(name) 절대 노출 안 함
 let _nickPrompted=false, _talkbarShown=false;
@@ -1634,7 +1670,10 @@ function kakaoLogin(){
     alert("카카오 로그인·맞춤 알림은 곧 오픈됩니다! 🙌\n지금은 무료 알림(앱/이메일)으로 특가·재입고를 먼저 받아보세요.");
     showAlert(); return;
   }
-  SUPA.auth.signInWithOAuth({provider:"kakao",options:{redirectTo:location.origin+location.pathname,scopes:KAKAO_SCOPES}});
+  try{
+    SUPA.auth.signInWithOAuth({provider:"kakao",options:{redirectTo:location.origin+location.pathname,scopes:KAKAO_SCOPES}})
+      .catch(()=>{alert("로그인 연결에 문제가 있어요 🙏 잠시 후 다시 시도해 주세요.");});
+  }catch(e){alert("로그인 연결에 문제가 있어요 🙏 잠시 후 다시 시도해 주세요.");}
 }
 function showAccount(){
   document.getElementById("modalRoot").innerHTML=`<div class="overlay" id="ov" onclick="closeModal()"><div class="modalSm" onclick="event.stopPropagation()">

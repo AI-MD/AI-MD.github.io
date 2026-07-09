@@ -352,7 +352,8 @@ function render(d){
   document.getElementById("engage").innerHTML=("brief_click" in en)?
     `<div class="row"><span class="k">☀️ 브리핑 카드 클릭</span><span class="v">${fmt(en.brief_click)}회</span></div>`+
     `<div class="row"><span class="k">📖 큐레이션 열람</span><span class="v">${fmt(en.guide_open)}회</span></div>`+
-    `<div class="row"><span class="k">🔔 웹푸시 구독 완료</span><span class="v">${fmt(en.webpush_sub_clicks)}회</span></div>`
+    `<div class="row"><span class="k">🔔 웹푸시 구독 완료</span><span class="v">${fmt(en.webpush_sub_clicks)}회</span></div>`+
+    (("auth_errors" in en)?`<div class="row ${(en.auth_errors||en.js_errors)?"zero":""}"><span class="k">🚨 인증 에러 / JS 에러</span><span class="v" style="color:${(en.auth_errors||0)>0?"#E06B4C":"inherit"}">${fmt(en.auth_errors)} / ${fmt(en.js_errors)}</span></div>`:"")
     :`<div class="muted">admin-stats 함수 재배포 후 표시됩니다</div>`;
 
   const a=d.ai_usage||{},bt=(a.bartender_ai+a.bartender_local)||1;
