@@ -205,7 +205,7 @@ function setupCtrls(){
 async function freshness(){
   const items=[
     {url:SITE+"/data.json",name:"🍾 재고 (data.json)",warnH:30,sched:"매일 18시"},
-    {url:SITE+"/dailyshot_top.json",name:"🌟 주락 픽",warnH:96,sched:"월·수·금 8시반"},
+    {url:SITE+"/dailyshot_top.json",name:"🌟 주락 픽",warnH:30,sched:"매일 8시반"},
     {url:SITE+"/colkage.json",name:"🍽 콜키지",warnH:96,sched:"월·수·금 8시"},
     {url:SITE+"/bottleshops.json",name:"🥃 바틀샵·바",warnH:192,sched:"주 1회 (월 8:15)"},
   ];
@@ -376,7 +376,7 @@ function render(d){
     ["🤖 토킹바 공개",open?"정식 오픈":"베타 (운영자만) · 7/11 0시 오픈"],
     ["🧠 AI 프로바이더","서버 시크릿 (Claude Opus 우선 → Gemini 무료)"],
     ["📦 재고 갱신","매일 18시 (launchd)"],
-    ["🌟 데일리샷/픽","데일리샷 매일 9시 · 픽 월·수·금 8시반"],
+    ["🌟 데일리샷/픽","데일리샷 9시·15시(무알림) · 픽 매일 8시반"],
     ["🍽 콜키지","월·수·금 8시"],
     ["🥃 바틀샵·바","주 1회 (월 8:15)"],
     ["🔔 ntfy 토픽","traders-liquor-kr-alerts"],
