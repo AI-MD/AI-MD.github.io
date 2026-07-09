@@ -286,6 +286,13 @@
   .qzbar i{display:block;height:100%;background:var(--amber);border-radius:2px;transition:width .25s}
   /* ⚠ 유령재고 배지 */
   .stale{font-size:10.5px;font-weight:800;color:#8A6A2E;background:#F5EDDA;border-radius:7px;padding:2px 7px;white-space:nowrap}
+  /* 🆕 신상 · 📉 인하 · ⏰ 소량 칩 */
+  .newchip{font-size:10.5px;font-weight:800;color:#1F5FA8;background:#E8F1FB;border-radius:7px;padding:2px 7px;white-space:nowrap}
+  .dropchip{font-size:10.5px;font-weight:800;color:#1F7A44;background:#E7F6EE;border-radius:7px;padding:2px 7px;white-space:nowrap}
+  .lowchip{font-size:10.5px;font-weight:800;color:#B0431F;background:#FCEBE5;border-radius:7px;padding:2px 7px;white-space:nowrap}
+  body.dark .newchip{background:#1F2C3A;color:#8FB4D9}
+  body.dark .dropchip{background:#22301F;color:#4CC08A}
+  body.dark .lowchip{background:#3A241C;color:#F08663}
   /* 🌙 다크모드 — 토큰 재정의 + 리터럴 배경 보정 (지오메트리 불변) */
   body.dark{--ink:#EDE4D3;--sub:#A79B87;--line:#3D3324;--card:#262019;--bg:#1C1611;--amber:#D9A94E;--amberD:#E5C57F;--sh:0 1px 2px rgba(0,0,0,.35),0 4px 16px rgba(0,0,0,.4)}
   body.dark .cimg{background:#EFEBE4;border-color:#3D3324}
@@ -374,8 +381,10 @@
 <div class="filter"><div class="wrap"><div class="frow">
   <select id="store"><option value="">전지점 집계</option></select>
   <select id="sort"><option value="stock_desc">재고 많은순</option><option value="discount">할인율 큰순</option><option value="name">이름순</option><option value="price_asc">낮은 가격순</option><option value="price_desc">높은 가격순</option></select>
+  <select id="priceBand"><option value="">가격대 전체</option><option value="lo">5만원 이하</option><option value="mid">5~15만원</option><option value="hi">15만원 이상</option></select>
   <select id="pageSize"><option value="20">20개씩</option><option value="50" selected>50개씩</option><option value="100">100개씩</option></select>
   <label class="toggle"><div class="track" id="track"><div class="thumb"></div></div><span>재고있는 것만</span></label>
+  <button id="cartBtn" class="distbtn" style="cursor:pointer;padding:9px 13px;margin-left:auto" onclick="showCart()">🧾 쇼핑 리스트</button>
 </div></div></div>
 <main><div class="wrap"><div id="brief"></div><div id="recent"></div><div class="rc" id="rc"></div><div class="grid" id="grid"></div><div id="more" style="text-align:center;margin:22px 0"></div><div id="crossPick"></div></div></main>
 </div><!-- /viewLiquor -->
@@ -455,7 +464,7 @@ const REPO="https://github.com/AI-MD/traders-liquor-tracker";
 const NTFY_TOPIC="traders-liquor-kr-alerts";
 const VAPID_PUBLIC="BO-C5RFke5bE3trhqbhd2ZbkXnxptohVqTuzv7tUIrRBcoegaF9hu2wudy04BySs0hqd2dcwGEA8GK342rDRN0o";  // 웹푸시 공개키(노출 안전)
 const EMAIL_FORM_URL="";  // 구글폼 주소 입력 시 '이메일 구독' 버튼 활성화
-let DATA=null, state={cat:"전체",q:"",store:"",sort:"stock_desc",inStock:false,pageSize:50,shown:50,watchOnly:false};
+let DATA=null, state={cat:"전체",q:"",store:"",sort:"stock_desc",inStock:false,pageSize:50,shown:50,watchOnly:false,priceBand:""};
 let USER_LOC=null;                 // 위치 조회 결과 {lat,lng}
 const STORE_COORDS={};             // store_id → {lat,lng}
 const BRANCH={};                   // store_id → 지점정보(name,address,region,lat,lng)
@@ -516,7 +525,7 @@ function card(p){
       <span class="stkchip" style="background:${cs.in?"#1F9E5A":"#B9AE9E"}">${cs.in?`재고 ${fmtInv(cs.inv)}`:"품절"}</span></div>
     <div class="cbody"><div class="cname">${esc(p.name)}</div>
       <div class="rr">${rr}${viv}</div>
-      <div class="pr"><span class="price">${won(cs.price)}</span>${p.discount_percent>0?`<span class="disc">${p.discount_percent}%↓</span>`:""}${p.atl&&cs.in?`<span class="atl">🏆 역대 최저</span>`:""}</div>
+      <div class="pr"><span class="price">${won(cs.price)}</span>${p.discount_percent>0?`<span class="disc">${p.discount_percent}%↓</span>`:""}${p.atl&&cs.in?`<span class="atl">🏆 역대 최저</span>`:""}${badgeRow(p)}</div>
       ${dsBadge(p)}
       ${p.stale?`<div class="ds" style="color:#8A6A2E;background:#F5EDDA">⚠ ${p.stale}일째 재고 변동 없음 — 전산 재고일 수 있어요</div>`:""}
       <div class="cfoot"><span class="sc">🏬 ${state.store?`${(BRANCH[state.store]||{}).name||"해당 지점"} 보유`:`${cs.cnt}개 지점 보유`}</span><span class="dl">상세 · 지점별 →</span></div></div></button>`;
@@ -543,6 +552,21 @@ function sparkline(p){
       <circle cx="${lx}" cy="${ly}" r="4.5" fill="${isLow?"#1F9E5A":"#B8791A"}" stroke="#fff" stroke-width="1.5"/>
     </svg>
     <div class="sparkmeta"><span>${labels[0]||""} 시작 ${won(v[0])}</span><span>최저 <b style="color:#1F9E5A">${won(mn)}</b> · 최고 ${won(mx)}</span><span>지금 <b>${won(v[v.length-1])}</b></span></div></div>`;
+}
+// 🆕 신상 · 📉 최근 인하 · ⏰ 소량 배지 (가격 이력·first_seen 기반 — 없으면 자동 생략)
+function dropPct(p){
+  const v=p.ph; if(!v||v.length<2)return 0;
+  const prev=v[v.length-2],last=v[v.length-1];
+  if(!prev||!last||last>=prev)return 0;
+  const d=Math.round((1-last/prev)*100);
+  return d>=3?d:0;  // 3% 이상 내렸을 때만
+}
+function badgeRow(p){
+  let h="";
+  if(p.new)h+=`<span class="newchip">🆕 신상</span>`;
+  const d=dropPct(p); if(d)h+=`<span class="dropchip">📉 ${d}% 인하</span>`;
+  if(p.in_stock&&p.total_inventory>0&&p.total_inventory<=5)h+=`<span class="lowchip">⏰ ${p.total_inventory}개 남음</span>`;
+  return h;
 }
 // 잔당(30ml) 가격 — 상품명에서 용량(ml) 파싱, 증류주 계열만 표시
 const SHOT_CATS=new Set(["위스키","브랜디","리큐르","진","럼","데킬라","보드카"]);
@@ -573,6 +597,7 @@ function render(){
   // 카테고리 외 필터(검색·지점·재고)를 먼저 적용 → 탭 개수와 목록에 공통 반영
   let base=DATA.products.slice();
   if(state.q&&state.q.trim())base=base.filter(p=>matchName(p.name,state.q));  // 초성·별칭·공백무시 관용 매칭
+  if(state.priceBand){const bandF={lo:p=>p.price>0&&p.price<=50000,mid:p=>p.price>50000&&p.price<=150000,hi:p=>p.price>150000}[state.priceBand];if(bandF)base=base.filter(bandF);}
   if(state.store)base=base.filter(p=>(p.stores||[]).some(x=>x.id===state.store));
   if(state.inStock)base=base.filter(p=>computeStore(p).in);
   if(state.watchOnly)base=base.filter(p=>MYWATCH.has(p.sku));
@@ -685,12 +710,13 @@ function detail(p){
     <div class="hero"><div class="im">${p.image?`<img src="${esc(p.image)}" referrerpolicy="no-referrer" onerror="this.onerror=null;this.outerHTML='<span style=&quot;font-size:40px&quot;>${CAT_ICON[p.category]}</span>'"/>`:`<span style="font-size:40px">${CAT_ICON[p.category]}</span>`}</div>
       <div style="flex:1;min-width:0"><span class="hcat">${CAT_ICON[p.category]} ${p.category}</span>
         <div class="hname">${esc(p.name)}</div><div class="rr">${rr}${viv}</div>
-        <div style="display:flex;align-items:baseline;gap:8px;margin:8px 0;flex-wrap:wrap"><span class="hprice">${won(p.price)}</span>${p.unit_price_text?`<span class="hunit">${esc(p.unit_price_text)}</span>`:""}${shotPrice(p)}${p.atl&&p.in_stock?`<span class="atl">🏆 역대 최저</span>`:""}${p.stale?`<span class="stale">⚠ ${p.stale}일째 그대로</span>`:""}</div>
+        <div style="display:flex;align-items:baseline;gap:8px;margin:8px 0;flex-wrap:wrap"><span class="hprice">${won(p.price)}</span>${p.unit_price_text?`<span class="hunit">${esc(p.unit_price_text)}</span>`:""}${shotPrice(p)}${p.atl&&p.in_stock?`<span class="atl">🏆 역대 최저</span>`:""}${badgeRow(p)}${p.stale?`<span class="stale">⚠ ${p.stale}일째 그대로</span>`:""}</div>
         ${dsBadge(p)}</div><button class="close" onclick="closeModal()">✕</button></div>
     <div style="display:flex;gap:8px;padding:10px 20px 0;flex-wrap:wrap">
       <button class="distbtn${MYWATCH.has(p.sku)?" on":""}" id="wbtn" style="cursor:pointer" onclick="detailWatch('${p.sku}')">${MYWATCH.has(p.sku)?"⭐ 관심중":"☆ 관심 등록"}</button>
       <button class="distbtn" style="cursor:pointer" onclick="detailTarget('${p.sku}')">💰 목표가${MYTARGET[p.sku]?` ${MYTARGET[p.sku].toLocaleString()}원`:" 설정"}</button>
       <button class="distbtn${MYCELLAR[p.sku]?" on":""}" style="cursor:pointer" onclick="showCellarEdit('${p.sku}')">🗄 ${MYCELLAR[p.sku]?CELL_LABEL[MYCELLAR[p.sku].status].slice(2).trim():"셀러 기록"}</button>
+      <button class="distbtn${cartHas(p.sku)?" on":""}" style="cursor:pointer" onclick="cartToggle('${p.sku}');detail(_curP)">🧾 ${cartHas(p.sku)?"담김 ✓":"담기"}</button>
       <button class="distbtn" style="cursor:pointer" onclick="shareProduct('${p.sku}')">📤 공유</button>
     </div>
     ${sparkline(p)}
@@ -838,6 +864,7 @@ document.getElementById("q").oninput=e=>{state.q=e.target.value;
   clearTimeout(_qTrackT);_qTrackT=setTimeout(()=>{const q=(state.q||"").trim();if(q.length>=2)track("search",{q:q.slice(0,40),n:window._dealCount});},1500);};
 document.getElementById("store").onchange=e=>{state.store=e.target.value;try{localStorage.setItem("jurak_store",state.store);}catch(_){} rerender();};  // ★ 단골 지점 기억
 document.getElementById("sort").onchange=e=>{state.sort=e.target.value;rerender();};
+document.getElementById("priceBand").onchange=e=>{state.priceBand=e.target.value;rerender();};
 document.getElementById("pageSize").onchange=e=>{state.pageSize=+e.target.value;state.shown=state.pageSize;render();};
 document.getElementById("track").parentElement.onclick=()=>{state.inStock=!state.inStock;document.getElementById("track").classList.toggle("on",state.inStock);rerender();};
 document.getElementById("cattabs").onclick=e=>{const b=e.target.closest(".cattab");if(b){state.cat=b.dataset.cat;rerender();}};  // watchOnly 유지 → 관심상품 안에서 카테고리 필터
@@ -874,6 +901,7 @@ fetch("data.json?t="+Date.now(),{cache:"no-store"}).then(r=>r.json()).then(d=>{
   else{try{const fav=localStorage.getItem("jurak_store");if(fav&&BRANCH[fav]){state.store=fav;document.getElementById("store").value=fav;}}catch(e){}}  // ★ 단골 지점 자동 적용
   render();
   renderBrief();
+  cartBadge();
   const sku=qs.get("sku");
   if(sku){const p=DATA.products.find(x=>x.sku===sku);if(p)detail(p);}
 }).catch(e=>{document.getElementById("grid").innerHTML=`<div class="empty">데이터를 불러오지 못했습니다.<br>네트워크 확인 후 다시 시도해 주세요.<div style="margin-top:12px"><button class="srcbtn" onclick="location.reload()" style="cursor:pointer">🔄 다시 시도</button></div></div>`;});
@@ -1561,6 +1589,47 @@ function spinRoulette(){
       <div style="font-size:11.5px;color:var(--sub);margin-top:4px">누르면 지점별 재고로 이동 · 마음에 안 들면 다시 🎲</div>`;
   },90);
 }
+
+// ── 🧾 쇼핑 리스트 (이 기기 저장) — 장보기 전 총액·선택 지점 재고 일괄 확인 ─────
+function _cart(){try{return JSON.parse(localStorage.getItem("jurak_cart")||"[]");}catch(e){return[];}}
+function _cartSave(a){try{localStorage.setItem("jurak_cart",JSON.stringify(a.slice(0,40)));}catch(e){} cartBadge();}
+function cartHas(sku){return _cart().includes(sku);}
+function cartToggle(sku){
+  let a=_cart();
+  const add=!a.includes(sku);
+  a=add?[...a,sku]:a.filter(x=>x!==sku);
+  _cartSave(a); track("cart",{n:a.length,add:add?1:0});
+  return add;
+}
+function cartBadge(){const b=document.getElementById("cartBtn");if(b){const n=_cart().length;b.textContent=n?`🧾 쇼핑 리스트 (${n})`:"🧾 쇼핑 리스트";b.classList.toggle("on",n>0);}}
+function showCart(){
+  track("cart_open",{});
+  const items=_cart().map(s=>DATA&&DATA.products.find(p=>p.sku===s)).filter(Boolean);
+  const storeName=state.store?((BRANCH[state.store]||{}).name||"선택 지점"):"전지점 집계";
+  let total=0,haveN=0;
+  const rows=items.map(p=>{
+    const cs=computeStore(p); if(cs.in)haveN++; total+=p.price||0;
+    return `<div class="recrow" onclick="closeModal();detail(DATA.products.find(x=>x.sku==='${esc(p.sku)}'))">
+      <div style="flex:1;min-width:0"><div class="rt">${esc(p.name)}</div>
+      <div class="rd">${won(p.price)} · ${cs.in?`<b style="color:#1F9E5A">✓ ${esc(storeName)} 재고 ${fmtInv(cs.inv)}</b>`:`<b style="color:#B0431F">✗ ${esc(storeName)} 없음</b>`}</div></div>
+      <button class="distbtn" style="cursor:pointer;padding:6px 10px;flex-shrink:0" onclick="event.stopPropagation();cartToggle('${esc(p.sku)}');showCart()">빼기</button></div>`;
+  }).join("");
+  const body=items.length?`
+    <div class="sa" style="line-height:1.7;margin-bottom:6px">재고 기준: <b>${esc(storeName)}</b> — ${haveN===items.length?`<b style="color:#1F9E5A">전부 재고 있음 ✓ 출발하세요!</b>`:`<b style="color:#B0431F">${items.length-haveN}개 없음</b> · 상단에서 지점을 바꿔 다시 확인`}</div>
+    ${rows}
+    <div style="display:flex;justify-content:space-between;font-weight:800;padding:12px 4px 0;border-top:1px solid var(--line);margin-top:10px;font-size:15px"><span>예상 합계 ${items.length}병</span><span style="color:var(--amberD)">${won(total)}</span></div>`
+    :`<div class="sa" style="text-align:center;line-height:1.75;padding:10px 0">아직 비어있어요 🧾<br>상품 상세에서 <b>🧾 담기</b>를 누르면<br>장보기 전에 <b>총액과 지점 재고</b>를 한 번에 확인할 수 있어요.</div>`;
+  document.getElementById("modalRoot").innerHTML=`<div class="overlay" id="ov" onclick="closeModal()"><div class="modalSm" onclick="event.stopPropagation()">
+    <div class="hero" style="align-items:center"><div style="flex:1"><div class="hname">🧾 쇼핑 리스트</div><div class="sa">이 기기에만 저장 · 오늘 장보기용</div></div><button class="close" onclick="closeModal()">✕</button></div>
+    <div style="padding:14px 20px;overflow-y:auto">${body}</div></div></div>`;
+}
+// 모바일 뒤로가기 = 모달 닫기 (모달 열릴 때 히스토리 1단 push — 안드로이드 UX)
+new MutationObserver(()=>{
+  const ov=document.getElementById("ov");
+  if(ov&&!window._mHist){window._mHist=true;try{history.pushState({m:1},"");}catch(e){}}
+  if(!ov)window._mHist=false;
+}).observe(document.getElementById("modalRoot"),{childList:true});
+window.addEventListener("popstate",()=>{if(document.getElementById("ov")){closeModal();window._mHist=false;}});
 
 // ── 🧭 1분 취향 테스트 — 4문항 → 지금 재고에서 맞춤 한 병 (?test=1 딥링크·결과 공유) ─────
 const QZ=[
