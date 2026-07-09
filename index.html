@@ -284,6 +284,36 @@
   .qzopt:hover{border-color:var(--amber);background:#FBF7EF}
   .qzbar{height:4px;border-radius:2px;background:#EDE7DB;margin:2px 0 14px;overflow:hidden}
   .qzbar i{display:block;height:100%;background:var(--amber);border-radius:2px;transition:width .25s}
+  /* ⚠ 유령재고 배지 */
+  .stale{font-size:10.5px;font-weight:800;color:#8A6A2E;background:#F5EDDA;border-radius:7px;padding:2px 7px;white-space:nowrap}
+  /* 🌙 다크모드 — 토큰 재정의 + 리터럴 배경 보정 (지오메트리 불변) */
+  body.dark{--ink:#EDE4D3;--sub:#A79B87;--line:#3D3324;--card:#262019;--bg:#1C1611;--amber:#D9A94E;--amberD:#E5C57F;--sh:0 1px 2px rgba(0,0,0,.35),0 4px 16px rgba(0,0,0,.4)}
+  body.dark .cimg{background:#EFEBE4;border-color:#3D3324}
+  body.dark .warn{background:#251C10;border-color:#3D3324;color:#C9A45C}
+  body.dark .tchip{background:#2E2519;border-color:#3D3324}
+  body.dark .topicbox{background:#2E2519;border-color:#4A3C22}
+  body.dark .scard{background:#2A2318;border-color:#3D3324}
+  body.dark .catchip{background:rgba(38,32,25,.92);color:#E5C57F}
+  body.dark .cattab .c{background:#3A3122;color:#A79B87}
+  body.dark .srow.has{background:#22301F}
+  body.dark ::-webkit-scrollbar-thumb{background:#4A3F2C}
+  body.dark .qzopt:hover{background:#2E2519}
+  body.dark .hcat,body.dark .ptag{background:#3A3122}
+  body.dark .distbtn{background:#2E2519;border-color:#4A3C22;color:#E5C57F}
+  body.dark .distbtn.on{background:var(--amber);color:#171009;border-color:var(--amber)}
+  body.dark .track{background:#3D3324}
+  body.dark select,body.dark input{background:#262019;color:var(--ink);border-color:#3D3324}
+  body.dark .skel .b{background:linear-gradient(90deg,#2E2519 25%,#3A3122 50%,#2E2519 75%);background-size:200% 100%}
+  body.dark .recrow{background:#262019}
+  body.dark .recrow img{background:#EFEBE4;border-color:#3D3324}
+  body.dark .tbmsg.b{background:#262019;border-color:#3D3324}
+  body.dark .close{background:#3A3122;color:#A79B87}
+  body.dark .qzbar{background:#3A3122}
+  body.dark .cellst button{background:#262019;border-color:#3D3324}
+  body.dark .starrow span{color:#4A3F2C}
+  body.dark .stale{background:#3A3122;color:#D9A94E}
+  body.dark .stkchip{opacity:.92}
+  body.dark .srcbtn{background:#2E2519;border-color:#4A3C22;color:#E5C57F}
   /* 🗄 내 위스키 셀러 */
   .cellst{display:flex;gap:8px;margin:10px 0}
   .cellst button{flex:1;padding:10px 6px;border:1px solid var(--line);border-radius:12px;background:var(--card);font-weight:700;font-size:13px;color:var(--sub);cursor:pointer}
@@ -335,6 +365,7 @@
     <button id="navColkage" onclick="switchView('colkage');document.getElementById('moreNav').hidden=true" title="내 술 들고 가는 콜키지프리 식당">🍽 콜키지 다이닝</button>
     <button id="navBottle" onclick="switchView('bottle');document.getElementById('moreNav').hidden=true" title="전국 바틀샵·위스키바 지도">🥃 바틀샵·바 지도</button>
     <button id="navLearn" onclick="switchView('learn');document.getElementById('moreNav').hidden=true" title="알아두면 쓸모있는 술 지식">📚 알쓸신주</button>
+    <button id="navDark" onclick="toggleDark();document.getElementById('moreNav').hidden=true" title="어두운 화면으로 전환">🌙 다크모드</button>
   </div>
 </div>
 <div id="viewLiquor">
@@ -342,11 +373,11 @@
 <div class="catbar"><div class="wrap"><div class="cattabs" id="cattabs"></div></div></div>
 <div class="filter"><div class="wrap"><div class="frow">
   <select id="store"><option value="">전지점 집계</option></select>
-  <select id="sort"><option value="stock_desc">재고 많은순</option><option value="name">이름순</option><option value="price_asc">낮은 가격순</option><option value="price_desc">높은 가격순</option></select>
+  <select id="sort"><option value="stock_desc">재고 많은순</option><option value="discount">할인율 큰순</option><option value="name">이름순</option><option value="price_asc">낮은 가격순</option><option value="price_desc">높은 가격순</option></select>
   <select id="pageSize"><option value="20">20개씩</option><option value="50" selected>50개씩</option><option value="100">100개씩</option></select>
   <label class="toggle"><div class="track" id="track"><div class="thumb"></div></div><span>재고있는 것만</span></label>
 </div></div></div>
-<main><div class="wrap"><div id="brief"></div><div class="rc" id="rc"></div><div class="grid" id="grid"></div><div id="more" style="text-align:center;margin:22px 0"></div><div id="crossPick"></div></div></main>
+<main><div class="wrap"><div id="brief"></div><div id="recent"></div><div class="rc" id="rc"></div><div class="grid" id="grid"></div><div id="more" style="text-align:center;margin:22px 0"></div><div id="crossPick"></div></div></main>
 </div><!-- /viewLiquor -->
 <section id="viewColkage" hidden>
   <div class="warn"><h2 style="display:inline;font-size:inherit;font-weight:800;margin:0">🍷 서울·수도권 콜키지프리 식당 지도</h2> — 내 술을 가져가 마실 수 있는 곳(카카오맵 평점 3.5+). 주 3회 갱신 · ⚠ <b>콜키지 정책은 매장 사정으로 바뀔 수 있으니 방문 전 전화 확인</b> 권장.</div>
@@ -378,6 +409,8 @@
 <section id="viewLearn" hidden>
   <div class="warn"><h2 style="display:inline;font-size:inherit;font-weight:800;margin:0">📚 알쓸신주 — 위스키·와인 지식 사전</h2> · 위스키 증류소·숙성·캐스크부터 와인 포도품종·빈티지, 하이볼 레시피, 테이스팅 용어까지.</div>
   <main><div class="wrap">
+  <div class="search" style="margin-bottom:6px"><span>🔍</span><input id="lq" placeholder="용어·산지·품종 검색 (예: 셰리, 피트, 아일라)…" /></div>
+  <div class="rc" id="lrc" style="display:none"></div>
   <div id="learnBody"></div>
 </div></main></section>
 <section id="viewPick" hidden>
@@ -485,6 +518,7 @@ function card(p){
       <div class="rr">${rr}${viv}</div>
       <div class="pr"><span class="price">${won(cs.price)}</span>${p.discount_percent>0?`<span class="disc">${p.discount_percent}%↓</span>`:""}${p.atl&&cs.in?`<span class="atl">🏆 역대 최저</span>`:""}</div>
       ${dsBadge(p)}
+      ${p.stale?`<div class="ds" style="color:#8A6A2E;background:#F5EDDA">⚠ ${p.stale}일째 재고 변동 없음 — 전산 재고일 수 있어요</div>`:""}
       <div class="cfoot"><span class="sc">🏬 ${state.store?`${(BRANCH[state.store]||{}).name||"해당 지점"} 보유`:`${cs.cnt}개 지점 보유`}</span><span class="dl">상세 · 지점별 →</span></div></div></button>`;
 }
 
@@ -510,11 +544,32 @@ function sparkline(p){
     </svg>
     <div class="sparkmeta"><span>${labels[0]||""} 시작 ${won(v[0])}</span><span>최저 <b style="color:#1F9E5A">${won(mn)}</b> · 최고 ${won(mx)}</span><span>지금 <b>${won(v[v.length-1])}</b></span></div></div>`;
 }
+// 잔당(30ml) 가격 — 상품명에서 용량(ml) 파싱, 증류주 계열만 표시
+const SHOT_CATS=new Set(["위스키","브랜디","리큐르","진","럼","데킬라","보드카"]);
+function shotPrice(p){
+  if(!p.price||!SHOT_CATS.has(p.category))return "";
+  const m=(p.name||"").match(/(\d{3,4})\s?(?:ml|ML|㎖)/);
+  if(!m)return "";
+  const ml=+m[1]; if(ml<200||ml>4600)return "";
+  const per=Math.round(p.price/ml*30/10)*10;
+  return `<span class="hunit">· 잔(30ml)당 약 ${per.toLocaleString()}원</span>`;
+}
+// 📤 상품 공유 — ?sku= 딥링크 (링크 공유 → 클립보드 폴백)
+function shareProduct(sku){
+  const p=DATA&&DATA.products.find(x=>x.sku===sku); if(!p)return;
+  const u=`${location.origin}${location.pathname}?sku=${encodeURIComponent(sku)}`;
+  track("share_product",{sku});
+  const txt=`${p.name} — 트레이더스 ${won(p.price)}${p.price_diff_percent!=null&&p.price_diff_percent<0?` (데일리샷보다 ${Math.abs(p.price_diff_percent)}% 저렴)`:""}`;
+  if(navigator.share){navigator.share({title:"주락 酒樂",text:txt,url:u}).catch(()=>{});}
+  else{try{navigator.clipboard.writeText(txt+" "+u);alert("링크가 복사됐어요 📋");}catch(e){}}
+}
 const SPECIAL="🔥특가";
 const isSpecial=p=>p.price_diff_percent!=null&&p.price_diff_percent<=-20&&p.in_stock;
 function render(){
   const s=DATA.stats;
-  const bf=document.getElementById("brief");if(bf)bf.style.display=((state.q||"").trim()||state.watchOnly)?"none":"";  // 검색·관심모드 중엔 브리핑 숨김
+  const _hide=((state.q||"").trim()||state.watchOnly)?"none":"";  // 검색·관심모드 중엔 브리핑·최근본 숨김
+  const bf=document.getElementById("brief");if(bf)bf.style.display=_hide;
+  const rcnt=document.getElementById("recent");if(rcnt)rcnt.style.display=_hide;
   // 카테고리 외 필터(검색·지점·재고)를 먼저 적용 → 탭 개수와 목록에 공통 반영
   let base=DATA.products.slice();
   if(state.q&&state.q.trim())base=base.filter(p=>matchName(p.name,state.q));  // 초성·별칭·공백무시 관용 매칭
@@ -533,12 +588,15 @@ function render(){
   let list=base;
   if(state.cat===SPECIAL)list=list.filter(isSpecial);
   else if(state.cat!=="전체")list=list.filter(p=>p.category===state.cat);
-  const key={stock_desc:p=>-computeStore(p).inv,price_asc:p=>computeStore(p).price||9e9,price_desc:p=>-(computeStore(p).price||0),name:p=>p.name};
+  const key={stock_desc:p=>-computeStore(p).inv,price_asc:p=>computeStore(p).price||9e9,price_desc:p=>-(computeStore(p).price||0),name:p=>p.name,
+             discount:p=>p.price_diff_percent==null?9e9:p.price_diff_percent};  // 데일리샷 대비 할인율 큰순
   list.sort((a,b)=>{const f=key[state.sort];const x=f(a),y=f(b);return typeof x==="string"?x.localeCompare(y):x-y;});
   const shown=list.slice(0,state.shown);
   document.getElementById("rc").innerHTML=(state.watchOnly?`⭐ <b>내 관심상품</b> · `:"")+`총 <b>${list.length}</b>종 중 <b>${shown.length}</b>개 표시${state.watchOnly?` · <a href="#" onclick="clearWatchOnly();return false" style="color:var(--amberD);font-weight:700">전체 보기</a>`:` · 재고 보유 ${s.in_stock_skus}종`}`;
   window._dealCount=list.length;
-  document.getElementById("grid").innerHTML=list.length?shown.map(card).join(""):`<div class="empty"><div style="font-size:44px">🍾</div><div style="margin-top:12px">${state.q?`‘<b>${esc(state.q)}</b>’ — 지금 트레이더스엔 없네요.<br><span style="font-size:12.5px">철자를 바꿔보시거나, 아래 <b>주락 픽</b> 결과를 확인해 보세요.</span>`:"조건에 맞는 술이 없습니다 — 필터를 조금 풀어보세요."}</div></div>`;
+  const POPULAR=["발베니","맥캘란","글렌리벳","와일드 터키","야마자키","짐빔"];
+  const popChips=`<div style="display:flex;gap:8px;justify-content:center;flex-wrap:wrap;margin-top:14px">${POPULAR.map(k=>`<button class="distbtn" style="cursor:pointer" onclick="setSearch('${k}')">${k}</button>`).join("")}</div>`;
+  document.getElementById("grid").innerHTML=list.length?shown.map(card).join(""):`<div class="empty"><div style="font-size:44px">🍾</div><div style="margin-top:12px">${state.q?`‘<b>${esc(state.q)}</b>’ — 지금 트레이더스엔 없네요.<br><span style="font-size:12.5px">철자를 바꿔보시거나, 아래 <b>주락 픽</b> 결과를 확인해 보세요.</span><br><span style="font-size:12px;color:var(--sub)">많이 찾는 검색어:</span>${popChips}`:"조건에 맞는 술이 없습니다 — 필터를 조금 풀어보세요."}</div></div>`;
   const more=document.getElementById("more");
   if(list.length>shown.length){
     more.innerHTML=`<button class="distbtn on" style="padding:11px 22px;font-size:14px" onclick="showMore()">더 보기 (${(list.length-shown.length).toLocaleString()}개 더)</button>`;
@@ -551,7 +609,7 @@ function detail(p){
   _curP=p;
   try{const v=JSON.parse(localStorage.getItem("jurak_views")||"[]").filter(x=>x.sku!==p.sku);
     v.unshift({sku:p.sku,cat:p.category,price:p.price,name:p.name,t:Date.now()});
-    localStorage.setItem("jurak_views",JSON.stringify(v.slice(0,60)));}catch(e){}  // 취향 학습용 조회 이력
+    localStorage.setItem("jurak_views",JSON.stringify(v.slice(0,60)));renderRecent&&renderRecent();}catch(e){}  // 취향 학습용 조회 이력 + 최근 본 갱신
   if(USER&&SUPA){window._tsent=window._tsent||new Set();if(!window._tsent.has(p.sku)){window._tsent.add(p.sku);
     SUPA.from("taste_events").insert({user_id:USER.id,sku:p.sku,product_name:p.name,category:p.category,price:p.price}).then(()=>{},()=>{});}}  // 회원 취향 데이터(AI 추천용·처리방침 고지)
   track("product_view",{sku:p.sku,name:p.name,cat:p.category});
@@ -627,12 +685,13 @@ function detail(p){
     <div class="hero"><div class="im">${p.image?`<img src="${esc(p.image)}" referrerpolicy="no-referrer" onerror="this.onerror=null;this.outerHTML='<span style=&quot;font-size:40px&quot;>${CAT_ICON[p.category]}</span>'"/>`:`<span style="font-size:40px">${CAT_ICON[p.category]}</span>`}</div>
       <div style="flex:1;min-width:0"><span class="hcat">${CAT_ICON[p.category]} ${p.category}</span>
         <div class="hname">${esc(p.name)}</div><div class="rr">${rr}${viv}</div>
-        <div style="display:flex;align-items:baseline;gap:8px;margin:8px 0;flex-wrap:wrap"><span class="hprice">${won(p.price)}</span>${p.unit_price_text?`<span class="hunit">${esc(p.unit_price_text)}</span>`:""}${p.atl&&p.in_stock?`<span class="atl">🏆 역대 최저</span>`:""}</div>
+        <div style="display:flex;align-items:baseline;gap:8px;margin:8px 0;flex-wrap:wrap"><span class="hprice">${won(p.price)}</span>${p.unit_price_text?`<span class="hunit">${esc(p.unit_price_text)}</span>`:""}${shotPrice(p)}${p.atl&&p.in_stock?`<span class="atl">🏆 역대 최저</span>`:""}${p.stale?`<span class="stale">⚠ ${p.stale}일째 그대로</span>`:""}</div>
         ${dsBadge(p)}</div><button class="close" onclick="closeModal()">✕</button></div>
     <div style="display:flex;gap:8px;padding:10px 20px 0;flex-wrap:wrap">
       <button class="distbtn${MYWATCH.has(p.sku)?" on":""}" id="wbtn" style="cursor:pointer" onclick="detailWatch('${p.sku}')">${MYWATCH.has(p.sku)?"⭐ 관심중":"☆ 관심 등록"}</button>
       <button class="distbtn" style="cursor:pointer" onclick="detailTarget('${p.sku}')">💰 목표가${MYTARGET[p.sku]?` ${MYTARGET[p.sku].toLocaleString()}원`:" 설정"}</button>
       <button class="distbtn${MYCELLAR[p.sku]?" on":""}" style="cursor:pointer" onclick="showCellarEdit('${p.sku}')">🗄 ${MYCELLAR[p.sku]?CELL_LABEL[MYCELLAR[p.sku].status].slice(2).trim():"셀러 기록"}</button>
+      <button class="distbtn" style="cursor:pointer" onclick="shareProduct('${p.sku}')">📤 공유</button>
     </div>
     ${sparkline(p)}
     ${p.tasting_notes&&p.tasting_notes.length?`<div class="tasting"><div class="sl">🥃 테이스팅 노트 <span class="src">데일리샷</span></div><div class="tchips">${p.tasting_notes.map(n=>`<div class="tchip"><b>${esc(n.label)}</b> ${esc(n.value)}</div>`).join("")}</div></div>`:""}
@@ -757,12 +816,27 @@ function subscribeEmail(){
 
 // events — 필터 변경 시 표시개수 초기화 후 렌더
 const rerender=()=>{state.shown=state.pageSize;render();};
+function setSearch(q){const qi=document.getElementById("q");qi.value=q;state.q=q;if(document.getElementById("viewLiquor").hidden)switchView("liquor");rerender();}
+// "/" 단축키 — 어디서든 검색창 포커스
+document.addEventListener("keydown",e=>{
+  if(e.key==="/"&&!/INPUT|TEXTAREA|SELECT/.test((document.activeElement||{}).tagName||"")){e.preventDefault();document.getElementById("q").focus();}
+});
+// 🌙 다크모드 — 토큰 재정의 토글 (localStorage 유지)
+function toggleDark(){
+  const on=!document.body.classList.contains("dark");
+  document.body.classList.toggle("dark",on);
+  try{localStorage.setItem("jurak_theme",on?"dark":"light");}catch(e){}
+  const b=document.getElementById("navDark");if(b)b.textContent=on?"☀️ 라이트모드":"🌙 다크모드";
+  const m=document.querySelector('meta[name="theme-color"]');if(m)m.content=on?"#171009":"#221910";
+  track("theme",{d:on?1:0});
+}
+try{if(localStorage.getItem("jurak_theme")==="dark"){document.body.classList.add("dark");const _b=document.getElementById("navDark");if(_b)_b.textContent="☀️ 라이트모드";const _m=document.querySelector('meta[name="theme-color"]');if(_m)_m.content="#171009";}}catch(e){}
 let _qTrackT=null;
 document.getElementById("q").oninput=e=>{state.q=e.target.value;
   if(state.q.trim()&&document.getElementById("viewLiquor").hidden)switchView("liquor");  // 통합 검색: 어느 뷰에서든 딜+픽 결과로
   rerender();
   clearTimeout(_qTrackT);_qTrackT=setTimeout(()=>{const q=(state.q||"").trim();if(q.length>=2)track("search",{q:q.slice(0,40),n:window._dealCount});},1500);};
-document.getElementById("store").onchange=e=>{state.store=e.target.value;rerender();};
+document.getElementById("store").onchange=e=>{state.store=e.target.value;try{localStorage.setItem("jurak_store",state.store);}catch(_){} rerender();};  // ★ 단골 지점 기억
 document.getElementById("sort").onchange=e=>{state.sort=e.target.value;rerender();};
 document.getElementById("pageSize").onchange=e=>{state.pageSize=+e.target.value;state.shown=state.pageSize;render();};
 document.getElementById("track").parentElement.onclick=()=>{state.inStock=!state.inStock;document.getElementById("track").classList.toggle("on",state.inStock);rerender();};
@@ -797,6 +871,7 @@ fetch("data.json?t="+Date.now(),{cache:"no-store"}).then(r=>r.json()).then(d=>{
   if(qs.get("bottle")==="1"){setTimeout(()=>switchView("bottle"),100);}  // 바틀샵 지도 딥링크
   const q0=qs.get("q"); if(q0){const qi=document.getElementById("q");qi.value=q0;state.q=q0;}  // 검색 딥링크 (?q= — SEO SearchAction)
   const st0=qs.get("store"); if(st0&&BRANCH[st0]){state.store=st0;document.getElementById("store").value=st0;}  // 지점 딥링크 (?store= — 지점 페이지 연동)
+  else{try{const fav=localStorage.getItem("jurak_store");if(fav&&BRANCH[fav]){state.store=fav;document.getElementById("store").value=fav;}}catch(e){}}  // ★ 단골 지점 자동 적용
   render();
   renderBrief();
   const sku=qs.get("sku");
@@ -1168,6 +1243,26 @@ function renderLearn(){
   ])+
   `<div class="sa" style="text-align:center;margin:18px 0 4px">🍶 아는 만큼 맛있습니다. 오늘의 한 잔, 즐겁게!</div>`;
 }
+// 📚 알쓸신주 용어 검색 — 매칭 행만 남기고 해당 카드 자동 펼침
+document.getElementById("lq").oninput=function(){
+  renderLearn();  // 최초 1회 렌더 보장
+  const q=(this.value||"").toLowerCase().trim();
+  const cards=document.querySelectorAll("#learnBody .lcard");
+  let hits=0;
+  cards.forEach(card=>{
+    if(!q){card.style.display="";card.querySelectorAll(".lrow").forEach(r=>r.style.display="");return;}
+    let has=false;
+    card.querySelectorAll(".lrow").forEach(r=>{
+      const on=r.textContent.toLowerCase().includes(q);
+      r.style.display=on?"":"none"; if(on)has=true;
+    });
+    if(card.querySelector("summary").textContent.toLowerCase().includes(q))has=true;
+    card.style.display=has?"":"none"; if(has){card.open=true;hits++;}
+  });
+  const rc=document.getElementById("lrc");
+  rc.style.display=q?"":"none";
+  rc.innerHTML=q?(hits?`🔍 ‘<b>${esc(q)}</b>’ — <b>${hits}</b>개 섹션에서 발견`:`‘<b>${esc(q)}</b>’ 결과가 없어요 — 다른 표기로 시도해 보세요`):"";
+};
 
 // ── 🌟 주락 픽 (애호가의 명주) ──────────────────────
 let PDATA=null, ploaded=false, pshown=24, pickQ="";
@@ -1422,7 +1517,49 @@ function renderBrief(){
   if(hi)cards.push(`<button class="bcard" onclick="track('brief_click',{k:'hero'});detail(DATA.products.find(x=>x.sku==='${hi.sku}'))"><div class="bk">⭐ 오늘 주목할 한 병</div><div class="bv">${esc(hi.name)}</div><div class="bm">★ ${hi.rating} (${(hi.review_count||0).toLocaleString()}) · ${won(hi.price)}</div></button>`);
   cards.push(qz?`<button class="bcard" onclick="track('brief_click',{k:'taste'});showTasteTest()"><div class="bk">🧭 내 취향</div><div class="bv">${esc(qz.title)}</div><div class="bm">다시 테스트하고 오늘의 추천 받기 →</div></button>`:`<button class="bcard" onclick="track('brief_click',{k:'taste'});showTasteTest()"><div class="bk">🧭 1분 취향 테스트</div><div class="bv">네 가지 질문으로 내 술 찾기</div><div class="bm">지금 재고에서 딱 맞는 한 병을 골라드려요 →</div></button>`);
   if(g)cards.push(`<button class="bcard" onclick="track('brief_click',{k:'gloss'});switchView('learn')"><div class="bk">📚 오늘의 술 상식</div><div class="bv">${esc(g.t)}</div><div class="bm">${esc(g.d)}</div></button>`);
+  cards.push(`<button class="bcard" onclick="track('brief_click',{k:'roulette'});showRoulette()"><div class="bk">🎲 오늘 뭐 마시지?</div><div class="bv">고민될 땐 룰렛에 맡기세요</div><div class="bm">예산만 고르면 재고에서 한 병 뽑아드려요 →</div></button>`);
   el.innerHTML=`<div class="rc" style="margin:4px 0 8px">☀️ <b>오늘의 브리핑</b> <span style="font-size:12px">· 매일 바뀝니다</span></div><div class="brief">${cards.join("")}</div>`;
+  renderRecent();
+}
+// ── 🕘 최근 본 상품 스트립 (이 기기 조회 이력 — jurak_views 재사용) ─────────
+function renderRecent(){
+  const el=document.getElementById("recent"); if(!el||!DATA)return;
+  const seen=_views().map(v=>DATA.products.find(p=>p.sku===v.sku)).filter(Boolean).slice(0,8);
+  if(seen.length<2){el.innerHTML="";return;}
+  el.innerHTML=`<div class="rc" style="margin:2px 0 8px">🕘 <b>최근 본 상품</b></div><div class="brief">`+
+    seen.map(p=>`<button class="bcard" style="width:210px" onclick="detail(DATA.products.find(x=>x.sku==='${p.sku}'))">
+      <div class="bv" style="margin-top:0">${esc(p.name)}</div>
+      <div class="bm">${won(p.price)}${p.price_diff_percent!=null&&p.price_diff_percent<=-20?' · <b style="color:#D8562F">🔥특가</b>':""} · ${p.in_stock?"재고 있음":"품절"}</div></button>`).join("")+`</div>`;
+}
+// ── 🎲 오늘 뭐 마시지 룰렛 ─────────
+function showRoulette(){
+  track("roulette_open",{});
+  document.getElementById("modalRoot").innerHTML=`<div class="overlay" id="ov" onclick="closeModal()"><div class="modalSm" onclick="event.stopPropagation()">
+    <div class="hero" style="align-items:center"><div style="flex:1"><div class="hname">🎲 오늘 뭐 마시지?</div><div class="sa">지금 재고에서 무작위 한 병</div></div><button class="close" onclick="closeModal()">✕</button></div>
+    <div style="padding:16px 20px">
+      <select id="rlBudget" style="width:100%;margin-bottom:12px"><option value="">예산 무관</option><option value="lo">5만원 이하</option><option value="mid" selected>5~15만원</option><option value="hi">15만원 이상</option></select>
+      <div id="rlOut" class="sa" style="text-align:center;min-height:64px;line-height:1.7;padding:8px 0">버튼을 누르면 운명의 한 병이 👇</div>
+      <button class="distbtn on" style="width:100%;border:none;padding:12px;cursor:pointer;font-size:14px" onclick="spinRoulette()">🎲 돌리기</button>
+    </div></div></div>`;
+}
+function spinRoulette(){
+  const b=document.getElementById("rlBudget").value;
+  const f={lo:p=>p.price<=50000,mid:p=>p.price>50000&&p.price<=150000,hi:p=>p.price>150000}[b]||(()=>true);
+  const pool=DATA.products.filter(p=>p.in_stock&&p.price&&f(p));
+  const out=document.getElementById("rlOut");
+  if(!pool.length){out.textContent="이 예산엔 재고가 없네요 — 예산을 바꿔보세요!";return;}
+  let n=0;
+  const iv=setInterval(()=>{
+    const p=pool[Math.floor(Math.random()*pool.length)];
+    if(++n<9){out.innerHTML=`<b style="opacity:.55">${esc(p.name)}</b>`;return;}
+    clearInterval(iv);
+    track("roulette_spin",{sku:p.sku});
+    out.innerHTML=`<div class="recrow" style="text-align:left" onclick="closeModal();detail(DATA.products.find(x=>x.sku==='${p.sku}'))">
+      ${p.image?`<img src="${esc(p.image)}" referrerpolicy="no-referrer" onerror="this.style.display='none'">`:""}
+      <div style="flex:1;min-width:0"><div class="rt">${esc(p.name)}</div>
+      <div class="rd">${p.rating?`★ ${p.rating} · `:""}${won(p.price)} · ${p.stores_in_stock_count}개 지점</div></div></div>
+      <div style="font-size:11.5px;color:var(--sub);margin-top:4px">누르면 지점별 재고로 이동 · 마음에 안 들면 다시 🎲</div>`;
+  },90);
 }
 
 // ── 🧭 1분 취향 테스트 — 4문항 → 지금 재고에서 맞춤 한 병 (?test=1 딥링크·결과 공유) ─────
