@@ -374,6 +374,7 @@
   <div id="moreNav" hidden>
     <button id="navColkage" onclick="switchView('colkage');document.getElementById('moreNav').hidden=true" title="내 술 들고 가는 콜키지프리 식당">🍽 콜키지 다이닝</button>
     <button id="navBottle" onclick="switchView('bottle');document.getElementById('moreNav').hidden=true" title="전국 바틀샵·위스키바 지도">🥃 바틀샵·바 지도</button>
+    <button id="navRadar" onclick="switchView('radar');document.getElementById('moreNav').hidden=true" title="커뮤니티 성지 특가 제보 모음">📡 특가 레이더</button>
     <button id="navLearn" onclick="switchView('learn');document.getElementById('moreNav').hidden=true" title="알아두면 쓸모있는 술 지식">📚 알쓸신주</button>
     <button id="navDark" onclick="toggleDark();document.getElementById('moreNav').hidden=true" title="어두운 화면으로 전환">🌙 다크모드</button>
   </div>
@@ -418,6 +419,12 @@
   <div class="rc" id="brc" style="margin-top:14px"></div>
   <div id="blist"></div>
   <div id="bmore" style="text-align:center;margin:22px 0"></div>
+</div></main></section>
+<section id="viewRadar" hidden>
+  <div class="warn"><h2 style="display:inline;font-size:inherit;font-weight:800;margin:0">📡 특가 레이더 — 성지 특가 제보 모음</h2> · 커뮤니티에 올라온 오프라인 특가 소식을 자동 수집 — <b>제목과 원문 링크만</b> 모아드려요. ⚠ <b>가격·재고는 원문과 매장에서 꼭 확인</b>하세요.</div>
+  <main><div class="wrap">
+  <div class="rc" id="rrc"></div>
+  <div id="rlist"></div>
 </div></main></section>
 <section id="viewLearn" hidden>
   <div class="warn"><h2 style="display:inline;font-size:inherit;font-weight:800;margin:0">📚 알쓸신주 — 위스키·와인 지식 사전</h2> · 위스키 증류소·숙성·캐스크부터 와인 포도품종·빈티지, 하이볼 레시피, 테이스팅 용어까지.</div>
@@ -902,6 +909,7 @@ fetch("data.json?t="+Date.now(),{cache:"no-store"}).then(r=>r.json()).then(d=>{
   if(qs.get("talkbar")==="1"){setTimeout(()=>tbEntry(),400);}  // 베타/오픈 시 채팅, 그 외 티저
   if(qs.get("test")==="1"){setTimeout(()=>showTasteTest(),300);}  // 취향 테스트 공유 딥링크
   if(qs.get("bottle")==="1"){setTimeout(()=>switchView("bottle"),100);}  // 바틀샵 지도 딥링크
+  if(qs.get("radar")==="1"){setTimeout(()=>switchView("radar"),100);}  // 특가 레이더 딥링크
   const q0=qs.get("q"); if(q0){const qi=document.getElementById("q");qi.value=q0;state.q=q0;}  // 검색 딥링크 (?q= — SEO SearchAction)
   const st0=qs.get("store"); if(st0&&BRANCH[st0]){state.store=st0;document.getElementById("store").value=st0;}  // 지점 딥링크 (?store= — 지점 페이지 연동)
   else{try{const fav=localStorage.getItem("jurak_store");if(fav&&BRANCH[fav]){state.store=fav;document.getElementById("store").value=fav;}}catch(e){}}  // ★ 단골 지점 자동 적용
@@ -925,16 +933,43 @@ function colkageNear(){
   },()=>{btn.textContent="📍 내 주변";alert("위치 권한을 허용하면 가까운 식당순으로 볼 수 있어요.");});
 }
 function switchView(m){
-  const V={liquor:"viewLiquor",pick:"viewPick",colkage:"viewColkage",learn:"viewLearn",bottle:"viewBottle"};
-  const N={liquor:"navLiquor",pick:"navPick",colkage:"navColkage",learn:"navLearn",bottle:"navBottle"};
+  const V={liquor:"viewLiquor",pick:"viewPick",colkage:"viewColkage",learn:"viewLearn",bottle:"viewBottle",radar:"viewRadar"};
+  const N={liquor:"navLiquor",pick:"navPick",colkage:"navColkage",learn:"navLearn",bottle:"navBottle",radar:"navRadar"};
   for(const k in V){const v=document.getElementById(V[k]);if(v)v.hidden=(k!==m);const n=document.getElementById(N[k]);if(n)n.classList.toggle("on",k===m);}
-  const mb=document.getElementById("navMore");if(mb)mb.classList.toggle("on",m==="colkage"||m==="learn"||m==="bottle");
+  const mb=document.getElementById("navMore");if(mb)mb.classList.toggle("on",m==="colkage"||m==="learn"||m==="bottle"||m==="radar");
   track("view",{v:m});
   if(m==="colkage"){loadColkage(); if(cmap)[60,300,700].forEach(t=>setTimeout(()=>cmap.invalidateSize(),t));}
   else if(m==="learn")renderLearn();
   else if(m==="pick")loadPick();
   else if(m==="bottle"){loadBottle(); if(bmap)[60,300,700].forEach(t=>setTimeout(()=>bmap.invalidateSize(),t));}
+  else if(m==="radar")loadRadar();
   window.scrollTo(0,0);
+}
+// ── 📡 특가 레이더 — 커뮤니티 제보 링크 모음 (제목은 신뢰불가 입력 → 전부 esc) ─────
+let RDATA=null, rloaded=false;
+function loadRadar(){
+  if(rloaded)return; rloaded=true;
+  document.getElementById("rrc").textContent="제보 불러오는 중…";
+  fetch("deal_radar.json?t="+Date.now(),{cache:"no-store"}).then(r=>r.json()).then(d=>{RDATA=d;renderRadar();})
+    .catch(()=>{document.getElementById("rrc").innerHTML='<div class="empty">레이더 데이터를 아직 불러올 수 없어요. 잠시 후 다시 열어주세요.</div>';});
+}
+function timeAgo(ts){
+  const t=Date.parse((ts||"").replace(" ","T")+"+09:00"); if(!t)return "";
+  const m=Math.floor((Date.now()-t)/60000);
+  return m<60?`${m}분 전`:(m<1440?`${Math.floor(m/60)}시간 전`:`${Math.floor(m/1440)}일 전`);
+}
+function renderRadar(){
+  if(!RDATA)return;
+  const items=RDATA.items||[];
+  document.getElementById("rrc").innerHTML=`최근 48시간 제보 <b>${items.length}</b>건 <span style="color:var(--sub)">· 하루 5회 자동 수집 · 갱신 ${RDATA.updated_at?new Date(RDATA.updated_at).toLocaleTimeString("ko-KR",{hour:"2-digit",minute:"2-digit"}):""}</span>`;
+  document.getElementById("rlist").innerHTML=items.length?items.map(i=>`
+    <a class="ccard" href="${esc(i.url)}" target="_blank" rel="noopener nofollow" style="text-decoration:none;color:inherit;cursor:pointer" onclick="track('radar_click',{s:'${esc(i.source)}'})">
+      <div class="cinfo">
+        <div class="cname">${esc(i.title)}</div>
+        <div class="cmeta"><span class="cbadge">${esc(i.source)}</span> · ${timeAgo(i.ts)} · 원문 보기 →</div>
+      </div>
+    </a>`).join("")+`<div class="sa" style="text-align:center;margin-top:14px;font-size:11.5px">출처는 각 커뮤니티이며 제목만 표시합니다 · 성지 다녀오셨다면 알쓸신주 온누리 팁도 확인해 보세요 🎫</div>`
+    :`<div class="empty"><div style="font-size:44px">📡</div><div style="margin-top:12px">지금은 잡힌 제보가 없어요 — 하루 5회 자동으로 다시 훑습니다.</div></div>`;
 }
 function goHome(){switchView("liquor");state.watchOnly=false;state.cat="전체";state.q="";state.store="";const qi=document.getElementById("q");if(qi)qi.value="";const si=document.getElementById("store");if(si)si.value="";state.shown=state.pageSize;render();window.scrollTo(0,0);}
 function loadColkage(){
