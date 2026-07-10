@@ -410,6 +410,7 @@
   <div class="crow">
     <div class="search" style="flex:1;min-width:160px"><span>🔍</span><input id="bq" placeholder="상호·지역 검색 (예: 성수, 몰트바)…" /></div>
     <select id="bkind"><option value="">샵+바 전체</option><option value="shop">🥃 바틀샵</option><option value="bar">🍸 위스키바</option></select>
+    <button id="bonn" class="distbtn" style="padding:9px 14px;cursor:pointer" onclick="bOnn=!bOnn;this.classList.toggle('on',bOnn);bshown=40;renderBottle()" title="온누리 상품권 확인·후보 매장만">🎫 온누리</button>
     <select id="bregion"><option value="">전체 지역</option></select>
     <button id="bnear" class="distbtn" style="padding:9px 14px;cursor:pointer" onclick="bottleNear()">📍 내 주변</button>
   </div>
@@ -1002,7 +1003,9 @@ document.getElementById("cq").oninput=()=>{cshown=40;renderColkage();};
 document.getElementById("cregion").onchange=()=>{cshown=40;renderColkage();};
 
 // ── 🥃 바틀샵·위스키바 지도 (콜키지 뷰와 동일 패턴) ─────────────
-let BDATA=null, bmap=null, bmarkers=null, bshown=40, bloaded=false, BLOC=null, bnearOn=false;
+let BDATA=null, bmap=null, bmarkers=null, bshown=40, bloaded=false, BLOC=null, bnearOn=false, bOnn=false;
+// 🎫 배지는 '확인된 곳'만 — 시장 인접은 대부분 미가맹일 수 있어 필터 안에서만 후보로 노출 (신뢰 원칙)
+const onnBadge=i=>i.onnuri==="verified"?`<span class="cbadge" style="background:#E7F6EE;color:#1F7A44">🎫 온누리 확인</span>`:"";
 function bottleNear(){
   if(!navigator.geolocation){alert("이 브라우저는 위치 조회를 지원하지 않아요.");return;}
   const btn=document.getElementById("bnear"); btn.textContent="📍 위치 확인 중…";
@@ -1037,6 +1040,7 @@ function bottleFiltered(){
   const q=(document.getElementById("bq").value||"").toLowerCase().trim();
   const reg=document.getElementById("bregion").value, kind=document.getElementById("bkind").value;
   if(kind)list=list.filter(i=>i.kind===kind);
+  if(bOnn){list=list.filter(i=>i.onnuri);list.sort((a,b)=>(a.onnuri==="verified"?0:1)-(b.onnuri==="verified"?0:1));}  // 🎫 확인된 곳 우선, 인접 후보는 그 아래
   if(reg)list=list.filter(i=>(i.region||"").startsWith(reg));
   if(q)list=list.filter(i=>((i.name||"")+" "+(i.address||"")+" "+(i.category||"")).toLowerCase().includes(q));
   return list;
@@ -1052,8 +1056,8 @@ function renderBottle(){
     <div class="ccard">
       <div class="cnum">${idx+1}</div>
       <div class="cinfo">
-        <div class="cname">${esc(i.name)} ${bKindBadge(i.kind)}${i._d!=null?`<span class="cbadge" style="background:#EEF3FB;color:#3A6AB0">📍 ${i._d.toFixed(1)}km</span>`:""}</div>
-        <div class="cmeta">${i.rating?`<span class="crate">★ ${i.rating}</span> (${(i.review_count||0).toLocaleString()}) · `:""}${esc(i.category)} · ${esc(i.region)}</div>
+        <div class="cname">${esc(i.name)} ${bKindBadge(i.kind)}${onnBadge(i)}${i._d!=null?`<span class="cbadge" style="background:#EEF3FB;color:#3A6AB0">📍 ${i._d.toFixed(1)}km</span>`:""}</div>
+        <div class="cmeta">${i.rating?`<span class="crate">★ ${i.rating}</span> (${(i.review_count||0).toLocaleString()}) · `:""}${esc(i.category)} · ${esc(i.region)}${i.onnuri==="verified"&&i.onnuri_note?`<br>🎫 ${esc(i.onnuri_note)}`:(bOnn&&i.onnuri==="near"?`<br><span style="font-size:11.5px;color:#8A6A2E">🎫 ${esc((i.onnuri_market||"전통시장").slice(0,14))} 인접 <b>미확인 후보</b> — 대부분 안 될 수 있어요, 방문 전 전화 확인</span>`:"")}</div>
         <div class="cmeta">📍 ${esc(i.address)}</div>
         <div class="cmeta" style="margin-top:6px">
           ${i.phone?`<a href="tel:${i.phone}" style="color:var(--amberD);font-weight:700">📞 ${i.phone}</a> · `:""}
@@ -1261,6 +1265,7 @@ function renderLearn(){
     ["와인앤모어","신세계 주류 체인 — 접근성 좋고 세일 때 가성비 <a href='https://map.kakao.com/link/search/와인앤모어' target='_blank' rel='noopener' style='color:var(--amberD);font-weight:700'>🗺 지도</a>"],
     ["남대문 주류상가","아는 사람만 아는 클래식 위스키 성지. 발품 = 가격 <a href='https://map.kakao.com/link/search/남대문 주류상가' target='_blank' rel='noopener' style='color:var(--amberD);font-weight:700'>🗺 지도</a>"],
     ["동네 바틀샵","벙크보틀 등 큐레이션형 바틀샵이 늘고 있어요 — 시음회·오픈런 이벤트는 각 샵 인스타 공지 <a href='https://map.kakao.com/link/search/바틀샵' target='_blank' rel='noopener' style='color:var(--amberD);font-weight:700'>🗺 내 주변 바틀샵</a>"],
+    ["🎫 온누리 상품권 꿀팁","일부 주류 성지는 <b>온누리 상품권</b> 결제가 됩니다 — 모바일 온누리 특판(최대 10~15% 할인 구매) 시기엔 술값이 사실상 그만큼 더 싸지는 셈. 확인된 곳: <b>건대 조양마트</b>(2026-07 실방문). 단 <b>되는 곳은 소수</b>라, 바틀샵 지도 <b>🎫 필터</b>의 확인 매장 외엔 방문 전 전화 확인이 필수예요"],
     ["청담 · 스피크이지 바","르챔버·앨리스 — 클래식 칵테일과 위스키, 어른의 첫 바 경험으로 제격 <a href='https://map.kakao.com/link/search/청담 위스키바' target='_blank' rel='noopener' style='color:var(--amberD);font-weight:700'>🗺 지도</a>"],
     ["위스키 바 고르는 법","백바에 <b>싱글몰트가 30병 이상</b> + 잔술(글라스) 가격표가 명확하면 신뢰. 첫 방문엔 바텐더에게 취향을 말하고 맡겨보세요"],
     ["콜키지와 연결","좋은 병을 샀다면 🍽 <b>콜키지 다이닝</b> 탭에서 들고 갈 식당을 찾아보세요 — 주락의 동선은 이렇게 완성됩니다"],
