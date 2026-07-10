@@ -121,7 +121,10 @@
   .tabs{display:flex;gap:4px;padding:10px 16px 0;background:var(--card)}
   .tab{font-size:13px;font-weight:600;color:var(--sub);background:none;border:none;border-bottom:2.5px solid transparent;padding:9px 12px}
   .tab.on{font-weight:800;color:var(--amberD);border-bottom-color:var(--amber)}
-  .mscroll{overflow-y:auto;background:var(--card);flex:1}
+  .mscroll{overflow-y:auto;background:var(--card);flex:1;-webkit-overflow-scrolling:touch}
+  /* 상세 모달: 본문 전체가 한 스크롤 — 탭은 위에 붙어 따라옴 (모바일에서 지점 목록 짜부라짐 방지) */
+  .mscroll .tabs{position:sticky;top:0;background:var(--card);z-index:5;box-shadow:0 1px 0 var(--line)}
+  @media (max-width:640px){.modal{max-height:94vh}}
   .summ{font-size:12.5px;color:var(--sub);padding:12px 20px 8px}
   .region{font-size:11px;font-weight:800;color:var(--amberD);letter-spacing:.05em;padding:12px 20px 4px}
   .srow{display:flex;justify-content:space-between;align-items:center;padding:10px 20px;border-top:1px solid var(--line)}
@@ -712,6 +715,7 @@ function detail(p){
         <div class="hname">${esc(p.name)}</div><div class="rr">${rr}${viv}</div>
         <div style="display:flex;align-items:baseline;gap:8px;margin:8px 0;flex-wrap:wrap"><span class="hprice">${won(p.price)}</span>${p.unit_price_text?`<span class="hunit">${esc(p.unit_price_text)}</span>`:""}${shotPrice(p)}${p.atl&&p.in_stock?`<span class="atl">🏆 역대 최저</span>`:""}${badgeRow(p)}${p.stale?`<span class="stale">⚠ ${p.stale}일째 그대로</span>`:""}</div>
         ${dsBadge(p)}</div><button class="close" onclick="closeModal()">✕</button></div>
+    <div class="mscroll">
     <div style="display:flex;gap:8px;padding:10px 20px 0;flex-wrap:wrap">
       <button class="distbtn${MYWATCH.has(p.sku)?" on":""}" id="wbtn" style="cursor:pointer" onclick="detailWatch('${p.sku}')">${MYWATCH.has(p.sku)?"⭐ 관심중":"☆ 관심 등록"}</button>
       <button class="distbtn" style="cursor:pointer" onclick="detailTarget('${p.sku}')">💰 목표가${MYTARGET[p.sku]?` ${MYTARGET[p.sku].toLocaleString()}원`:" 설정"}</button>
@@ -719,11 +723,12 @@ function detail(p){
       <button class="distbtn${cartHas(p.sku)?" on":""}" style="cursor:pointer" onclick="cartToggle('${p.sku}');detail(_curP)">🧾 ${cartHas(p.sku)?"담김 ✓":"담기"}</button>
       <button class="distbtn" style="cursor:pointer" onclick="shareProduct('${p.sku}')">📤 공유</button>
     </div>
+    <div class="tabs"><button class="tab on" data-tab="stores">지점별 재고</button>${p.seller?`<button class="tab" data-tab="seller">💸 최저가처</button>`:""}<button class="tab" data-tab="reviews">리뷰 ${p.review_count?`(${p.review_count})`:""}</button></div>
+    <div id="tabc">${storeHtml}</div>
     ${sparkline(p)}
     ${p.tasting_notes&&p.tasting_notes.length?`<div class="tasting"><div class="sl">🥃 테이스팅 노트 <span class="src">데일리샷</span></div><div class="tchips">${p.tasting_notes.map(n=>`<div class="tchip"><b>${esc(n.label)}</b> ${esc(n.value)}</div>`).join("")}</div></div>`:""}
     ${(()=>{const terms=detectTerms(p.name+" "+(p.tasting_notes||[]).map(n=>n.label+" "+n.value).join(" "));return terms.length?`<div class="tasting"><div class="sl">📚 이 술 용어 풀이 <span class="src">알쓸신주</span></div>${terms.map(g=>`<div class="lrow"><span class="lt">${g.t}</span><span class="ld">${esc(g.d)}</span></div>`).join("")}</div>`:"";})()}
-    <div class="tabs"><button class="tab on" data-tab="stores">지점별 재고</button>${p.seller?`<button class="tab" data-tab="seller">💸 최저가처</button>`:""}<button class="tab" data-tab="reviews">리뷰 ${p.review_count?`(${p.review_count})`:""}</button></div>
-    <div class="mscroll" id="tabc">${storeHtml}</div>
+    </div>
     <div class="mwarn">⚠ 재고 수치는 시스템 기준이며 <b>현장 실물과 다를 수 있습니다.</b> 방문 전 100% 신뢰하지 마세요.</div></div></div>`;
   document.getElementById("ov").onclick=closeModal;
   document.querySelectorAll(".tab").forEach(t=>t.onclick=()=>{document.querySelectorAll(".tab").forEach(x=>x.classList.remove("on"));t.classList.add("on");document.getElementById("tabc").innerHTML=t.dataset.tab==="stores"?storesHtml(!!USER_LOC):(t.dataset.tab==="seller"?sellerHtml:revHtml);});
