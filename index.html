@@ -1465,6 +1465,7 @@ function pickCard(i){
     <div class="cbody"><div class="cname">${esc(i.name)}</div>
       <div class="rr">${rr}</div>
       <div class="pr"><span class="price">${won(i.price)}</span></div>
+      ${i.seller&&i.seller.name?`<div style="font-size:11.5px;color:var(--sub);margin-top:3px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">💸 <b style="color:var(--ink)">${esc(i.seller.name)}</b>${i.seller.region?` · ${esc(i.seller.region)}`:""}</div>`:""}
       <div class="cfoot"><span class="sc">데일리샷 최저가</span><span class="dl">보러가기 →</span></div></div></a>`;
 }
 function renderPick(){
