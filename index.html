@@ -376,6 +376,7 @@
 <header><div class="hin">
   <div class="logo" onclick="goHome()" style="cursor:pointer" title="홈으로"><span class="ic">🍶</span><div><h1 class="t" style="font-size:17px">주락 <span style="font-weight:700;opacity:.6">酒樂</span></h1><div class="s">합리적으로 사고, 즐겁게 마시다</div></div></div>
   <div class="search hsearch"><span>🔍</span><input id="q" placeholder="어떤 술을 찾으세요? — 딜+픽 통합 검색 (예: 발베니, 야마자키)" /></div>
+  <script>if(innerWidth<560)document.getElementById("q").placeholder="어떤 술을 찾으세요? — 딜+픽 통합 검색";</script>
   <div style="display:flex;align-items:center;gap:8px">
     <span class="upd" id="upd">불러오는 중…</span>
     <button class="srcbtn loginbtn" id="loginbtn" onclick="showLogin()" title="카카오로 로그인하고 맞춤 혜택 받기">🙋 로그인</button>
