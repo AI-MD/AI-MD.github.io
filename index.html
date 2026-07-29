@@ -1020,9 +1020,11 @@ function buildExpoFilter(){
   const cats=["전체",...new Set((EDATA.items||[]).map(i=>i.category).filter(Boolean))];
   document.getElementById("efilter").innerHTML=cats.map(c=>`<button class="efb ${c===ecat?'on':''}" onclick="ecat=${JSON.stringify(c)};buildExpoFilter();renderExpo()">${esc(c)}</button>`).join("");
 }
+function expoToday(){const d=new Date();return d.getFullYear()+"-"+String(d.getMonth()+1).padStart(2,"0")+"-"+String(d.getDate()).padStart(2,"0");}
 function renderExpo(){
   if(!EDATA)return;
-  let items=(EDATA.items||[]).slice();
+  const today=expoToday();
+  let items=(EDATA.items||[]).filter(i=>!i.date_end||i.date_end>=today);  // 지난 행사 자동 숨김
   if(ecat!=="전체")items=items.filter(i=>i.category===ecat);
   items.sort((a,b)=>{const A=a.date_start||"9999",B=b.date_start||"9999";return A<B?-1:A>B?1:0;});
   document.getElementById("erc").innerHTML=`총 <b>${items.length}</b>개 행사 <span style="color:var(--sub)">· 일정·예약은 공식 페이지 기준(참고용)</span>`;
@@ -1054,7 +1056,8 @@ function ecardHtml(i){
 function initExpoTeaser(){
   fetch("expo.json?t="+Date.now(),{cache:"no-store"}).then(r=>r.json()).then(d=>{
     EDATA=d;
-    const up=(d.items||[]).filter(i=>i.date_start).sort((a,b)=>a.date_start<b.date_start?-1:1);
+    const today=expoToday();
+    const up=(d.items||[]).filter(i=>i.date_start&&(!i.date_end||i.date_end>=today)).sort((a,b)=>a.date_start<b.date_start?-1:1);
     const nx=up[0]; const t=document.getElementById("expoTeaser"); if(!nx||!t)return;
     const dd=expoDate(nx.date_start);
     t.innerHTML=`<div class="ebanner" onclick="switchView('expo')">
