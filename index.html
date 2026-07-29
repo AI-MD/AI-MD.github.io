@@ -1458,6 +1458,7 @@ function pickFiltered(){
 }
 function pickCard(i){
   const rr=i.rating?`${stars(i.rating)}<span class="rn">${i.rating}</span><span class="rc2">(${(i.review_count||0).toLocaleString()})</span>`:(i.vivino_score?`<span class="vivino">Vivino ${i.vivino_score}</span>`:`<span class="nr">평점 없음</span>`);
+  const sellerNm=i.seller&&i.seller.name?((i.seller.name.replace(/\([^)]*\)/g,"").trim())||i.seller.name):"";  // 법인명 괄호는 카드에선 생략
   return `<a class="card" href="${esc(i.url)}" target="_blank" rel="noopener" style="text-decoration:none;color:inherit">
     <div class="cimg">${i.image?`<img src="${esc(i.image)}" loading="lazy" referrerpolicy="no-referrer" onerror="this.onerror=null;this.outerHTML='<span class=&quot;fb&quot;>${CAT_ICON[i.category]||"🍾"}</span>'"/>`:`<span class="fb">${CAT_ICON[i.category]||"🍾"}</span>`}
       <span class="catchip">${CAT_ICON[i.category]||""} ${esc(i.category)}</span>
@@ -1465,7 +1466,7 @@ function pickCard(i){
     <div class="cbody"><div class="cname">${esc(i.name)}</div>
       <div class="rr">${rr}</div>
       <div class="pr"><span class="price">${won(i.price)}</span></div>
-      ${i.seller&&i.seller.name?`<div style="font-size:11.5px;color:var(--sub);margin-top:3px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">💸 <b style="color:var(--ink)">${esc(i.seller.name)}</b>${i.seller.region?` · ${esc(i.seller.region)}`:""}</div>`:""}
+      ${sellerNm?`<div style="font-size:11.5px;color:var(--sub);margin-top:3px;line-height:1.45;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden">💸 <b style="color:var(--ink)">${esc(sellerNm)}</b>${i.seller.region?` · ${esc(i.seller.region)}`:""}</div>`:""}
       <div class="cfoot"><span class="sc">데일리샷 최저가</span><span class="dl">보러가기 →</span></div></div></a>`;
 }
 function renderPick(){
@@ -1507,7 +1508,15 @@ function bartenderRecs(){
   pool.sort((a,b)=>((b.rating||0)-(a.rating||0))||(Math.abs((a.price||0)-mid)-Math.abs((b.price||0)-mid)));
   return {topCat,mid,recs:pool.slice(0,4),n:v.length};
 }
-function _tbTry(n){ if(localStorage.getItem("jurak_talkbar_seen")||n>8)return; setTimeout(()=>{ if(document.getElementById("ov")){_tbTry(n+1);return;} showTalkbar(); },1000); }
+// ── 자동 팝업 공통 가드 — 조작 중(탭 직전) 모달이 탭을 삼키는 사고 방지 ─────
+// 규칙: ①다른 모달·더보기 드롭다운 열려 있으면 안 띄움 ②마지막 조작 후 4초 지나야(유휴) ③세션당 자동 모달 1개
+let _lastAct=Date.now(), _autoModalShown=false;
+["touchstart","mousedown","keydown","scroll"].forEach(ev=>addEventListener(ev,()=>{_lastAct=Date.now();},{passive:true,capture:true}));
+function autoModalOK(){
+  const mn=document.getElementById("moreNav");
+  return !_autoModalShown && !document.getElementById("ov") && (!mn||mn.hidden) && (Date.now()-_lastAct>4000);
+}
+function _tbTry(n){ if(localStorage.getItem("jurak_talkbar_seen")||n>20)return; setTimeout(()=>{ if(!autoModalOK()){_tbTry(n+1);return;} _autoModalShown=true; showTalkbar(); },1500); }
 // ── 🤖 AI 바텐더 토킹바 (혼술바 챗봇) — 2026-07-08 조기 정식 오픈 (서버 TALKBAR_LAUNCH와 동기) ──
 const TB_LAUNCH=Date.parse("2026-07-08T12:00:00Z");                       // = 7/8 21:00 KST 오픈
 const TB_BETA=["3cd90412-0113-435f-a312-d98d826357ec"];                   // 베타 테스터(운영자) — 서버에서도 동일하게 검증
@@ -2167,8 +2176,13 @@ async function detailTarget(sku){ await setTargetPrice(sku,_curP?_curP.name:"");
 // 콜키지 즐겨찾기 핸들러
 async function favR(pid){ const it=(CDATA&&CDATA.items||[]).find(x=>x.id===pid); const ok=await toggleFavR(pid,it?it.name:""); if(ok)renderColkage(); }
 initAuth();
-// 첫 방문 1회, 로그인 혜택 자동 안내 (localStorage로 1회만·비강제)
-try{ if(!localStorage.getItem("jurak_login_seen")){ setTimeout(()=>{ if(!USER && !document.getElementById("ov")){ showLogin(); localStorage.setItem("jurak_login_seen","1"); } },4500); } }catch(e){}  // 비로그인 유저에게만
+// 첫 방문 1회, 로그인 혜택 자동 안내 (localStorage로 1회만·비강제) — 유휴 시에만(autoModalOK), 최대 ~30초 재시도 후 포기
+function _loginTry(n){ if(n>18)return; setTimeout(()=>{ try{
+  if(USER||localStorage.getItem("jurak_login_seen"))return;
+  if(!autoModalOK()){_loginTry(n+1);return;}
+  _autoModalShown=true; showLogin(); localStorage.setItem("jurak_login_seen","1");
+}catch(e){} },n?1500:4500); }
+try{ if(!localStorage.getItem("jurak_login_seen"))_loginTry(0); }catch(e){}  // 비로그인 유저에게만
 
 // ── PWA: 서비스워커 등록 + 홈화면 설치 유도 (등록 실패해도 사이트 정상) ─────────────
 window.addEventListener("load",()=>{ try{ navigator.serviceWorker&&navigator.serviceWorker.register("/sw.js").catch(()=>{}); }catch(e){} });
