@@ -205,6 +205,31 @@
   .cbadge{display:inline-block;background:#E7F6EE;color:#1F7A44;font-weight:800;font-size:11.5px;padding:2px 7px;border-radius:20px}
   .cunl{background:#FCEBE5;color:#B0431F}
   .crate{color:#B8791A;font-weight:800}
+  /* 🍷 전시·박람회 */
+  .expofil{display:flex;gap:7px;flex-wrap:wrap;margin:4px 0 14px}
+  .efb{font-size:12.5px;font-weight:700;color:var(--ink);background:var(--card);border:1px solid var(--line);border-radius:20px;padding:7px 13px;cursor:pointer;box-shadow:var(--sh)}
+  .efb.on{color:#fff;background:var(--amber);border-color:var(--amber)}
+  .expogrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:12px}
+  .ecard{display:flex;flex-direction:column;border:1px solid var(--line);border-left:3px solid var(--amber);border-radius:14px;background:var(--card);box-shadow:var(--sh);overflow:hidden}
+  .ecard .ehead{display:flex;gap:12px;padding:14px 15px 4px}
+  .ecard .edate{flex-shrink:0;text-align:center;min-width:52px;background:#FBF6EC;border:1px solid #EBDCBE;border-radius:10px;padding:6px 4px;height:fit-content}
+  .ecard .edate .em{font-size:11px;font-weight:800;color:var(--amberD);letter-spacing:.02em}
+  .ecard .edate .ed{font-size:20px;font-weight:800;color:var(--ink);line-height:1.15}
+  .ecard .edate .ey{font-size:10px;color:var(--sub)}
+  .ecard .ecat{font-size:10.5px;font-weight:800;text-transform:uppercase;letter-spacing:.04em;color:var(--sub);margin-bottom:3px}
+  .ecard .etitle{font-weight:800;font-size:15.5px;color:var(--ink);line-height:1.35}
+  .ecard .edesc{font-size:13px;color:var(--ink);padding:4px 15px 0;line-height:1.5}
+  .ecard .emeta{color:var(--sub);font-size:12.5px;padding:6px 15px 0;line-height:1.6}
+  .ecard .etbd{font-size:11.5px;color:var(--amberD);padding:6px 15px 0}
+  .ecard .eact{display:flex;gap:8px;padding:12px 15px 14px;margin-top:auto}
+  .ecard .ebtn{flex:1;text-align:center;font-size:12.5px;font-weight:800;padding:9px;border-radius:10px;text-decoration:none;background:var(--amber);color:#fff}
+  .ecard .ebtn.sec{flex:0 0 auto;padding:9px 12px;background:var(--card);color:var(--amberD);border:1px solid #EBDCBE}
+  .ebanner{display:flex;align-items:center;gap:12px;background:linear-gradient(100deg,#221910,#3a2c17);border-radius:14px;padding:12px 15px;margin:0 0 14px;cursor:pointer;box-shadow:var(--sh)}
+  .ebanner .ebi{font-size:22px}
+  .ebanner .ebt{flex:1;min-width:0}
+  .ebanner .ebt b{color:#fff;font-weight:800;font-size:14px}
+  .ebanner .ebc{font-size:11.5px;color:#B4A17C;display:block}
+  .ebanner .ebgo{font-size:12px;font-weight:800;color:#E5C57F;white-space:nowrap}
   /* 회원(카카오 로그인) */
   .loginbtn{background:#FEF6D8;color:#7a5b00;border-color:#F5E7A8}
   .kbtn{display:flex;align-items:center;justify-content:center;gap:8px;width:100%;background:#FEE500;color:#191600;border:none;border-radius:12px;padding:13px;font-size:15px;font-weight:800;cursor:pointer}
@@ -375,6 +400,7 @@
     <button id="navColkage" onclick="switchView('colkage');document.getElementById('moreNav').hidden=true" title="내 술 들고 가는 콜키지프리 식당">🍽 콜키지 다이닝</button>
     <button id="navBottle" onclick="switchView('bottle');document.getElementById('moreNav').hidden=true" title="전국 바틀샵·위스키바 지도">🥃 바틀샵·바 지도</button>
     <button id="navRadar" onclick="switchView('radar');document.getElementById('moreNav').hidden=true" title="커뮤니티 성지 특가 제보 모음">📡 특가 레이더</button>
+    <button id="navExpo" onclick="switchView('expo');document.getElementById('moreNav').hidden=true" title="위스키·와인·샴페인 전시회·박람회 일정과 예약">🍷 전시·박람회</button>
     <button id="navLearn" onclick="switchView('learn');document.getElementById('moreNav').hidden=true" title="알아두면 쓸모있는 술 지식">📚 알쓸신주</button>
     <button id="navDark" onclick="toggleDark();document.getElementById('moreNav').hidden=true" title="어두운 화면으로 전환">🌙 다크모드</button>
   </div>
@@ -390,7 +416,7 @@
   <label class="toggle"><div class="track" id="track"><div class="thumb"></div></div><span>재고있는 것만</span></label>
   <button id="cartBtn" class="distbtn" style="cursor:pointer;padding:9px 13px;margin-left:auto" onclick="showCart()">🧾 쇼핑 리스트</button>
 </div></div></div>
-<main><div class="wrap"><div id="brief"></div><div id="recent"></div><div class="rc" id="rc"></div><div class="grid" id="grid"></div><div id="more" style="text-align:center;margin:22px 0"></div><div id="crossPick"></div></div></main>
+<main><div class="wrap"><div id="expoTeaser"></div><div id="brief"></div><div id="recent"></div><div class="rc" id="rc"></div><div class="grid" id="grid"></div><div id="more" style="text-align:center;margin:22px 0"></div><div id="crossPick"></div></div></main>
 </div><!-- /viewLiquor -->
 <section id="viewColkage" hidden>
   <div class="warn"><h2 style="display:inline;font-size:inherit;font-weight:800;margin:0">🍷 서울·수도권 콜키지프리 식당 지도</h2> — 내 술을 가져가 마실 수 있는 곳(카카오맵 평점 3.5+). 주 3회 갱신 · ⚠ <b>콜키지 정책은 매장 사정으로 바뀔 수 있으니 방문 전 전화 확인</b> 권장.</div>
@@ -425,6 +451,13 @@
   <main><div class="wrap">
   <div class="rc" id="rrc"></div>
   <div id="rlist"></div>
+</div></main></section>
+<section id="viewExpo" hidden>
+  <div class="warn"><h2 style="display:inline;font-size:inherit;font-weight:800;margin:0">🍷 주류 전시·박람회 — 위스키·와인·샴페인 행사</h2> · 국내외 주요 시음회·박람회의 일정·장소·예약 링크를 모아드려요. ⚠ <b>일정·티켓은 주최측 공식 페이지에서 최종 확인</b>하세요. (참고용)</div>
+  <main><div class="wrap">
+  <div id="efilter" class="expofil"></div>
+  <div class="rc" id="erc"></div>
+  <div id="elist" class="expogrid"></div>
 </div></main></section>
 <section id="viewLearn" hidden>
   <div class="warn"><h2 style="display:inline;font-size:inherit;font-weight:800;margin:0">📚 알쓸신주 — 위스키·와인 지식 사전</h2> · 위스키 증류소·숙성·캐스크부터 와인 포도품종·빈티지, 하이볼 레시피, 테이스팅 용어까지.</div>
@@ -910,6 +943,8 @@ fetch("data.json?t="+Date.now(),{cache:"no-store"}).then(r=>r.json()).then(d=>{
   if(qs.get("test")==="1"){setTimeout(()=>showTasteTest(),300);}  // 취향 테스트 공유 딥링크
   if(qs.get("bottle")==="1"){setTimeout(()=>switchView("bottle"),100);}  // 바틀샵 지도 딥링크
   if(qs.get("radar")==="1"){setTimeout(()=>switchView("radar"),100);}  // 특가 레이더 딥링크
+  if(qs.get("expo")==="1"){setTimeout(()=>switchView("expo"),100);}  // 전시·박람회 딥링크
+  initExpoTeaser();  // 딜 뷰 상단 다가오는 행사 배너
   const q0=qs.get("q"); if(q0){const qi=document.getElementById("q");qi.value=q0;state.q=q0;}  // 검색 딥링크 (?q= — SEO SearchAction)
   const st0=qs.get("store"); if(st0&&BRANCH[st0]){state.store=st0;document.getElementById("store").value=st0;}  // 지점 딥링크 (?store= — 지점 페이지 연동)
   else{try{const fav=localStorage.getItem("jurak_store");if(fav&&BRANCH[fav]){state.store=fav;document.getElementById("store").value=fav;}}catch(e){}}  // ★ 단골 지점 자동 적용
@@ -933,16 +968,17 @@ function colkageNear(){
   },()=>{btn.textContent="📍 내 주변";alert("위치 권한을 허용하면 가까운 식당순으로 볼 수 있어요.");});
 }
 function switchView(m){
-  const V={liquor:"viewLiquor",pick:"viewPick",colkage:"viewColkage",learn:"viewLearn",bottle:"viewBottle",radar:"viewRadar"};
-  const N={liquor:"navLiquor",pick:"navPick",colkage:"navColkage",learn:"navLearn",bottle:"navBottle",radar:"navRadar"};
+  const V={liquor:"viewLiquor",pick:"viewPick",colkage:"viewColkage",learn:"viewLearn",bottle:"viewBottle",radar:"viewRadar",expo:"viewExpo"};
+  const N={liquor:"navLiquor",pick:"navPick",colkage:"navColkage",learn:"navLearn",bottle:"navBottle",radar:"navRadar",expo:"navExpo"};
   for(const k in V){const v=document.getElementById(V[k]);if(v)v.hidden=(k!==m);const n=document.getElementById(N[k]);if(n)n.classList.toggle("on",k===m);}
-  const mb=document.getElementById("navMore");if(mb)mb.classList.toggle("on",m==="colkage"||m==="learn"||m==="bottle"||m==="radar");
+  const mb=document.getElementById("navMore");if(mb)mb.classList.toggle("on",m==="colkage"||m==="learn"||m==="bottle"||m==="radar"||m==="expo");
   track("view",{v:m});
   if(m==="colkage"){loadColkage(); if(cmap)[60,300,700].forEach(t=>setTimeout(()=>cmap.invalidateSize(),t));}
   else if(m==="learn")renderLearn();
   else if(m==="pick")loadPick();
   else if(m==="bottle"){loadBottle(); if(bmap)[60,300,700].forEach(t=>setTimeout(()=>bmap.invalidateSize(),t));}
   else if(m==="radar")loadRadar();
+  else if(m==="expo")loadExpo();
   window.scrollTo(0,0);
 }
 // ── 📡 특가 레이더 — 커뮤니티 제보 링크 모음 (제목은 신뢰불가 입력 → 전부 esc) ─────
@@ -970,6 +1006,62 @@ function renderRadar(){
       </div>
     </a>`).join("")+`<div class="sa" style="text-align:center;margin-top:14px;font-size:11.5px">출처는 각 커뮤니티이며 제목만 표시합니다 · 성지 다녀오셨다면 알쓸신주 온누리 팁도 확인해 보세요 🎫</div>`
     :`<div class="empty"><div style="font-size:44px">📡</div><div style="margin-top:12px">지금은 잡힌 제보가 없어요 — 하루 5회 자동으로 다시 훑습니다.</div></div>`;
+}
+// ── 🍷 주류 전시·박람회 ─────────────────────────────
+let EDATA=null, ecat="전체";
+function loadExpo(){
+  if(EDATA){buildExpoFilter();renderExpo();return;}
+  document.getElementById("erc").textContent="행사 불러오는 중…";
+  fetch("expo.json?t="+Date.now(),{cache:"no-store"}).then(r=>r.json()).then(d=>{EDATA=d;buildExpoFilter();renderExpo();})
+    .catch(()=>{document.getElementById("erc").innerHTML='<div class="empty">행사 데이터를 아직 불러올 수 없어요. 잠시 후 다시 열어주세요.</div>';});
+}
+function expoDate(s){if(!s)return null;const p=String(s).split("-");return {y:+p[0],m:+p[1],d:+p[2]};}
+function buildExpoFilter(){
+  const cats=["전체",...new Set((EDATA.items||[]).map(i=>i.category).filter(Boolean))];
+  document.getElementById("efilter").innerHTML=cats.map(c=>`<button class="efb ${c===ecat?'on':''}" onclick="ecat=${JSON.stringify(c)};buildExpoFilter();renderExpo()">${esc(c)}</button>`).join("");
+}
+function renderExpo(){
+  if(!EDATA)return;
+  let items=(EDATA.items||[]).slice();
+  if(ecat!=="전체")items=items.filter(i=>i.category===ecat);
+  items.sort((a,b)=>{const A=a.date_start||"9999",B=b.date_start||"9999";return A<B?-1:A>B?1:0;});
+  document.getElementById("erc").innerHTML=`총 <b>${items.length}</b>개 행사 <span style="color:var(--sub)">· 일정·예약은 공식 페이지 기준(참고용)</span>`;
+  document.getElementById("elist").innerHTML=items.length?items.map(ecardHtml).join(""):`<div class="empty">해당 분류의 예정 행사가 없어요.</div>`;
+}
+function ecardHtml(i){
+  const d=expoDate(i.date_start);
+  const dateBlock=d?`<div class="edate"><div class="em">${d.m}월</div><div class="ed">${d.d}</div><div class="ey">${d.y}</div></div>`
+    :`<div class="edate"><div class="em">일정</div><div class="ed" style="font-size:13px;padding:5px 0">미정</div></div>`;
+  const range=d&&i.date_end&&i.date_end!==i.date_start?`~${String(i.date_end).slice(5).replace("-",".")}`:"";
+  const venue=[i.venue,i.city].filter(Boolean).join(" · ");
+  const url=i.ticket_url||i.url;
+  return `<div class="ecard">
+    <div class="ehead">${dateBlock}
+      <div style="flex:1;min-width:0">
+        <div class="ecat">${esc(i.category||"")}${range?" · "+esc(range):""}</div>
+        <div class="etitle">${esc(i.name||"")}</div>
+      </div>
+    </div>
+    ${i.desc?`<div class="edesc">${esc(i.desc)}</div>`:""}
+    ${venue||i.price_info?`<div class="emeta">${venue?"📍 "+esc(venue):""}${i.price_info?(venue?"<br>":"")+"🎫 "+esc(i.price_info):""}</div>`:""}
+    ${!i.date_start?`<div class="etbd">🗓 세부 일정 미발표 — 공식 채널에서 확인하세요</div>`:""}
+    <div class="eact">
+      ${url?`<a class="ebtn" href="${esc(url)}" target="_blank" rel="noopener nofollow" onclick="track('expo_click',{n:${JSON.stringify((i.name||'').slice(0,24))}})">${i.ticket_url?"🎫 예약·접수":"공식 페이지"} →</a>`:`<span class="ebtn sec" style="cursor:default">링크 준비중</span>`}
+      ${i.url&&i.ticket_url?`<a class="ebtn sec" href="${esc(i.url)}" target="_blank" rel="noopener nofollow">홈</a>`:""}
+    </div>
+  </div>`;
+}
+function initExpoTeaser(){
+  fetch("expo.json?t="+Date.now(),{cache:"no-store"}).then(r=>r.json()).then(d=>{
+    EDATA=d;
+    const up=(d.items||[]).filter(i=>i.date_start).sort((a,b)=>a.date_start<b.date_start?-1:1);
+    const nx=up[0]; const t=document.getElementById("expoTeaser"); if(!nx||!t)return;
+    const dd=expoDate(nx.date_start);
+    t.innerHTML=`<div class="ebanner" onclick="switchView('expo')">
+      <span class="ebi">🍷</span>
+      <div class="ebt"><b>${esc(nx.name)}</b><span class="ebc">${dd?dd.m+"."+dd.d:""} · ${esc(nx.venue||nx.city||"")}</span><span class="ebc">다가오는 주류 전시·박람회 ${up.length}건 — 일정·예약 보기</span></div>
+      <span class="ebgo">전체 →</span></div>`;
+  }).catch(()=>{});
 }
 function goHome(){switchView("liquor");state.watchOnly=false;state.cat="전체";state.q="";state.store="";const qi=document.getElementById("q");if(qi)qi.value="";const si=document.getElementById("store");if(si)si.value="";state.shown=state.pageSize;render();window.scrollTo(0,0);}
 function loadColkage(){
