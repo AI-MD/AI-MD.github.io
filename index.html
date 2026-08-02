@@ -544,6 +544,12 @@ function matchName(name,q){
   return false;
 }
 
+// 🏆 역대 최저 배지 — 실제 하락분에만(백엔드 게이트) + 하락폭 표시
+function atlBadge(p){
+  if(!p.atl)return "";
+  const dp=p.atl_from&&p.atl_from>p.price?Math.round((p.atl_from-p.price)/p.atl_from*100):0;
+  return `<span class="atl" title="${p.atl_from?`이전 최고 ${p.atl_from.toLocaleString()}원 → 지금이 이력상 최저`:"이력상 최저가"}">🏆 역대 최저${dp>=3?` ▼${dp}%`:""}</span>`;
+}
 function dsBadge(p){
   if(p.price_diff_percent==null)return "";
   const d=p.price_diff_percent, cheap=d<0, eq=Math.abs(d)<.5;
@@ -571,7 +577,7 @@ function card(p){
       <span class="stkchip" style="background:${cs.in?"#1F9E5A":"#B9AE9E"}">${cs.in?`재고 ${fmtInv(cs.inv)}`:"품절"}</span></div>
     <div class="cbody"><div class="cname">${esc(p.name)}</div>
       <div class="rr">${rr}${viv}</div>
-      <div class="pr"><span class="price">${won(cs.price)}</span>${p.discount_percent>0?`<span class="disc">${p.discount_percent}%↓</span>`:""}${p.atl&&cs.in?`<span class="atl">🏆 역대 최저</span>`:""}${badgeRow(p)}</div>
+      <div class="pr"><span class="price">${won(cs.price)}</span>${p.discount_percent>0?`<span class="disc">${p.discount_percent}%↓</span>`:""}${cs.in?atlBadge(p):""}${badgeRow(p)}</div>
       ${dsBadge(p)}
       ${p.stale?`<div class="ds" style="color:#8A6A2E;background:#F5EDDA">⚠ ${p.stale}일째 재고 변동 없음 — 전산 재고일 수 있어요</div>`:""}
       <div class="cfoot"><span class="sc">🏬 ${state.store?`${(BRANCH[state.store]||{}).name||"해당 지점"} 보유`:`${cs.cnt}개 지점 보유`}</span><span class="dl">상세 · 지점별 →</span></div></div></button>`;
@@ -591,7 +597,7 @@ function sparkline(p){
   const miIdx=v.indexOf(mn), mix=PAD+miIdx*step, miy=y(mn);
   const labels=phLabels(p);
   const isLow=v[v.length-1]<=mn;
-  return `<div class="tasting"><div class="sl">📈 가격 추이 <span class="src">트레이더스 · 주간</span>${p.atl?` <span class="atl">🏆 역대 최저</span>`:""}</div>
+  return `<div class="tasting"><div class="sl">📈 가격 추이 <span class="src">트레이더스 · 주간</span> ${atlBadge(p)}</div>
     <svg class="spark" viewBox="0 0 ${W} ${H}" preserveAspectRatio="none" aria-label="가격 추이">
       <polyline points="${pts}" fill="none" stroke="#B8791A" stroke-width="2.5" stroke-linejoin="round" stroke-linecap="round"/>
       ${!isLow?`<circle cx="${mix}" cy="${miy}" r="3.5" fill="#1F9E5A"/>`:""}
