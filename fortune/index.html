@@ -216,8 +216,10 @@ function buildTray(locked){
     tray.appendChild(b);
   }
   status.textContent=locked?"오늘의 운세는 이미 열었어요 — 아래에서 다시 볼 수 있어요":"마음이 가는 쿠키를 하나 고르세요";
+  const prev=document.getElementById("againBtn");if(prev)prev.remove();
   if(locked){
     const again=document.createElement("button");
+    again.id="againBtn";
     again.className="btn btn-main";again.style.cssText="margin:6px auto 0;display:block;padding:11px 22px";
     again.textContent="🎫 오늘의 운세 다시 보기";
     again.onclick=()=>{const s=loadState();if(s)openTicket(s,false);};
@@ -235,9 +237,16 @@ function pick(i){
 
 /* 티켓 */
 const ovl=document.getElementById("ovl");
+// 날짜 시드로 운세 풀을 셔플 → 쿠키 i는 i번째, 재뽑기는 i+5번째.
+// 같은 날 어떤 쿠키를 골라도(재뽑기 포함) 전부 서로 다른 운세가 보장된다.
+function dayPerm(d){
+  const rnd=mulberry32((Math.imul(d,2654435761))>>>0); rnd(); rnd();
+  const a=FORTUNES.map((_,k)=>k);
+  for(let i=a.length-1;i>0;i--){const j=Math.floor(rnd()*(i+1));[a[i],a[j]]=[a[j],a[i]];}
+  return a;
+}
 function fortuneFor(s){
-  const rnd=mulberry32(s.d*7+s.i*13+s.r*101);
-  return FORTUNES[Math.floor(rnd()*FORTUNES.length)];
+  return FORTUNES[dayPerm(s.d)[s.i + s.r*5]];
 }
 function openTicket(s,fresh){
   const f=fortuneFor(s); CUR={s,f};
