@@ -403,6 +403,7 @@
     <button id="navRadar" onclick="switchView('radar');document.getElementById('moreNav').hidden=true" title="커뮤니티 성지 특가 제보 모음">📡 특가 레이더</button>
     <button id="navExpo" onclick="switchView('expo');document.getElementById('moreNav').hidden=true" title="위스키·와인·샴페인 시음회·박람회 일정과 예약">🥂 테이스팅 캘린더</button>
     <button id="navLearn" onclick="switchView('learn');document.getElementById('moreNav').hidden=true" title="알아두면 쓸모있는 술 지식">📚 알쓸신주</button>
+    <button id="navFortune" onclick="track('fortune_nav');location.href='/fortune/'" title="포춘쿠키를 깨면 오늘의 술 운세와 오늘의 한 병">🥠 주락 포춘</button>
     <button id="navDark" onclick="toggleDark();document.getElementById('moreNav').hidden=true" title="어두운 화면으로 전환">🌙 다크모드</button>
   </div>
 </div>
@@ -1697,6 +1698,7 @@ function renderBrief(){
   cards.push(qz?`<button class="bcard" onclick="track('brief_click',{k:'taste'});showTasteTest()"><div class="bk">🧭 내 취향</div><div class="bv">${esc(qz.title)}</div><div class="bm">다시 테스트하고 오늘의 추천 받기 →</div></button>`:`<button class="bcard" onclick="track('brief_click',{k:'taste'});showTasteTest()"><div class="bk">🧭 1분 취향 테스트</div><div class="bv">네 가지 질문으로 내 술 찾기</div><div class="bm">지금 재고에서 딱 맞는 한 병을 골라드려요 →</div></button>`);
   if(g)cards.push(`<button class="bcard" onclick="track('brief_click',{k:'gloss'});switchView('learn')"><div class="bk">📚 오늘의 술 상식</div><div class="bv">${esc(g.t)}</div><div class="bm">${esc(g.d)}</div></button>`);
   cards.push(`<button class="bcard" onclick="track('brief_click',{k:'roulette'});showRoulette()"><div class="bk">🎲 오늘 뭐 마시지?</div><div class="bv">고민될 땐 룰렛에 맡기세요</div><div class="bm">예산만 고르면 재고에서 한 병 뽑아드려요 →</div></button>`);
+  cards.push(`<button class="bcard" onclick="track('brief_click',{k:'fortune'});location.href='/fortune/'"><div class="bk">🥠 오늘의 술 운세</div><div class="bv">포춘쿠키를 깨면 오늘의 한 병이 나옵니다</div><div class="bm">하루 한 번 · 자정 리셋 — 지금 뽑기 →</div></button>`);
   el.innerHTML=`<div class="rc" style="margin:4px 0 8px">☀️ <b>오늘의 브리핑</b> <span style="font-size:12px">· 매일 바뀝니다</span></div><div class="brief">${cards.join("")}</div>`;
   renderRecent();
 }
