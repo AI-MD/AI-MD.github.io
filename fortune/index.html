@@ -7,86 +7,130 @@
 <meta name="description" content="포춘쿠키를 깨면 오늘의 술 운세와 오늘 마실 한 병이 나옵니다. 하루 한 번, 재미로 보는 주락(酒樂)의 데일리 운세.">
 <meta property="og:title" content="🥠 주락 포춘 — 오늘의 술 운세">
 <meta property="og:description" content="쿠키를 깨고 오늘의 운세와 '오늘의 한 병'을 받아보세요. 하루 한 번, 자정 리셋.">
+<meta property="og:type" content="website">
 <meta property="og:url" content="https://jurak.kr/fortune/">
-<meta property="og:image" content="https://jurak.kr/apple-touch-icon.png">
+<meta property="og:image" content="https://jurak.kr/fortune/share-hero.png">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta name="twitter:card" content="summary_large_image">
 <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🥠</text></svg>">
 <link rel="stylesheet" as="style" crossorigin href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/variable/pretendardvariable-dynamic-subset.min.css">
+<script src="https://t1.kakaocdn.net/kakao_js_sdk/2.7.2/kakao.min.js" integrity="sha384-TiCUE00h649CAMonG018J2ujOgDKW/kVWlChEuu4jK2vxfAAD0eZxzCKakxg55G4" crossorigin="anonymous"></script>
 <style>
-:root{--gold:#E5C57F;--goldD:#B8791A;--mut:#B4A17C;--ink:#26211A;--paper:#F7F2E8;--line:#5C4826}
+:root{--gold:#E5C57F;--goldD:#B8791A;--mut:#B4A17C;--ink:#26211A;--paper:#FBF6EB;--line:#5C4826}
 *{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent}
 html,body{height:100%}
 body{font-family:"Pretendard Variable",Pretendard,"Apple SD Gothic Neo",sans-serif;
-  background:linear-gradient(175deg,#1C140C 0%,#221910 40%,#2A2013 100%);color:var(--gold);
-  min-height:100dvh;display:flex;flex-direction:column;align-items:center;overflow-x:hidden}
+  background:linear-gradient(175deg,#15100A 0%,#1E1509 45%,#261B0E 100%);color:var(--gold);
+  min-height:100dvh;display:flex;flex-direction:column;align-items:center;overflow-x:hidden;position:relative}
+/* 바 조명 — 쟁반 위를 비추는 웜 라이트 */
+body::before{content:"";position:fixed;top:-12vh;left:50%;transform:translateX(-50%);width:130vw;height:80vh;
+  background:radial-gradient(ellipse 46% 44% at 50% 34%,rgba(215,164,78,.16),rgba(215,164,78,.05) 55%,transparent 75%);
+  pointer-events:none}
 /* 은은한 골드 입자 */
 .dust{position:fixed;inset:0;pointer-events:none;overflow:hidden}
-.dust i{position:absolute;display:block;width:3px;height:3px;border-radius:50%;background:rgba(229,197,127,.5);
-  animation:float 9s linear infinite}
-@keyframes float{0%{transform:translateY(105vh) scale(.6);opacity:0}12%{opacity:.7}88%{opacity:.5}100%{transform:translateY(-6vh) scale(1.1);opacity:0}}
-header{text-align:center;padding:56px 22px 8px;position:relative;z-index:2}
-.eyebrow{font-size:12px;letter-spacing:.22em;color:var(--mut);font-weight:600}
-h1{font-size:31px;font-weight:800;letter-spacing:.06em;margin:12px 0 10px;color:#F1E0BC;text-shadow:0 2px 18px rgba(184,121,26,.35)}
-.sub{font-size:13.5px;line-height:1.75;color:var(--mut)}
-.divider{display:flex;align-items:center;gap:12px;justify-content:center;margin:22px auto 0;max-width:280px}
+.dust i{position:absolute;display:block;border-radius:50%;background:rgba(229,197,127,.38);
+  animation:float 11s linear infinite;filter:blur(.4px)}
+@keyframes float{0%{transform:translateY(105vh) scale(.6);opacity:0}12%{opacity:.55}88%{opacity:.35}100%{transform:translateY(-6vh) scale(1.05);opacity:0}}
+
+header{text-align:center;padding:58px 22px 6px;position:relative;z-index:2}
+.eyebrow{font-size:11px;letter-spacing:.34em;color:var(--mut);font-weight:600;text-indent:.34em}
+h1{font-size:30px;font-weight:800;letter-spacing:.14em;text-indent:.14em;margin:16px 0 6px;color:#F1E0BC;
+  text-shadow:0 2px 22px rgba(184,121,26,.4)}
+.hanja{font-size:12px;letter-spacing:.6em;text-indent:.6em;color:var(--goldD);font-weight:700;margin-bottom:12px}
+.sub{font-size:13.5px;line-height:1.8;color:var(--mut)}
+.divider{display:flex;align-items:center;gap:12px;justify-content:center;margin:20px auto 0;max-width:250px}
 .divider .l{flex:1;height:1px;background:linear-gradient(90deg,transparent,var(--line))}
 .divider .l:last-child{background:linear-gradient(90deg,var(--line),transparent)}
-.divider .d{font-size:11px;color:var(--goldD)}
+.divider .d{font-size:10px;color:var(--goldD)}
+
+/* ── 쟁반 + 쿠키 (2×2) ── */
+.stage{position:relative;z-index:2;padding:34px 14px 4px;display:flex;flex-direction:column;align-items:center}
+.tray{display:grid;grid-template-columns:repeat(2,1fr);gap:4px 34px;justify-items:center;
+  position:relative;z-index:2;width:min(72vw,300px)}
+.cookie{background:none;border:none;cursor:pointer;padding:8px 2px;width:100%;max-width:118px;
+  filter:drop-shadow(0 10px 16px rgba(0,0,0,.5));transition:transform .2s ease,filter .2s ease;
+  animation:bob 3.8s ease-in-out infinite}
+.cookie svg{width:100%;height:auto;display:block}
+.cookie:nth-child(2){animation-delay:.9s}.cookie:nth-child(3){animation-delay:1.8s}
+.cookie:nth-child(4){animation-delay:2.7s}
+@keyframes bob{0%,100%{transform:translateY(0) rotate(-2.5deg)}50%{transform:translateY(-7px) rotate(3deg)}}
+@media(hover:hover){.cookie:hover{transform:translateY(-10px) scale(1.07);filter:drop-shadow(0 14px 20px rgba(0,0,0,.55)) drop-shadow(0 0 18px rgba(229,197,127,.35))}}
+.cookie:active{transform:scale(.93)}
+.cookie.locked{opacity:.22;pointer-events:none;animation:none;filter:grayscale(.5) drop-shadow(0 6px 10px rgba(0,0,0,.4))}
+/* 깨짐 시퀀스: 흔들림 → 두 조각 + 종이 슬립 */
+.cookie.shaking{animation:shake .38s ease}
+@keyframes shake{0%,100%{transform:rotate(0)}20%{transform:rotate(-9deg)}45%{transform:rotate(8deg)}70%{transform:rotate(-6deg)}}
+.crackbox{position:relative}
+.crackbox .half{position:absolute;inset:0;animation-fill-mode:forwards}
+.crackbox .hl{animation:hl .62s ease forwards}
+.crackbox .hr{animation:hr .62s ease forwards}
+@keyframes hl{to{transform:translate(-34%,16%) rotate(-24deg);opacity:0}}
+@keyframes hr{to{transform:translate(34%,16%) rotate(24deg);opacity:0}}
+.crackbox .slip{position:absolute;left:50%;top:44%;width:56%;height:20%;background:#FBF6EB;border-radius:3px;
+  transform:translate(-50%,0);box-shadow:0 3px 10px rgba(0,0,0,.4);animation:slip .62s ease forwards}
+@keyframes slip{from{transform:translate(-50%,10%) scale(.7);opacity:0}30%{opacity:1}to{transform:translate(-50%,-115%) scale(1);opacity:1}}
 /* 쟁반 */
-.tray{position:relative;z-index:2;display:flex;flex-wrap:wrap;justify-content:center;gap:10px 6px;padding:34px 18px 10px;max-width:520px}
-.cookie{background:none;border:none;cursor:pointer;font-size:58px;line-height:1;padding:12px 8px;border-radius:20px;
-  filter:drop-shadow(0 6px 14px rgba(0,0,0,.45));transition:transform .18s ease;animation:bob 3.4s ease-in-out infinite}
-.cookie:nth-child(2){animation-delay:.5s}.cookie:nth-child(3){animation-delay:1.1s}
-.cookie:nth-child(4){animation-delay:1.7s}.cookie:nth-child(5){animation-delay:2.3s}
-@keyframes bob{0%,100%{transform:translateY(0) rotate(-3deg)}50%{transform:translateY(-7px) rotate(4deg)}}
-.cookie:hover{transform:translateY(-9px) scale(1.08)}
-.cookie:active{transform:scale(.92)}
-.cookie.locked{opacity:.28;pointer-events:none;animation:none}
-.cookie.crack{animation:crack .8s ease forwards}
-@keyframes crack{0%{transform:scale(1) rotate(0)}30%{transform:scale(1.25) rotate(-8deg)}55%{transform:scale(1.15) rotate(9deg)}100%{transform:scale(0) rotate(30deg);opacity:0}}
-.status{position:relative;z-index:2;font-size:12.5px;color:var(--mut);min-height:20px;text-align:center;padding:6px 20px}
-/* 티켓 오버레이 */
-.ovl{position:fixed;inset:0;background:rgba(15,11,7,.72);backdrop-filter:blur(4px);z-index:100;
+.plate{position:relative;z-index:1;margin:-44px auto 0;width:min(84vw,400px);height:96px;border-radius:50%;
+  background:radial-gradient(ellipse at 50% 30%,#3B2B16 0%,#2B1F10 55%,#221808 100%);
+  border:1px solid rgba(229,197,127,.22);
+  box-shadow:inset 0 3px 14px rgba(229,197,127,.12),inset 0 -6px 18px rgba(0,0,0,.5),0 22px 44px rgba(0,0,0,.55)}
+.plate::after{content:"";position:absolute;inset:9px;border-radius:50%;border:1px solid rgba(229,197,127,.12)}
+
+.status{position:relative;z-index:2;font-size:12.5px;color:var(--mut);min-height:20px;text-align:center;padding:24px 20px 6px;letter-spacing:.02em}
+
+/* ── 티켓 ── */
+.ovl{position:fixed;inset:0;background:rgba(12,9,5,.76);backdrop-filter:blur(5px);z-index:100;
   display:flex;align-items:center;justify-content:center;padding:18px;overflow-y:auto}
 .ovl[hidden]{display:none}
-.ticket{background:var(--paper);color:var(--ink);border-radius:18px;max-width:400px;width:100%;
-  padding:30px 26px 22px;position:relative;box-shadow:0 24px 70px rgba(0,0,0,.55);
-  border:1px solid #E2D5B8;animation:rise .45s cubic-bezier(.2,.9,.3,1.2)}
-@keyframes rise{from{transform:translateY(46px) scale(.94);opacity:0}to{transform:none;opacity:1}}
-.seal{position:absolute;top:-20px;left:50%;transform:translateX(-50%);width:44px;height:44px;border-radius:50%;
-  background:linear-gradient(135deg,#8A6A2E,#B8791A);color:#FFF6E2;display:flex;align-items:center;justify-content:center;
-  font-weight:800;font-size:19px;box-shadow:0 5px 16px rgba(138,106,46,.5);border:2px solid #F1E0BC}
-.t-eyebrow{text-align:center;font-size:11.5px;letter-spacing:.16em;color:#95610F;font-weight:700;margin:8px 0 14px}
-.t-fortune{text-align:center;font-size:19px;font-weight:800;line-height:1.65;letter-spacing:-.01em;word-break:keep-all}
-.t-tip{text-align:center;font-size:13px;color:#837968;margin-top:11px;line-height:1.6;word-break:keep-all}
-.t-div{height:0;border-top:1.5px dashed #D8C9A6;margin:18px -8px;position:relative}
-.t-div::before,.t-div::after{content:"";position:absolute;top:-9px;width:18px;height:18px;border-radius:50%;background:#221910}
-.t-div::before{left:-27px}.t-div::after{right:-27px}
+.ticket{background:var(--paper);color:var(--ink);border-radius:16px;max-width:400px;width:100%;
+  padding:34px 26px 20px;position:relative;box-shadow:0 30px 80px rgba(0,0,0,.6);
+  background-image:repeating-linear-gradient(0deg,rgba(90,60,20,.016) 0 1px,transparent 1px 3px);
+  animation:rise .5s cubic-bezier(.2,.9,.3,1.15)}
+.ticket::before{content:"";position:absolute;inset:9px;border:1px solid rgba(184,121,26,.32);border-radius:10px;pointer-events:none}
+.ticket::after{content:"";position:absolute;inset:12px;border:1px solid rgba(184,121,26,.14);border-radius:8px;pointer-events:none}
+@keyframes rise{from{transform:translateY(50px) scale(.93);opacity:0}to{transform:none;opacity:1}}
+.seal{position:absolute;top:-22px;left:50%;transform:translateX(-50%);width:46px;height:46px;border-radius:50%;
+  background:radial-gradient(circle at 32% 28%,#C99A45,#8A6A2E 70%);color:#FFF6E2;display:flex;align-items:center;justify-content:center;
+  font-weight:800;font-size:19px;box-shadow:0 6px 18px rgba(0,0,0,.4),inset 0 1px 2px rgba(255,246,226,.5);
+  border:2px solid #F1E0BC}
+.seal::after{content:"";position:absolute;inset:4px;border-radius:50%;border:1px solid rgba(255,246,226,.4)}
+.t-eyebrow{text-align:center;font-size:11px;letter-spacing:.22em;text-indent:.22em;color:#95610F;font-weight:700;margin:10px 0 16px}
+.t-fortune{text-align:center;font-size:19.5px;font-weight:800;line-height:1.7;letter-spacing:-.01em;word-break:keep-all;padding:0 4px}
+.t-tip{text-align:center;font-size:13px;color:#837968;margin-top:12px;line-height:1.65;word-break:keep-all}
+.t-div{height:0;border-top:1.5px dashed #D8C9A6;margin:19px -4px;position:relative}
+.t-div::before,.t-div::after{content:"";position:absolute;top:-10px;width:20px;height:20px;border-radius:50%;background:#1E1509;box-shadow:inset 0 2px 6px rgba(0,0,0,.5)}
+.t-div::before{left:-37px}.t-div::after{right:-37px}
 /* 오늘의 병 */
-.bottle{display:flex;gap:12px;align-items:center;background:#FFFDF8;border:1px solid #E6DFD3;border-radius:13px;padding:11px 13px;
-  text-decoration:none;color:inherit;transition:border-color .15s}
-.bottle:hover{border-color:#D9BE8A}
+.bottle{display:flex;gap:12px;align-items:center;background:#FFFDF8;border:1px solid #E6DFD3;border-radius:13px;padding:12px 14px;
+  text-decoration:none;color:inherit;transition:border-color .15s,box-shadow .15s;position:relative;z-index:1}
+.bottle:hover{border-color:#D9BE8A;box-shadow:0 4px 14px rgba(184,121,26,.12)}
 .bottle img{width:46px;height:60px;object-fit:contain;flex:0 0 auto}
 .bottle .fb{font-size:34px;width:46px;text-align:center}
-.b-k{font-size:10.5px;font-weight:800;color:#95610F;letter-spacing:.1em}
+.b-k{font-size:10.5px;font-weight:800;color:#95610F;letter-spacing:.12em}
 .b-n{font-size:14px;font-weight:800;margin:2px 0;line-height:1.4;word-break:keep-all}
 .b-m{font-size:12px;color:#837968}
 .b-m b.hot{color:#B0431F}
 .b-go{margin-left:auto;font-size:12px;color:#95610F;font-weight:700;white-space:nowrap}
-.btns{display:flex;flex-direction:column;gap:8px;margin-top:16px}
-.btn{border:none;border-radius:11px;padding:12px;font-size:14px;font-weight:700;cursor:pointer;font-family:inherit;transition:transform .12s}
+.btns{display:flex;flex-direction:column;gap:8px;margin-top:17px;position:relative;z-index:1}
+.btn{border:none;border-radius:11px;padding:12.5px;font-size:14px;font-weight:700;cursor:pointer;font-family:inherit;transition:transform .12s,box-shadow .15s}
 .btn:active{transform:scale(.97)}
-.btn-main{background:linear-gradient(135deg,#8A6A2E,#B8791A);color:#FFF6E2}
-.btn-ghost{background:#EFE8D8;color:#5A4A2E}
+.btn-main{background:linear-gradient(135deg,#8A6A2E,#B8791A);color:#FFF6E2;box-shadow:0 4px 14px rgba(138,106,46,.35);letter-spacing:.02em}
+.btn-kakao{background:#FEE500;color:#3C1E1E;box-shadow:0 4px 14px rgba(254,229,0,.28);display:flex;align-items:center;justify-content:center;gap:8px;letter-spacing:.02em}
+.btn-kakao svg{width:19px;height:19px}
+.btn-ghost{background:transparent;color:#5A4A2E;border:1px solid #D8C9A6}
+.btn-ghost:hover{border-color:#B8791A}
 .btn-close{background:none;color:#9A8F7E;font-size:13px;padding:8px}
 .reroll{font-size:12px;color:#95610F;background:none;border:none;cursor:pointer;font-weight:700;margin-top:10px;font-family:inherit;text-decoration:underline;text-underline-offset:3px}
-.notice{font-size:10.5px;color:#A79B87;text-align:center;margin-top:13px;line-height:1.6}
-footer{position:relative;z-index:2;margin-top:auto;padding:30px 20px 40px;text-align:center}
-footer a{color:var(--mut);font-size:13px;text-decoration:none;font-weight:600}
+.notice{font-size:10.5px;color:#A79B87;text-align:center;margin-top:14px;line-height:1.65;position:relative;z-index:1}
+footer{position:relative;z-index:2;margin-top:auto;padding:34px 20px 44px;text-align:center}
+footer a{color:var(--mut);font-size:13px;text-decoration:none;font-weight:600;letter-spacing:.02em}
 footer a:hover{color:var(--gold)}
 .toast{position:fixed;bottom:26px;left:50%;transform:translateX(-50%);background:#3A2C16;color:#F1E6CE;border:1px solid var(--line);
-  padding:10px 18px;border-radius:24px;font-size:13px;z-index:300;opacity:0;transition:opacity .25s;pointer-events:none}
+  padding:10px 18px;border-radius:24px;font-size:13px;z-index:300;opacity:0;transition:opacity .25s;pointer-events:none;white-space:nowrap}
 .toast.on{opacity:1}
-@media(max-width:400px){.cookie{font-size:50px}h1{font-size:27px}}
+#againBtn{margin:8px auto 0;display:block;padding:12px 26px}
+@media(max-width:400px){h1{font-size:26px}.plate{height:82px}}
 </style>
 </head>
 <body>
@@ -94,15 +138,33 @@ footer a:hover{color:var(--gold)}
 
 <header>
   <p class="eyebrow">합리적으로 사고, 즐겁게 마시다</p>
-  <h1>🥠 주락 포춘</h1>
+  <h1>주락 포춘</h1>
+  <p class="hanja">酒 樂 · 運 勢</p>
   <p class="sub">쟁반 위 쿠키 하나를 골라 오늘의 술 운세를 여세요.<br>하루 한 번 — 자정에 새 운세가 도착합니다.</p>
-  <div class="divider" aria-hidden="true"><span class="l"></span><span class="d">✦ 酒 ✦</span><span class="l"></span></div>
+  <div class="divider" aria-hidden="true"><span class="l"></span><span class="d">✦</span><span class="l"></span></div>
 </header>
 
-<main style="position:relative;z-index:2">
-  <section class="tray" id="tray" aria-label="포춘쿠키 선택"></section>
+<main style="position:relative;z-index:2;display:flex;flex-direction:column;align-items:center">
+  <div class="stage">
+    <section class="tray" id="tray" aria-label="포춘쿠키 선택"></section>
+    <div class="plate" aria-hidden="true"></div>
+  </div>
   <p class="status" id="status"></p>
 </main>
+
+<svg width="0" height="0" style="position:absolute" aria-hidden="true">
+  <defs>
+    <linearGradient id="ckG" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#F0DCA8"/><stop offset=".45" stop-color="#D9A94E"/><stop offset="1" stop-color="#8A5A1D"/>
+    </linearGradient>
+    <g id="ckBody">
+      <path d="M60 10 C 94 10 116 36 113 62 C 111 75 101 81 92 76 C 81 70 72 77 67 88 C 63 97 57 97 53 88 C 48 77 39 70 28 76 C 19 81 9 75 7 62 C 4 36 26 10 60 10 Z" fill="url(#ckG)"/>
+      <path d="M60 10 C 74 26 74 76 60 94" stroke="rgba(88,52,12,.4)" stroke-width="3" fill="none" stroke-linecap="round"/>
+      <ellipse cx="40" cy="32" rx="15" ry="7" fill="rgba(255,246,220,.4)" transform="rotate(-20 40 32)"/>
+      <ellipse cx="86" cy="38" rx="7" ry="3.5" fill="rgba(255,246,220,.2)" transform="rotate(24 86 38)"/>
+    </g>
+  </defs>
+</svg>
 
 <div class="ovl" id="ovl" hidden>
   <div class="ticket" role="dialog" aria-modal="true">
@@ -113,8 +175,9 @@ footer a:hover{color:var(--gold)}
     <div class="t-div" aria-hidden="true"></div>
     <a class="bottle" id="tBottle" target="_blank" rel="noopener" hidden></a>
     <div class="btns">
+      <button class="btn btn-kakao" id="btnKakao"><svg viewBox="0 0 18 18" fill="none" aria-hidden="true"><path d="M9 1.5C4.5 1.5 1 4.4 1 8c0 2.3 1.5 4.4 3.7 5.5-.16.6-.6 2.2-.7 2.5-.1.4.14.4.3.3.13-.1 2-1.4 2.8-1.9.6.1 1.2.15 1.9.15 4.5 0 8-2.9 8-6.5S13.5 1.5 9 1.5z" fill="#3C1E1E"/></svg>카카오톡으로 공유</button>
       <button class="btn btn-main" id="btnImg">🖼 이미지로 저장</button>
-      <button class="btn btn-ghost" id="btnShare">📤 공유하기</button>
+      <button class="btn btn-ghost" id="btnShare">📤 다른 앱으로 공유</button>
       <button class="btn btn-close" id="btnClose">닫기</button>
     </div>
     <div style="text-align:center"><button class="reroll" id="btnReroll">😅 오늘 운세 이건 아니다… 딱 한 번만 다시</button></div>
@@ -189,6 +252,14 @@ const FORTUNES=[
 const MOOD_CAT={peat:["위스키"],sherry:["위스키"],bourbon:["위스키"],wine:["와인"],spark:["스파클링"],sake:["사케","전통주"],high:["하이볼"]};
 const MOOD_LABEL={peat:"강렬한 한 병",sherry:"달콤한 한 병",bourbon:"화통한 한 병",wine:"무드 있는 한 병",spark:"축하의 한 병",sake:"정갈한 한 병",high:"청량한 한 병"};
 
+const COOKIES=4;  // 2×2 쟁반
+
+// 카카오 JS 앱키 — 카카오 developers 콘솔에서 발급해 붙여넣으면 '카카오톡으로 공유'가 네이티브 피드 카드로 동작.
+// 비어 있으면 카톡 버튼은 자동으로 기기 공유시트(모바일 카톡 포함)→클립보드 순으로 폴백.
+const KAKAO_JS_KEY="";
+if(KAKAO_JS_KEY && window.Kakao && !Kakao.isInitialized()){try{Kakao.init(KAKAO_JS_KEY);}catch(e){}}
+const kakaoReady=()=>!!(KAKAO_JS_KEY && window.Kakao && Kakao.isInitialized());
+
 const esc=s=>String(s??"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
 function mulberry32(a){return function(){a|=0;a=a+0x6D2B79F5|0;let t=Math.imul(a^a>>>15,1|a);t=t+Math.imul(t^t>>>7,61|t)^t;return((t^t>>>14)>>>0)/4294967296;}}
 const todayKey=()=>{const d=new Date();return d.getFullYear()*10000+(d.getMonth()+1)*100+d.getDate();};
@@ -201,17 +272,18 @@ let DATA=null, CUR=null;
 fetch("../data.json?t="+Date.now(),{cache:"no-store"}).then(r=>r.json()).then(d=>{DATA=d; if(CUR)fillBottle(CUR);}).catch(()=>{});
 
 /* 골드 입자 */
-(()=>{const box=document.getElementById("dust");for(let i=0;i<18;i++){const s=document.createElement("i");
- s.style.left=(Math.random()*100)+"vw";s.style.animationDelay=(Math.random()*9)+"s";s.style.animationDuration=(7+Math.random()*6)+"s";
- s.style.width=s.style.height=(2+Math.random()*2.5)+"px";box.appendChild(s);}})();
+(()=>{const box=document.getElementById("dust");for(let i=0;i<16;i++){const s=document.createElement("i");
+ s.style.left=(Math.random()*100)+"vw";s.style.animationDelay=(Math.random()*11)+"s";s.style.animationDuration=(8+Math.random()*7)+"s";
+ s.style.width=s.style.height=(1.6+Math.random()*2.4)+"px";box.appendChild(s);}})();
 
 /* 쟁반 */
 const tray=document.getElementById("tray"), status=document.getElementById("status");
+const COOKIE_SVG=`<svg viewBox="0 0 120 104"><use href="#ckBody"/></svg>`;
 function buildTray(locked){
   tray.innerHTML="";
-  for(let i=0;i<5;i++){
+  for(let i=0;i<COOKIES;i++){
     const b=document.createElement("button");
-    b.className="cookie"+(locked?" locked":"");b.textContent="🥠";b.setAttribute("aria-label",`포춘쿠키 ${i+1}번`);
+    b.className="cookie"+(locked?" locked":"");b.innerHTML=COOKIE_SVG;b.setAttribute("aria-label",`포춘쿠키 ${i+1}번`);
     b.onclick=()=>pick(i);
     tray.appendChild(b);
   }
@@ -220,7 +292,7 @@ function buildTray(locked){
   if(locked){
     const again=document.createElement("button");
     again.id="againBtn";
-    again.className="btn btn-main";again.style.cssText="margin:6px auto 0;display:block;padding:11px 22px";
+    again.className="btn btn-main";
     again.textContent="🎫 오늘의 운세 다시 보기";
     again.onclick=()=>{const s=loadState();if(s)openTicket(s,false);};
     status.after(again);
@@ -229,15 +301,25 @@ function buildTray(locked){
 function pick(i){
   const btns=[...tray.children];
   btns.forEach((b,j)=>{if(j!==i)b.classList.add("locked");});
-  btns[i].classList.add("crack");
+  const b=btns[i];
+  b.style.pointerEvents="none";
+  b.classList.add("shaking");
   const s={d:todayKey(),i,r:0};
   saveState(s);
-  setTimeout(()=>openTicket(s,true),650);
+  setTimeout(()=>{  // 흔들림 → 두 조각 + 종이 슬립
+    b.classList.remove("shaking");b.style.animation="none";
+    b.innerHTML=`<div class="crackbox">
+      <div class="half hl" style="clip-path:inset(0 50% 0 0)">${COOKIE_SVG}</div>
+      <div class="half hr" style="clip-path:inset(0 0 0 50%)">${COOKIE_SVG}</div>
+      <div style="visibility:hidden">${COOKIE_SVG}</div>
+      <div class="slip"></div></div>`;
+  },400);
+  setTimeout(()=>openTicket(s,true),1080);
 }
 
 /* 티켓 */
 const ovl=document.getElementById("ovl");
-// 날짜 시드로 운세 풀을 셔플 → 쿠키 i는 i번째, 재뽑기는 i+5번째.
+// 날짜 시드로 운세 풀을 셔플 → 쿠키 i는 i번째, 재뽑기는 i+COOKIES번째.
 // 같은 날 어떤 쿠키를 골라도(재뽑기 포함) 전부 서로 다른 운세가 보장된다.
 function dayPerm(d){
   const rnd=mulberry32((Math.imul(d,2654435761))>>>0); rnd(); rnd();
@@ -246,7 +328,7 @@ function dayPerm(d){
   return a;
 }
 function fortuneFor(s){
-  return FORTUNES[dayPerm(s.d)[s.i + s.r*5]];
+  return FORTUNES[dayPerm(s.d)[s.i + s.r*COOKIES]];
 }
 function openTicket(s,fresh){
   const f=fortuneFor(s); CUR={s,f};
@@ -288,7 +370,7 @@ function toast(m){const t=document.getElementById("toast");t.textContent=m;t.cla
 function drawCard(){
   const W=1080,H=1350,c=document.createElement("canvas");c.width=W;c.height=H;
   const x=c.getContext("2d");
-  const g=x.createLinearGradient(0,0,0,H);g.addColorStop(0,"#1C140C");g.addColorStop(1,"#2A2013");
+  const g=x.createLinearGradient(0,0,0,H);g.addColorStop(0,"#15100A");g.addColorStop(1,"#261B0E");
   x.fillStyle=g;x.fillRect(0,0,W,H);
   x.strokeStyle="#B8791A";x.lineWidth=3;x.strokeRect(46,46,W-92,H-92);
   x.strokeStyle="rgba(229,197,127,.35)";x.lineWidth=1;x.strokeRect(60,60,W-120,H-120);
@@ -296,13 +378,11 @@ function drawCard(){
   x.font="600 30px Pretendard, sans-serif";x.fillText("합리적으로 사고, 즐겁게 마시다",W/2,170);
   x.font="800 76px Pretendard, sans-serif";x.fillStyle="#F1E0BC";x.fillText("🥠 주락 포춘",W/2,272);
   x.font="600 32px Pretendard, sans-serif";x.fillStyle="#95610F";x.fillText(`오늘의 술 운세 · ${dateLabel()}`,W/2,352);
-  // 운세 본문
   x.fillStyle="#F7F2E8";x.font="800 52px Pretendard, sans-serif";
   const lines=CUR.f.t.split("\n");let y=560;
   lines.forEach(l=>{x.fillText(l,W/2,y);y+=84;});
   x.fillStyle="#B4A17C";x.font="500 34px Pretendard, sans-serif";
   wrapText(x,"✦ "+CUR.f.a,W/2,y+40,860,52);
-  // 오늘의 병
   if(CUR.p){
     x.strokeStyle="rgba(229,197,127,.3)";x.beginPath();x.moveTo(150,H-420);x.lineTo(W-150,H-420);x.stroke();
     x.fillStyle="#95610F";x.font="700 28px Pretendard, sans-serif";x.fillText("운세가 고른 오늘의 한 병",W/2,H-350);
@@ -328,13 +408,34 @@ document.getElementById("btnImg").onclick=()=>{
     toast("이미지가 저장됐어요 🖼");
   }catch(e){toast("이미지 생성에 실패했어요 🙏");}
 };
-document.getElementById("btnShare").onclick=async()=>{
-  const text=`🥠 오늘의 술 운세\n"${CUR.f.t.replace(/\n/g," ")}"\n${CUR.p?`오늘의 한 병: ${CUR.p.name}\n`:""}— 주락 포춘`;
-  const url="https://jurak.kr/fortune/";
+function shareText(){return `🥠 오늘의 술 운세\n"${CUR.f.t.replace(/\n/g," ")}"\n${CUR.p?`오늘의 한 병: ${CUR.p.name}\n`:""}— 주락 포춘`;}
+const SHARE_URL="https://jurak.kr/fortune/";
+async function genericShare(){
+  const text=shareText();
   try{
-    if(navigator.share){await navigator.share({title:"주락 포춘 — 오늘의 술 운세",text,url});return;}
-    await navigator.clipboard.writeText(text+"\n"+url);toast("운세가 복사됐어요 — 붙여넣어 공유하세요 📋");
+    if(navigator.share){await navigator.share({title:"주락 포춘 — 오늘의 술 운세",text,url:SHARE_URL});return;}
+    await navigator.clipboard.writeText(text+"\n"+SHARE_URL);toast("운세가 복사됐어요 — 붙여넣어 공유하세요 📋");
   }catch(e){}
+}
+document.getElementById("btnShare").onclick=genericShare;
+document.getElementById("btnKakao").onclick=()=>{
+  if(kakaoReady()){
+    try{
+      Kakao.Share.sendDefault({
+        objectType:"feed",
+        content:{
+          title:`🥠 오늘의 술 운세 · ${dateLabel()}`,
+          description:CUR.f.t.replace(/\n/g," ")+(CUR.p?`\n오늘의 한 병: ${CUR.p.name}`:""),
+          imageUrl:"https://jurak.kr/fortune/share-hero.png",
+          imageWidth:1200,imageHeight:630,
+          link:{mobileWebUrl:SHARE_URL,webUrl:SHARE_URL},
+        },
+        buttons:[{title:"나도 운세 뽑기",link:{mobileWebUrl:SHARE_URL,webUrl:SHARE_URL}}],
+      });
+      return;
+    }catch(e){}
+  }
+  genericShare();  // JS키 미설정/실패 시 폴백 (모바일 공유시트에 카카오톡 포함)
 };
 
 /* 초기화 */
