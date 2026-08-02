@@ -635,6 +635,16 @@ function shareProduct(sku){
 }
 const SPECIAL="🔥특가";
 const isSpecial=p=>p.price_diff_percent!=null&&p.price_diff_percent<=-20&&p.in_stock;
+// 같은 와인이 지점별 다중 SKU로 등록돼 특가에 중복될 때, 매칭된 데일리샷 상품 기준으로 재고 많은 1개만 남김
+function dedupWine(arr){
+  const best=new Map();
+  for(const p of arr){
+    const k=p.dailyshot_url||("n:"+(p.name||"").replace(/\s+/g,""));
+    const prev=best.get(k);
+    if(!prev||(p.stores_in_stock_count||0)>(prev.stores_in_stock_count||0))best.set(k,p);
+  }
+  return [...best.values()];
+}
 function render(){
   const s=DATA.stats;
   const _hide=((state.q||"").trim()||state.watchOnly)?"none":"";  // 검색·관심모드 중엔 브리핑·최근본 숨김
@@ -657,7 +667,7 @@ function render(){
   }).join("");
   // 목록: base + 카테고리 필터
   let list=base;
-  if(state.cat===SPECIAL)list=list.filter(isSpecial);
+  if(state.cat===SPECIAL)list=dedupWine(list.filter(isSpecial));  // 같은 와인 다중 SKU → 재고 많은 1개만
   else if(state.cat!=="전체")list=list.filter(p=>p.category===state.cat);
   const key={stock_desc:p=>-computeStore(p).inv,price_asc:p=>computeStore(p).price||9e9,price_desc:p=>-(computeStore(p).price||0),name:p=>p.name,
              discount:p=>p.price_diff_percent==null?9e9:p.price_diff_percent};  // 데일리샷 대비 할인율 큰순
