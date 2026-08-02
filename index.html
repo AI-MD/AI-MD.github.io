@@ -962,6 +962,8 @@ fetch("data.json?t="+Date.now(),{cache:"no-store"}).then(r=>r.json()).then(d=>{
   if(qs.get("bottle")==="1"){setTimeout(()=>switchView("bottle"),100);}  // 바틀샵 지도 딥링크
   if(qs.get("radar")==="1"){setTimeout(()=>switchView("radar"),100);}  // 특가 레이더 딥링크
   if(qs.get("expo")==="1"){setTimeout(()=>switchView("expo"),100);}  // 전시·박람회 딥링크
+  if(qs.get("colkage")==="1"){setTimeout(()=>switchView("colkage"),100);}  // 콜키지 딥링크(SEO)
+  if(qs.get("learn")==="1"){setTimeout(()=>switchView("learn"),100);}  // 알쓸신주 딥링크(SEO)
   initExpoTeaser();  // 딜 뷰 상단 다가오는 행사 배너
   const q0=qs.get("q"); if(q0){const qi=document.getElementById("q");qi.value=q0;state.q=q0;}  // 검색 딥링크 (?q= — SEO SearchAction)
   const st0=qs.get("store"); if(st0&&BRANCH[st0]){state.store=st0;document.getElementById("store").value=st0;}  // 지점 딥링크 (?store= — 지점 페이지 연동)
