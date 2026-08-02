@@ -256,7 +256,7 @@ const COOKIES=4;  // 2×2 쟁반
 
 // 카카오 JS 앱키 — 카카오 developers 콘솔에서 발급해 붙여넣으면 '카카오톡으로 공유'가 네이티브 피드 카드로 동작.
 // 비어 있으면 카톡 버튼은 자동으로 기기 공유시트(모바일 카톡 포함)→클립보드 순으로 폴백.
-const KAKAO_JS_KEY="";
+const KAKAO_JS_KEY="320f5652c2ef61e06dad76fe4caaf817";
 if(KAKAO_JS_KEY && window.Kakao && !Kakao.isInitialized()){try{Kakao.init(KAKAO_JS_KEY);}catch(e){}}
 const kakaoReady=()=>!!(KAKAO_JS_KEY && window.Kakao && Kakao.isInitialized());
 
