@@ -399,6 +399,7 @@
   <button id="navMore" class="minor" onclick="toggleMoreNav(event)" title="콜키지프리 식당 · 술 지식">≡ 더보기</button>
   <div id="moreNav" hidden>
     <button id="navColkage" onclick="switchView('colkage');document.getElementById('moreNav').hidden=true" title="내 술 들고 가는 콜키지프리 식당">🍽 콜키지 다이닝</button>
+    <button id="navAge" onclick="switchView('age');document.getElementById('moreNav').hidden=true" title="싱글몰트 12·15·18·21년 연수별 최저가·인기 랭킹 + 증류소 사다리">🥃 연수별 시세</button>
     <button id="navSool" onclick="switchView('sool');document.getElementById('moreNav').hidden=true" title="우리술 — 전통주 인기 큐레이션 + 온라인 구매 연결">🍶 전통주</button>
     <button id="navBottle" onclick="switchView('bottle');document.getElementById('moreNav').hidden=true" title="전국 바틀샵·위스키바 지도">🥃 바틀샵·바 지도</button>
     <button id="navRadar" onclick="switchView('radar');document.getElementById('moreNav').hidden=true" title="커뮤니티 성지 특가 제보 모음">📡 특가 레이더</button>
@@ -479,6 +480,14 @@
   <div class="rc" id="prc"></div>
   <div class="grid" id="pgrid"></div>
   <div id="pmore" style="text-align:center;margin:22px 0"></div>
+</div></main></section>
+<section id="viewAge" hidden>
+  <div class="warn"><h2 style="display:inline;font-size:inherit;font-weight:800;margin:0">🥃 싱글몰트 연수별 시세</h2> · 12·15·18·21년을 <b>데일리샷 최저가</b>로 비교 — 증류소별 <b>가격 사다리</b>와 연수별 <b>최저가·인기 랭킹</b>. 주 1회 갱신 · <b>가격은 판매처·시점에 따라 달라요.</b></div>
+  <main><div class="wrap">
+  <div class="agetab" id="ageModeTab"></div>
+  <div id="ageControls" style="margin:10px 0"></div>
+  <div class="rc" id="agerc"></div>
+  <div id="ageBody"></div>
 </div></main></section>
 <section id="viewSool" hidden>
   <div class="warn"><h2 style="display:inline;font-size:inherit;font-weight:800;margin:0">🍶 전통주 — 우리술 인기 큐레이션</h2> · 증류식 소주·막걸리·약주·과실주를 <b>인기·평점순</b>으로. <b>전통주는 온라인 직구매가 되는 유일한 주종</b>이라 구매처로 바로 연결돼요. 주 1회 갱신 · <b>가격은 판매처·시점에 따라 다를 수 있어요.</b></div>
@@ -978,6 +987,7 @@ fetch("data.json?t="+Date.now(),{cache:"no-store"}).then(r=>r.json()).then(d=>{
   if(qs.get("colkage")==="1"){setTimeout(()=>switchView("colkage"),100);}  // 콜키지 딥링크(SEO)
   if(qs.get("learn")==="1"){setTimeout(()=>switchView("learn"),100);}  // 알쓸신주 딥링크(SEO)
   if(qs.get("sool")==="1"){setTimeout(()=>switchView("sool"),100);}  // 전통주 딥링크
+  if(qs.get("age")==="1"){setTimeout(()=>switchView("age"),100);}  // 연수별 시세 딥링크
   initExpoTeaser();  // 딜 뷰 상단 다가오는 행사 배너
   const q0=qs.get("q"); if(q0){const qi=document.getElementById("q");qi.value=q0;state.q=q0;}  // 검색 딥링크 (?q= — SEO SearchAction)
   const st0=qs.get("store"); if(st0&&BRANCH[st0]){state.store=st0;document.getElementById("store").value=st0;}  // 지점 딥링크 (?store= — 지점 페이지 연동)
@@ -1002,10 +1012,10 @@ function colkageNear(){
   },()=>{btn.textContent="📍 내 주변";alert("위치 권한을 허용하면 가까운 식당순으로 볼 수 있어요.");});
 }
 function switchView(m){
-  const V={liquor:"viewLiquor",pick:"viewPick",colkage:"viewColkage",learn:"viewLearn",bottle:"viewBottle",radar:"viewRadar",expo:"viewExpo",sool:"viewSool"};
-  const N={liquor:"navLiquor",pick:"navPick",colkage:"navColkage",learn:"navLearn",bottle:"navBottle",radar:"navRadar",expo:"navExpo",sool:"navSool"};
+  const V={liquor:"viewLiquor",pick:"viewPick",colkage:"viewColkage",learn:"viewLearn",bottle:"viewBottle",radar:"viewRadar",expo:"viewExpo",sool:"viewSool",age:"viewAge"};
+  const N={liquor:"navLiquor",pick:"navPick",colkage:"navColkage",learn:"navLearn",bottle:"navBottle",radar:"navRadar",expo:"navExpo",sool:"navSool",age:"navAge"};
   for(const k in V){const v=document.getElementById(V[k]);if(v)v.hidden=(k!==m);const n=document.getElementById(N[k]);if(n)n.classList.toggle("on",k===m);}
-  const mb=document.getElementById("navMore");if(mb)mb.classList.toggle("on",["colkage","learn","bottle","radar","expo","sool"].includes(m));
+  const mb=document.getElementById("navMore");if(mb)mb.classList.toggle("on",["colkage","learn","bottle","radar","expo","sool","age"].includes(m));
   track("view",{v:m});
   if(m==="colkage"){loadColkage(); if(cmap)[60,300,700].forEach(t=>setTimeout(()=>cmap.invalidateSize(),t));}
   else if(m==="learn")renderLearn();
@@ -1014,6 +1024,7 @@ function switchView(m){
   else if(m==="radar")loadRadar();
   else if(m==="expo")loadExpo();
   else if(m==="sool")loadSool();
+  else if(m==="age")loadAge();
   window.scrollTo(0,0);
 }
 // ── 📡 특가 레이더 — 커뮤니티 제보 링크 모음 (제목은 신뢰불가 입력 → 전부 esc) ─────
@@ -1577,6 +1588,75 @@ function renderSool(){
   document.getElementById("sgrid").innerHTML=list.length?shown.map(soolCard).join(""):`<div class="empty"><div style="font-size:44px">🍶</div><div style="margin-top:12px">결과가 없습니다</div></div>`;
   document.getElementById("smore").innerHTML=list.length>shown.length?`<button class="distbtn on" style="padding:11px 22px;cursor:pointer" onclick="sshown+=24;renderSool()">더 보기 (${(list.length-shown.length).toLocaleString()}종)</button>`:"";
 }
+// ── 🥃 싱글몰트 연수별 시세 (증류소 사다리 + 연수별 랭킹) ──────────────
+let AGEDATA=null, ageLoaded=false, ageMode="ladder", ageYear="12", ageSort="pop";
+function loadAge(){
+  if(ageLoaded)return; ageLoaded=true;
+  document.getElementById("agerc").textContent="시세 불러오는 중…";
+  fetch("agecompare.json?t="+Date.now(),{cache:"no-store"}).then(r=>r.json()).then(d=>{AGEDATA=d;renderAge();})
+    .catch(()=>{document.getElementById("agerc").innerHTML='<div class="empty">시세를 준비 중이에요. 잠시 후 다시 열어주세요.</div>';});
+}
+const AGE_COL=["#C98A2E","#B8791A","#9A6412","#7C4F0E","#5E3B0A","#472C08"];  // 연수 높을수록 진한 골드
+function renderAge(){
+  if(!AGEDATA)return;
+  document.getElementById("ageModeTab").innerHTML=
+    [["ladder","🪜 증류소 사다리"],["rank","📊 연수별 랭킹"]].map(([k,l])=>
+      `<button class="cattab ${ageMode===k?'on':''}" style="cursor:pointer" onclick="ageSort='${k==='ladder'?'pop':'price'}';ageMode='${k}';renderAge()">${l}</button>`).join("");
+  const ctl=document.getElementById("ageControls");
+  if(ageMode==="ladder"){
+    ctl.innerHTML=`<select onchange="ageSort=this.value;renderAge()"><option value="pop"${ageSort==='pop'?' selected':''}>인기순</option><option value="cheap"${ageSort==='cheap'?' selected':''}>입문가(최저연수) 저렴순</option><option value="jump"${ageSort==='jump'?' selected':''}>가격점프 큰순</option></select>`;
+    renderLadders();
+  }else{
+    const years=AGEDATA.ages.filter(a=>AGEDATA.distilleries.some(d=>d.ladder[a]));
+    ctl.innerHTML=`<div class="expofil">${years.map(y=>`<button class="efb ${String(y)===ageYear?'on':''}" onclick="ageYear='${y}';renderAge()">${y}년</button>`).join("")}</div><select onchange="ageSort=this.value;renderAge()" style="margin-top:2px"><option value="price"${ageSort==='price'?' selected':''}>최저가순</option><option value="pop"${ageSort==='pop'?' selected':''}>인기순</option></select>`;
+    renderRank();
+  }
+}
+function renderLadders(){
+  let list=AGEDATA.distilleries.slice();
+  const mult=d=>{const p=Object.values(d.ladder).map(v=>v.price);return Math.max(...p)/Math.min(...p);};
+  if(ageSort==="cheap")list.sort((a,b)=>a.ladder[Object.keys(a.ladder)[0]].price-b.ladder[Object.keys(b.ladder)[0]].price);
+  else if(ageSort==="jump")list.sort((a,b)=>mult(b)-mult(a));
+  else list.sort((a,b)=>b.review_total-a.review_total);
+  document.getElementById("agerc").innerHTML=`🪜 <b>${list.length}</b>개 증류소 · 연수별 데일리샷 최저가 <span style="color:var(--sub)">· 막대는 상대가격</span>`;
+  document.getElementById("ageBody").innerHTML=list.map((d,i)=>{
+    const ages=Object.keys(d.ladder).map(Number).sort((a,b)=>a-b);
+    const prices=ages.map(a=>d.ladder[a].price), mx=Math.max(...prices);
+    const m=(Math.max(...prices)/Math.min(...prices));
+    const rows=ages.map((a,j)=>{
+      const v=d.ladder[a], w=Math.max(14,Math.round(v.price/mx*100));
+      const col=AGE_COL[Math.min(AGE_COL.length-1,[10,12,15,18,21,25].indexOf(a))]||"#B8791A";
+      return `<a href="${esc(v.url)}" target="_blank" rel="noopener" style="display:flex;align-items:center;gap:8px;text-decoration:none;color:inherit;margin:3px 0">
+        <span style="flex:0 0 34px;font-size:12px;font-weight:800;color:var(--amberD)">${a}년</span>
+        <span style="flex:1;background:#F0EADD;border-radius:6px;height:20px;position:relative;overflow:hidden">
+          <span style="position:absolute;inset:0;width:${w}%;background:linear-gradient(90deg,${col},${col}cc);border-radius:6px"></span></span>
+        <span style="flex:0 0 auto;font-size:12.5px;font-weight:800;min-width:64px;text-align:right">${won(v.price)}</span></a>`;
+    }).join("");
+    return `<div class="lcard" style="padding:13px 15px;margin-bottom:10px">
+      <div style="display:flex;align-items:center;gap:8px;margin-bottom:7px">
+        <span style="font-weight:800;font-size:15px">🥃 ${esc(d.name)}</span>
+        ${i<3&&ageSort==='pop'?`<span class="atl" style="background:#FBEED2;color:#95610F">🔥 인기 ${i+1}위</span>`:""}
+        <span style="margin-left:auto;font-size:11px;color:var(--sub)">${ages[0]}→${ages[ages.length-1]}년 <b style="color:#B0431F">${m.toFixed(1)}배</b></span>
+      </div>${rows}</div>`;
+  }).join("");
+}
+function renderRank(){
+  const y=ageYear;
+  let rows=AGEDATA.distilleries.filter(d=>d.ladder[y]).map(d=>({name:d.name,...d.ladder[y]}));
+  rows.sort((a,b)=>ageSort==="pop"?(b.review_count-a.review_count):(a.price-b.price));
+  const cheapest=Math.min(...rows.map(r=>r.price)), popular=Math.max(...rows.map(r=>r.review_count));
+  document.getElementById("agerc").innerHTML=`📊 <b>${y}년</b> 싱글몰트 <b>${rows.length}</b>종 · ${ageSort==="pop"?"인기순":"데일리샷 최저가순"}`;
+  document.getElementById("ageBody").innerHTML=rows.map((r,i)=>`
+    <a href="${esc(r.url)}" target="_blank" rel="noopener" style="display:flex;align-items:center;gap:11px;text-decoration:none;color:inherit;padding:11px 13px;border:1px solid var(--line);border-radius:12px;margin-bottom:8px;background:var(--card)">
+      <span style="flex:0 0 26px;font-weight:800;font-size:16px;color:${i<3?'var(--amberD)':'var(--sub)'};text-align:center">${i+1}</span>
+      <span style="flex:1;min-width:0">
+        <span style="font-weight:800;font-size:14.5px">${esc(r.name)}</span>
+        ${r.price===cheapest?`<span class="atl" style="margin-left:6px;background:#E7F6EE;color:#1F7A44">💸 최저가</span>`:""}
+        ${r.review_count===popular&&popular>0?`<span class="atl" style="margin-left:4px;background:#FBEED2;color:#95610F">👑 최다리뷰</span>`:""}
+        <span style="display:block;font-size:12px;color:var(--sub);margin-top:2px">${r.rating?`★ ${r.rating} · 리뷰 ${(r.review_count||0).toLocaleString()}`:"평점 없음"}</span></span>
+      <span style="flex:0 0 auto;font-weight:800;font-size:16px;color:var(--amberD)">${won(r.price)}</span></a>`).join("")
+    +`<div class="sa" style="text-align:center;margin-top:6px;font-size:11px">가격은 데일리샷 최저가 · 클릭 시 구매처로 이동</div>`;
+}
 // ── 통합 검색: 딜 검색 결과 하단에 주락 픽 매칭 함께 노출 ─────────────
 function renderCrossPick(){
   const el=document.getElementById("crossPick"); if(!el)return;
@@ -1798,6 +1878,7 @@ function renderBrief(){
   if(g)cards.push(`<button class="bcard" onclick="track('brief_click',{k:'gloss'});switchView('learn')"><div class="bk">📚 오늘의 술 상식</div><div class="bv">${esc(g.t)}</div><div class="bm">${esc(g.d)}</div></button>`);
   cards.push(`<button class="bcard" onclick="track('brief_click',{k:'roulette'});showRoulette()"><div class="bk">🎲 오늘 뭐 마시지?</div><div class="bv">고민될 땐 룰렛에 맡기세요</div><div class="bm">예산만 고르면 재고에서 한 병 뽑아드려요 →</div></button>`);
   cards.push(`<button class="bcard" onclick="track('brief_click',{k:'fortune'});location.href='/fortune/'"><div class="bk">🥠 오늘의 술 운세</div><div class="bv">포춘쿠키를 깨면 오늘의 한 병이 나옵니다</div><div class="bm">하루 한 번 · 자정 리셋 — 지금 뽑기 →</div></button>`);
+  cards.push(`<button class="bcard" onclick="track('brief_click',{k:'age'});switchView('age')"><div class="bk">🥃 싱글몰트 연수별 시세</div><div class="bv">12·15·18·21년, 어디까지 오를까</div><div class="bm">증류소 가격 사다리 + 연수별 최저가 랭킹 →</div></button>`);
   el.innerHTML=`<div class="rc" style="margin:4px 0 8px">☀️ <b>오늘의 브리핑</b> <span style="font-size:12px">· 매일 바뀝니다</span></div><div class="brief">${cards.join("")}</div>`;
   renderRecent();
 }
