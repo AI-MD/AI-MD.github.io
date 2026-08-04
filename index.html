@@ -400,6 +400,7 @@
   <div id="moreNav" hidden>
     <button id="navColkage" onclick="switchView('colkage');document.getElementById('moreNav').hidden=true" title="내 술 들고 가는 콜키지프리 식당">🍽 콜키지 다이닝</button>
     <button id="navAge" onclick="switchView('age');document.getElementById('moreNav').hidden=true" title="싱글몰트 12·15·18·21년 연수별 최저가·인기 랭킹 + 증류소 사다리">🥃 연수별 시세</button>
+    <button id="navWine" onclick="switchView('wine');document.getElementById('moreNav').hidden=true" title="와인 가성비·품종별·가격대별 랭킹 (Vivino 평점 기반)">🍷 와인 탐험</button>
     <button id="navSool" onclick="switchView('sool');document.getElementById('moreNav').hidden=true" title="우리술 — 전통주 인기 큐레이션 + 온라인 구매 연결">🍶 전통주</button>
     <button id="navBottle" onclick="switchView('bottle');document.getElementById('moreNav').hidden=true" title="전국 바틀샵·위스키바 지도">🥃 바틀샵·바 지도</button>
     <button id="navRadar" onclick="switchView('radar');document.getElementById('moreNav').hidden=true" title="커뮤니티 성지 특가 제보 모음">📡 특가 레이더</button>
@@ -480,6 +481,14 @@
   <div class="rc" id="prc"></div>
   <div class="grid" id="pgrid"></div>
   <div id="pmore" style="text-align:center;margin:22px 0"></div>
+</div></main></section>
+<section id="viewWine" hidden>
+  <div class="warn"><h2 style="display:inline;font-size:inherit;font-weight:800;margin:0">🍷 와인 탐험 — 가성비·품종·가격대</h2> · <b>Vivino 평점</b>과 <b>데일리샷 최저가</b>로 — 평점 높고 저렴한 <b>가성비 甲</b>, 품종별·가격대별 랭킹. 주 1회 갱신 · <b>가격은 판매처·시점에 따라 달라요.</b></div>
+  <main><div class="wrap">
+  <div class="agetab" id="wineModeTab"></div>
+  <div id="wineControls" style="margin:10px 0"></div>
+  <div class="rc" id="winerc"></div>
+  <div id="wineBody"></div>
 </div></main></section>
 <section id="viewAge" hidden>
   <div class="warn"><h2 style="display:inline;font-size:inherit;font-weight:800;margin:0">🥃 싱글몰트 연수별 시세</h2> · 12·15·18·21년을 <b>데일리샷 최저가</b>로 비교 — 증류소별 <b>가격 사다리</b>와 연수별 <b>최저가·인기 랭킹</b>. 주 1회 갱신 · <b>가격은 판매처·시점에 따라 달라요.</b></div>
@@ -988,6 +997,7 @@ fetch("data.json?t="+Date.now(),{cache:"no-store"}).then(r=>r.json()).then(d=>{
   if(qs.get("learn")==="1"){setTimeout(()=>switchView("learn"),100);}  // 알쓸신주 딥링크(SEO)
   if(qs.get("sool")==="1"){setTimeout(()=>switchView("sool"),100);}  // 전통주 딥링크
   if(qs.get("age")==="1"){setTimeout(()=>switchView("age"),100);}  // 연수별 시세 딥링크
+  if(qs.get("wine")==="1"){setTimeout(()=>switchView("wine"),100);}  // 와인 탐험 딥링크
   initExpoTeaser();  // 딜 뷰 상단 다가오는 행사 배너
   const q0=qs.get("q"); if(q0){const qi=document.getElementById("q");qi.value=q0;state.q=q0;}  // 검색 딥링크 (?q= — SEO SearchAction)
   const st0=qs.get("store"); if(st0&&BRANCH[st0]){state.store=st0;document.getElementById("store").value=st0;}  // 지점 딥링크 (?store= — 지점 페이지 연동)
@@ -1012,10 +1022,10 @@ function colkageNear(){
   },()=>{btn.textContent="📍 내 주변";alert("위치 권한을 허용하면 가까운 식당순으로 볼 수 있어요.");});
 }
 function switchView(m){
-  const V={liquor:"viewLiquor",pick:"viewPick",colkage:"viewColkage",learn:"viewLearn",bottle:"viewBottle",radar:"viewRadar",expo:"viewExpo",sool:"viewSool",age:"viewAge"};
-  const N={liquor:"navLiquor",pick:"navPick",colkage:"navColkage",learn:"navLearn",bottle:"navBottle",radar:"navRadar",expo:"navExpo",sool:"navSool",age:"navAge"};
+  const V={liquor:"viewLiquor",pick:"viewPick",colkage:"viewColkage",learn:"viewLearn",bottle:"viewBottle",radar:"viewRadar",expo:"viewExpo",sool:"viewSool",age:"viewAge",wine:"viewWine"};
+  const N={liquor:"navLiquor",pick:"navPick",colkage:"navColkage",learn:"navLearn",bottle:"navBottle",radar:"navRadar",expo:"navExpo",sool:"navSool",age:"navAge",wine:"navWine"};
   for(const k in V){const v=document.getElementById(V[k]);if(v)v.hidden=(k!==m);const n=document.getElementById(N[k]);if(n)n.classList.toggle("on",k===m);}
-  const mb=document.getElementById("navMore");if(mb)mb.classList.toggle("on",["colkage","learn","bottle","radar","expo","sool","age"].includes(m));
+  const mb=document.getElementById("navMore");if(mb)mb.classList.toggle("on",["colkage","learn","bottle","radar","expo","sool","age","wine"].includes(m));
   track("view",{v:m});
   if(m==="colkage"){loadColkage(); if(cmap)[60,300,700].forEach(t=>setTimeout(()=>cmap.invalidateSize(),t));}
   else if(m==="learn")renderLearn();
@@ -1025,6 +1035,7 @@ function switchView(m){
   else if(m==="expo")loadExpo();
   else if(m==="sool")loadSool();
   else if(m==="age")loadAge();
+  else if(m==="wine")loadWine();
   window.scrollTo(0,0);
 }
 // ── 📡 특가 레이더 — 커뮤니티 제보 링크 모음 (제목은 신뢰불가 입력 → 전부 esc) ─────
@@ -1596,7 +1607,7 @@ function loadAge(){
   fetch("agecompare.json?t="+Date.now(),{cache:"no-store"}).then(r=>r.json()).then(d=>{AGEDATA=d;renderAge();})
     .catch(()=>{document.getElementById("agerc").innerHTML='<div class="empty">시세를 준비 중이에요. 잠시 후 다시 열어주세요.</div>';});
 }
-const AGE_COL=["#C98A2E","#B8791A","#9A6412","#7C4F0E","#5E3B0A","#472C08"];  // 연수 높을수록 진한 골드
+const AGE_COL=["#D4A24A","#C98A2E","#B8791A","#9A6412","#7C4F0E","#5E3B0A","#472C08","#331F05"];  // 연수 높을수록 진한 골드(8단)
 function renderAge(){
   if(!AGEDATA)return;
   document.getElementById("ageModeTab").innerHTML=
@@ -1625,7 +1636,7 @@ function renderLadders(){
     const m=(Math.max(...prices)/Math.min(...prices));
     const rows=ages.map((a,j)=>{
       const v=d.ladder[a], w=Math.max(14,Math.round(v.price/mx*100));
-      const col=AGE_COL[Math.min(AGE_COL.length-1,[10,12,15,18,21,25].indexOf(a))]||"#B8791A";
+      const col=AGE_COL[Math.min(AGE_COL.length-1,[10,12,14,15,16,18,21,25].indexOf(a))]||"#B8791A";
       return `<a href="${esc(v.url)}" target="_blank" rel="noopener" style="display:flex;align-items:center;gap:8px;text-decoration:none;color:inherit;margin:3px 0">
         <span style="flex:0 0 34px;font-size:12px;font-weight:800;color:var(--amberD)">${a}년</span>
         <span style="flex:1;background:#F0EADD;border-radius:6px;height:20px;position:relative;overflow:hidden">
@@ -1656,6 +1667,64 @@ function renderRank(){
         <span style="display:block;font-size:12px;color:var(--sub);margin-top:2px">${r.rating?`★ ${r.rating} · 리뷰 ${(r.review_count||0).toLocaleString()}`:"평점 없음"}</span></span>
       <span style="flex:0 0 auto;font-weight:800;font-size:16px;color:var(--amberD)">${won(r.price)}</span></a>`).join("")
     +`<div class="sa" style="text-align:center;margin-top:6px;font-size:11px">가격은 데일리샷 최저가 · 클릭 시 구매처로 이동</div>`;
+}
+// ── 🍷 와인 탐험 (가성비 · 품종별 · 가격대별) ──────────────
+let WDATA=null, wineLoaded=false, wineMode="value", wineVar="", wineBand="";
+const KIND_ICON={"레드":"🍷","화이트":"🥂","스파클링":"🍾","주정강화":"🍷","디저트":"🍯","로제":"🌸"};
+function loadWine(){
+  if(wineLoaded)return; wineLoaded=true;
+  document.getElementById("winerc").textContent="와인 불러오는 중…";
+  fetch("wine.json?t="+Date.now(),{cache:"no-store"}).then(r=>r.json()).then(d=>{WDATA=d;renderWine();})
+    .catch(()=>{document.getElementById("winerc").innerHTML='<div class="empty">와인 셀렉션을 준비 중이에요. 잠시 후 다시 열어주세요.</div>';});
+}
+function renderWine(){
+  if(!WDATA)return;
+  document.getElementById("wineModeTab").innerHTML=
+    [["value","💎 가성비 甲"],["variety","🍇 품종별"],["band","💰 가격대별"]].map(([k,l])=>
+      `<button class="cattab ${wineMode===k?'on':''}" style="cursor:pointer" onclick="wineMode='${k}';renderWine()">${l}</button>`).join("");
+  const ctl=document.getElementById("wineControls");
+  if(wineMode==="variety"){
+    const vs=Object.entries(WDATA.varieties||{}).sort((a,b)=>b[1]-a[1]).map(x=>x[0]);
+    if(!wineVar&&vs.length)wineVar=vs[0];
+    ctl.innerHTML=`<div class="expofil">${vs.map(v=>`<button class="efb ${v===wineVar?'on':''}" onclick="wineVar=${JSON.stringify(v)};renderWine()">${esc(v)}</button>`).join("")}</div>`;
+  }else if(wineMode==="band"){
+    const order=["2만원 이하","2~3만원","3~5만원","5~10만원","10만원 이상"];
+    const bs=order.filter(b=>WDATA.bands&&WDATA.bands[b]);
+    if(!wineBand&&bs.length)wineBand=bs[0];
+    ctl.innerHTML=`<div class="expofil">${bs.map(b=>`<button class="efb ${b===wineBand?'on':''}" onclick="wineBand=${JSON.stringify(b)};renderWine()">${esc(b)}</button>`).join("")}</div>`;
+  }else ctl.innerHTML="";
+  renderWineList();
+}
+function wineRow(i,rank){
+  const ic=KIND_ICON[i.kind]||"🍷";
+  const viv=i.vivino?`<span style="background:#7A1F3D;color:#fff;border-radius:5px;padding:1px 6px;font-size:11px;font-weight:800">Vivino ${i.vivino}</span>`
+    :(i.rating?`<span style="color:var(--sub);font-size:12px">★ ${i.rating}</span>`:"");
+  return `<a href="${esc(i.url)}" target="_blank" rel="noopener nofollow" style="display:flex;align-items:center;gap:11px;text-decoration:none;color:inherit;padding:11px 13px;border:1px solid var(--line);border-radius:12px;margin-bottom:8px;background:var(--card)">
+    ${rank?`<span style="flex:0 0 24px;font-weight:800;font-size:15px;color:${rank<=3?'#7A1F3D':'var(--sub)'};text-align:center">${rank}</span>`:""}
+    <span style="flex:0 0 auto;width:44px;height:56px;display:flex;align-items:center;justify-content:center;background:#F4EFE8;border-radius:8px;overflow:hidden">${i.image?`<img src="${esc(i.image)}" loading="lazy" referrerpolicy="no-referrer" style="width:100%;height:100%;object-fit:contain" onerror="this.outerHTML='${ic}'">`:ic}</span>
+    <span style="flex:1;min-width:0">
+      <span style="font-weight:800;font-size:14px;display:block;line-height:1.35">${esc(i.name)}</span>
+      <span style="display:flex;gap:6px;align-items:center;margin-top:4px;flex-wrap:wrap">${viv}<span style="font-size:11px;color:var(--sub)">${ic}${esc(i.kind||"와인")}${i.review_count?` · 리뷰 ${(i.review_count).toLocaleString()}`:""}</span></span></span>
+    <span style="flex:0 0 auto;font-weight:800;font-size:15.5px;color:var(--amberD)">${won(i.price)}</span></a>`;
+}
+function renderWineList(){
+  let list=WDATA.items.slice(), rank=false, head="";
+  if(wineMode==="value"){
+    // 가성비 甲 = Vivino 4.0+ (또는 평점 4.6+) 중 저렴한 순
+    list=list.filter(i=>i.vivino&&i.vivino>=4.0).sort((a,b)=>a.price-b.price);
+    rank=true; head=`💎 <b>가성비 甲</b> — Vivino 4.0+ 를 저렴한 순으로 <b>${list.length}</b>종`;
+  }else if(wineMode==="variety"){
+    list=list.filter(i=>i.variety===wineVar).sort((a,b)=>(b.vivino||b.rating||0)-(a.vivino||a.rating||0));
+    rank=true; head=`🍇 <b>${esc(wineVar)}</b> — Vivino·평점순 <b>${list.length}</b>종`;
+  }else{
+    list=list.filter(i=>i.band===wineBand).sort((a,b)=>(b.vivino||b.rating||0)-(a.vivino||a.rating||0));
+    rank=true; head=`💰 <b>${esc(wineBand)}</b> — 평점 높은 순 <b>${list.length}</b>종`;
+  }
+  list=list.slice(0,40);
+  document.getElementById("winerc").innerHTML=head+` <span style="color:var(--sub)">· Vivino·데일리샷 최저가</span>`;
+  document.getElementById("wineBody").innerHTML=list.length?list.map((i,idx)=>wineRow(i,rank?idx+1:0)).join("")
+    +`<div class="sa" style="text-align:center;margin-top:6px;font-size:11px">가격은 데일리샷 최저가 · 클릭 시 구매처로 이동</div>`
+    :`<div class="empty"><div style="font-size:44px">🍷</div><div style="margin-top:12px">해당 조건의 와인이 없어요</div></div>`;
 }
 // ── 통합 검색: 딜 검색 결과 하단에 주락 픽 매칭 함께 노출 ─────────────
 function renderCrossPick(){
@@ -1879,6 +1948,7 @@ function renderBrief(){
   cards.push(`<button class="bcard" onclick="track('brief_click',{k:'roulette'});showRoulette()"><div class="bk">🎲 오늘 뭐 마시지?</div><div class="bv">고민될 땐 룰렛에 맡기세요</div><div class="bm">예산만 고르면 재고에서 한 병 뽑아드려요 →</div></button>`);
   cards.push(`<button class="bcard" onclick="track('brief_click',{k:'fortune'});location.href='/fortune/'"><div class="bk">🥠 오늘의 술 운세</div><div class="bv">포춘쿠키를 깨면 오늘의 한 병이 나옵니다</div><div class="bm">하루 한 번 · 자정 리셋 — 지금 뽑기 →</div></button>`);
   cards.push(`<button class="bcard" onclick="track('brief_click',{k:'age'});switchView('age')"><div class="bk">🥃 싱글몰트 연수별 시세</div><div class="bv">12·15·18·21년, 어디까지 오를까</div><div class="bm">증류소 가격 사다리 + 연수별 최저가 랭킹 →</div></button>`);
+  cards.push(`<button class="bcard" onclick="track('brief_click',{k:'wine'});switchView('wine')"><div class="bk">🍷 와인 가성비 甲</div><div class="bv">Vivino 4.0+ 인데 저렴한 와인</div><div class="bm">품종별·가격대별 랭킹으로 실패없는 한 병 →</div></button>`);
   el.innerHTML=`<div class="rc" style="margin:4px 0 8px">☀️ <b>오늘의 브리핑</b> <span style="font-size:12px">· 매일 바뀝니다</span></div><div class="brief">${cards.join("")}</div>`;
   renderRecent();
 }
