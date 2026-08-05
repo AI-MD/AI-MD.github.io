@@ -1688,12 +1688,12 @@ function renderWine(){
   if(wineMode==="variety"){
     const vs=Object.entries(WDATA.varieties||{}).sort((a,b)=>b[1]-a[1]).map(x=>x[0]);
     if(!wineVar&&vs.length)wineVar=vs[0];
-    ctl.innerHTML=`<div class="expofil">${vs.map(v=>`<button class="efb ${v===wineVar?'on':''}" onclick="wineVar=${JSON.stringify(v)};renderWine()">${esc(v)}</button>`).join("")}</div>`;
+    ctl.innerHTML=`<div class="expofil">${vs.map(v=>`<button class="efb ${v===wineVar?'on':''}" onclick='wineVar=${JSON.stringify(v)};renderWine()'>${esc(v)}</button>`).join("")}</div>`;
   }else if(wineMode==="band"){
     const order=["2만원 이하","2~3만원","3~5만원","5~10만원","10만원 이상"];
     const bs=order.filter(b=>WDATA.bands&&WDATA.bands[b]);
     if(!wineBand&&bs.length)wineBand=bs[0];
-    ctl.innerHTML=`<div class="expofil">${bs.map(b=>`<button class="efb ${b===wineBand?'on':''}" onclick="wineBand=${JSON.stringify(b)};renderWine()">${esc(b)}</button>`).join("")}</div>`;
+    ctl.innerHTML=`<div class="expofil">${bs.map(b=>`<button class="efb ${b===wineBand?'on':''}" onclick='wineBand=${JSON.stringify(b)};renderWine()'>${esc(b)}</button>`).join("")}</div>`;
   }else ctl.innerHTML="";
   renderWineList();
 }
