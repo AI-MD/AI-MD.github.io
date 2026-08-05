@@ -1,5 +1,5 @@
 {
- "updated_at": "2026-08-04T21:10:00+09:00",
+ "updated_at": "2026-08-05T23:55:00+09:00",
  "items": [
   {
    "name": "서울바앤스피릿쇼",
@@ -120,18 +120,6 @@
    "ticket_url": "https://bilie.kr/sub/view_app.php",
    "price_info": null,
    "desc": "1,000여 종 주류 시음 · 부산 연례 주류박람회"
-  },
-  {
-   "name": "워커힐 오텀 와인페어 '구름 위의 산책' 2026",
-   "category": "와인",
-   "date_start": "2026-09-13",
-   "date_end": "2026-09-21",
-   "venue": "그랜드 워커힐 서울 포레스트파크",
-   "city": "서울",
-   "url": "https://www.walkerhill.com",
-   "ticket_url": null,
-   "price_info": null,
-   "desc": "가을 야외 와인 시음 페어 · 워커힐 연례(9월)"
   },
   {
    "name": "서울국제주류&와인박람회 마곡 2026",
