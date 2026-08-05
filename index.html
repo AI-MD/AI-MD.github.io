@@ -600,6 +600,14 @@ function computeStore(p){ // store filter: recompute price/stock for selected st
 }
 
 function fmtInv(n){return n>=10000?(n/10000).toFixed(1).replace(/\.0$/,"")+"만":n.toLocaleString();}  // 재고 수치 읽기 쉽게
+// 🏬 대형마트 간 비교 배지 — 트레이더스 vs 이마트 (둘 다 재고 있을 때)
+function martBadge(p){
+  if(!p.emart||!p.emart.in_stock||!p.emart.price)return "";
+  const ep=p.emart.price.toLocaleString(), g=p.mart_gap_percent;
+  if(p.mart_cheaper==="traders")return `<div class="ds" style="color:#1F7A44;background:#E7F6EE">🏬 이마트 ${ep}원 · <b>트레이더스가 ${g}%↓ 더 싸요</b></div>`;
+  if(p.mart_cheaper==="emart")return `<div class="ds" style="color:#B0431F;background:#FCEBE5">🏬 <b>이마트가 ${g}%↓ 더 싸요!</b> (이마트 ${ep}원)</div>`;
+  return `<div class="ds" style="color:#8A8177;background:#F0EEEA">🏬 이마트도 ${ep}원 · 같은 가격</div>`;
+}
 function card(p){
   const cs=computeStore(p);
   const rr=p.rating?`${stars(p.rating)}<span class="rn">${p.rating}</span><span class="rc2">(${p.review_count})</span>`:`<span class="nr">평점 없음</span>`;
@@ -612,6 +620,7 @@ function card(p){
       <div class="rr">${rr}${viv}</div>
       <div class="pr"><span class="price">${won(cs.price)}</span>${p.discount_percent>0?`<span class="disc">${p.discount_percent}%↓</span>`:""}${cs.in?atlBadge(p):""}${badgeRow(p)}</div>
       ${dsBadge(p)}
+      ${martBadge(p)}
       ${p.stale?`<div class="ds" style="color:#8A6A2E;background:#F5EDDA">⚠ ${p.stale}일째 재고 변동 없음 — 전산 재고일 수 있어요</div>`:""}
       <div class="cfoot"><span class="sc">🏬 ${state.store?`${(BRANCH[state.store]||{}).name||"해당 지점"} 보유`:`${cs.cnt}개 지점 보유`}</span><span class="dl">상세 · 지점별 →</span></div></div></button>`;
 }
@@ -674,6 +683,8 @@ function shareProduct(sku){
 }
 const SPECIAL="🔥특가";
 const isSpecial=p=>p.price_diff_percent!=null&&p.price_diff_percent<=-20&&p.in_stock;
+const MARTCMP="🏬마트비교";
+const isMartCmp=p=>p.emart&&p.emart.in_stock;  // 트레이더스·이마트 둘 다 재고
 // 같은 와인이 지점별 다중 SKU로 등록돼 특가에 중복될 때, 매칭된 데일리샷 상품 기준으로 재고 많은 1개만 남김
 function dedupWine(arr){
   const best=new Map();
@@ -697,16 +708,19 @@ function render(){
   if(state.inStock)base=base.filter(p=>computeStore(p).in);
   if(state.watchOnly)base=base.filter(p=>MYWATCH.has(p.sku));
   const nSpecial=base.filter(isSpecial).length;
+  const nMartCmp=base.filter(isMartCmp).length;   // 🏬 이마트와 비교 가능한 상품 수
   const catCount={};base.forEach(p=>{catCount[p.category]=(catCount[p.category]||0)+1;});
-  // tabs (🔥특가 우선 노출) — 개수는 현재 필터 반영
-  const cats=["전체",SPECIAL,...CAT_ORDER.filter(c=>s.by_category[c]),...Object.keys(s.by_category).filter(c=>!CAT_ORDER.includes(c))];
+  // tabs (🔥특가·🏬마트비교 우선 노출) — 개수는 현재 필터 반영. 마트비교는 데이터 있을 때만.
+  const cats=["전체",SPECIAL,...(nMartCmp?[MARTCMP]:[]),...CAT_ORDER.filter(c=>s.by_category[c]),...Object.keys(s.by_category).filter(c=>!CAT_ORDER.includes(c))];
   document.getElementById("cattabs").innerHTML=cats.map(c=>{
-    const cnt=c==="전체"?base.length:(c===SPECIAL?nSpecial:(catCount[c]||0));
-    return `<button class="cattab ${state.cat===c?"on":""}" data-cat="${c}">${c===SPECIAL?"🔥 특가":`${CAT_ICON[c]||"🍾"} ${c}`}<span class="c">${cnt}</span></button>`;
+    const cnt=c==="전체"?base.length:(c===SPECIAL?nSpecial:(c===MARTCMP?nMartCmp:(catCount[c]||0)));
+    const lab=c===SPECIAL?"🔥 특가":(c===MARTCMP?"🏬 마트비교":`${CAT_ICON[c]||"🍾"} ${c}`);
+    return `<button class="cattab ${state.cat===c?"on":""}" data-cat="${c}">${lab}<span class="c">${cnt}</span></button>`;
   }).join("");
   // 목록: base + 카테고리 필터
   let list=base;
   if(state.cat===SPECIAL)list=dedupWine(list.filter(isSpecial));  // 같은 와인 다중 SKU → 재고 많은 1개만
+  else if(state.cat===MARTCMP)list=list.filter(isMartCmp).sort((a,b)=>(b.mart_gap_percent||0)-(a.mart_gap_percent||0));  // 가격차 큰 순
   else if(state.cat!=="전체")list=list.filter(p=>p.category===state.cat);
   const key={stock_desc:p=>-computeStore(p).inv,price_asc:p=>computeStore(p).price||9e9,price_desc:p=>-(computeStore(p).price||0),name:p=>p.name,
              discount:p=>p.price_diff_percent==null?9e9:p.price_diff_percent};  // 데일리샷 대비 할인율 큰순
