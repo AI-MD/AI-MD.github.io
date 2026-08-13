@@ -403,6 +403,7 @@
     <button id="navColkage" onclick="switchView('colkage');document.getElementById('moreNav').hidden=true" title="내 술 들고 가는 콜키지프리 식당">🍽 콜키지 다이닝</button>
     <button id="navAge" onclick="switchView('age');document.getElementById('moreNav').hidden=true" title="싱글몰트 12·15·18·21년 연수별 최저가·인기 랭킹 + 증류소 사다리">🥃 연수별 시세</button>
     <button id="navWine" onclick="switchView('wine');document.getElementById('moreNav').hidden=true" title="와인 가성비·품종별·가격대별 랭킹 (Vivino 평점 기반)">🍷 와인 탐험</button>
+    <button id="navBunker" onclick="switchView('bunker');document.getElementById('moreNav').hidden=true" title="롯데마트 보틀벙커 — 트레이더스에 없는 애호가 위스키·명주 재고">🥃 보틀벙커</button>
     <button id="navSool" onclick="switchView('sool');document.getElementById('moreNav').hidden=true" title="우리술 — 전통주 인기 큐레이션 + 온라인 구매 연결">🍶 전통주</button>
     <button id="navBottle" onclick="switchView('bottle');document.getElementById('moreNav').hidden=true" title="전국 바틀샵·위스키바 지도">🥃 바틀샵·바 지도</button>
     <button id="navRadar" onclick="switchView('radar');document.getElementById('moreNav').hidden=true" title="커뮤니티 성지 특가 제보 모음">📡 특가 레이더</button>
@@ -491,6 +492,18 @@
   <div id="wineControls" style="margin:10px 0"></div>
   <div class="rc" id="winerc"></div>
   <div id="wineBody"></div>
+</div></main></section>
+<section id="viewBunker" hidden>
+  <div class="warn"><h2 style="display:inline;font-size:inherit;font-weight:800;margin:0">🥃 롯데마트 보틀벙커</h2> · <b>트레이더스엔 없는 애호가·희귀 위스키</b>의 보고 — 싱글몰트·재패니즈·버번·사케까지. 재고·가격을 보여주고 보틀벙커에서 구매 연결. <b>가격·재고는 시점에 따라 달라요.</b></div>
+  <main><div class="wrap">
+  <div class="crow">
+    <select id="bkcat"><option value="">전체 종류</option></select>
+    <select id="bksort"><option value="stock">재고 많은순</option><option value="price_asc">낮은 가격순</option><option value="price_desc">높은 가격순</option><option value="name">이름순</option></select>
+  </div>
+  <div class="rc" id="bkrc"></div>
+  <div class="grid" id="bkgrid"></div>
+  <div id="bkmore" style="text-align:center;margin:22px 0"></div>
+  <div class="sa" style="text-align:center;margin:6px 0 4px;font-size:11.5px">🛒 <a href="https://www.bottlebunker.co.kr" target="_blank" rel="noopener nofollow" style="color:var(--amberD);font-weight:700">보틀벙커</a>는 롯데마트 주류 전문관 · 주락은 판매하지 않는 중립 정보</div>
 </div></main></section>
 <section id="viewAge" hidden>
   <div class="warn"><h2 style="display:inline;font-size:inherit;font-weight:800;margin:0">🥃 싱글몰트 연수별 시세</h2> · 12·15·18·21년을 <b>데일리샷 최저가</b>로 비교 — 증류소별 <b>가격 사다리</b>와 연수별 <b>최저가·인기 랭킹</b>. 주 1회 갱신 · <b>가격은 판매처·시점에 따라 달라요.</b></div>
@@ -1014,6 +1027,7 @@ fetch("data.json?t="+Date.now(),{cache:"no-store"}).then(r=>r.json()).then(d=>{
   if(qs.get("sool")==="1"){setTimeout(()=>switchView("sool"),100);}  // 전통주 딥링크
   if(qs.get("age")==="1"){setTimeout(()=>switchView("age"),100);}  // 연수별 시세 딥링크
   if(qs.get("wine")==="1"){setTimeout(()=>switchView("wine"),100);}  // 와인 탐험 딥링크
+  if(qs.get("bunker")==="1"){setTimeout(()=>switchView("bunker"),100);}  // 보틀벙커 딥링크
   initExpoTeaser();  // 딜 뷰 상단 다가오는 행사 배너
   const q0=qs.get("q"); if(q0){const qi=document.getElementById("q");qi.value=q0;state.q=q0;}  // 검색 딥링크 (?q= — SEO SearchAction)
   const st0=qs.get("store"); if(st0&&BRANCH[st0]){state.store=st0;document.getElementById("store").value=st0;}  // 지점 딥링크 (?store= — 지점 페이지 연동)
@@ -1038,10 +1052,10 @@ function colkageNear(){
   },()=>{btn.textContent="📍 내 주변";alert("위치 권한을 허용하면 가까운 식당순으로 볼 수 있어요.");});
 }
 function switchView(m){
-  const V={liquor:"viewLiquor",pick:"viewPick",colkage:"viewColkage",learn:"viewLearn",bottle:"viewBottle",radar:"viewRadar",expo:"viewExpo",sool:"viewSool",age:"viewAge",wine:"viewWine"};
-  const N={liquor:"navLiquor",pick:"navPick",colkage:"navColkage",learn:"navLearn",bottle:"navBottle",radar:"navRadar",expo:"navExpo",sool:"navSool",age:"navAge",wine:"navWine"};
+  const V={liquor:"viewLiquor",pick:"viewPick",colkage:"viewColkage",learn:"viewLearn",bottle:"viewBottle",radar:"viewRadar",expo:"viewExpo",sool:"viewSool",age:"viewAge",wine:"viewWine",bunker:"viewBunker"};
+  const N={liquor:"navLiquor",pick:"navPick",colkage:"navColkage",learn:"navLearn",bottle:"navBottle",radar:"navRadar",expo:"navExpo",sool:"navSool",age:"navAge",wine:"navWine",bunker:"navBunker"};
   for(const k in V){const v=document.getElementById(V[k]);if(v)v.hidden=(k!==m);const n=document.getElementById(N[k]);if(n)n.classList.toggle("on",k===m);}
-  const mb=document.getElementById("navMore");if(mb)mb.classList.toggle("on",["colkage","learn","bottle","radar","expo","sool","age","wine"].includes(m));
+  const mb=document.getElementById("navMore");if(mb)mb.classList.toggle("on",["colkage","learn","bottle","radar","expo","sool","age","wine","bunker"].includes(m));
   track("view",{v:m});
   if(m==="colkage"){loadColkage(); if(cmap)[60,300,700].forEach(t=>setTimeout(()=>cmap.invalidateSize(),t));}
   else if(m==="learn")renderLearn();
@@ -1052,6 +1066,7 @@ function switchView(m){
   else if(m==="sool")loadSool();
   else if(m==="age")loadAge();
   else if(m==="wine")loadWine();
+  else if(m==="bunker")loadBunker();
   window.scrollTo(0,0);
 }
 // ── 📡 특가 레이더 — 커뮤니티 제보 링크 모음 (제목은 신뢰불가 입력 → 전부 esc) ─────
@@ -1693,6 +1708,47 @@ function renderRank(){
     +`<div class="sa" style="text-align:center;margin-top:6px;font-size:11px">가격은 데일리샷 최저가 · 클릭 시 구매처로 이동</div>`;
 }
 // ── 🍷 와인 탐험 (가성비 · 품종별 · 가격대별) ──────────────
+// ── 🥃 롯데 보틀벙커 (트레이더스에 없는 애호가 위스키) ──────────────
+const BK_ICON={"싱글몰트":"🥃","블렌디드":"🥃","버번":"🥃","재패니즈":"🍶","사케·일본술":"🍶","중국술":"🍶","리큐르":"🍸","보드카":"🍸","진":"🍸","럼":"🥃","데킬라":"🌵","브랜디":"🥃","미니어쳐":"🍶"};
+let BKDATA=null, bkLoaded=false, bkShown=24;
+function loadBunker(){
+  if(bkLoaded)return; bkLoaded=true;
+  document.getElementById("bkrc").textContent="보틀벙커 재고 불러오는 중…";
+  fetch("lotte.json?t="+Date.now(),{cache:"no-store"}).then(r=>r.json()).then(d=>{
+    BKDATA=d;
+    const cats=Object.entries(d.cats||{}).sort((a,b)=>b[1]-a[1]).map(x=>x[0]);
+    const sel=document.getElementById("bkcat");
+    cats.forEach(c=>{const o=document.createElement("option");o.value=c;o.textContent=(BK_ICON[c]||"🥃")+" "+c+" ("+d.cats[c]+")";sel.appendChild(o);});
+    sel.onchange=()=>{bkShown=24;renderBunker();};
+    document.getElementById("bksort").onchange=()=>{bkShown=24;renderBunker();};
+    renderBunker();
+  }).catch(()=>{document.getElementById("bkrc").innerHTML='<div class="empty">보틀벙커 데이터를 준비 중이에요. 잠시 후 다시 열어주세요.</div>';});
+}
+function bunkerFiltered(){
+  let list=BKDATA.items.slice();
+  const c=document.getElementById("bkcat").value, s=document.getElementById("bksort").value;
+  if(c)list=list.filter(i=>i.cat===c);
+  const key={stock:i=>-(i.inventory||0),price_asc:i=>i.price||9e9,price_desc:i=>-(i.price||0),name:i=>i.name};
+  const f=key[s]||key.stock; list.sort((a,b)=>{const x=f(a),y=f(b);return typeof x==="string"?x.localeCompare(y):x-y;});
+  return list;
+}
+function bunkerCard(i){
+  const ic=BK_ICON[i.cat]||"🥃";
+  return `<a class="card" href="${esc(i.url)}" target="_blank" rel="noopener nofollow" style="text-decoration:none;color:inherit">
+    <div class="cimg">${i.image?`<img src="${esc(i.image)}" loading="lazy" referrerpolicy="no-referrer" onerror="this.onerror=null;this.outerHTML='<span class=&quot;fb&quot;>${ic}</span>'"/>`:`<span class="fb">${ic}</span>`}
+      <span class="catchip">${ic} ${esc(i.cat)}</span>
+      <span class="stkchip" style="background:${i.inventory>0?'#C8102E':'#B9AE9E'}">${i.inventory>0?`재고 ${fmtInv(i.inventory)}`:"품절"}</span></div>
+    <div class="cbody"><div class="cname">${esc(i.name)}</div>
+      <div class="pr"><span class="price">${won(i.price)}</span>${i.restock?`<span class="newchip">🔄 재입고</span>`:""}</div>
+      <div class="cfoot"><span class="sc">🥃 롯데 보틀벙커</span><span class="dl">구매처 보기 →</span></div></div></a>`;
+}
+function renderBunker(){
+  if(!BKDATA)return;
+  const list=bunkerFiltered(), shown=list.slice(0,bkShown);
+  document.getElementById("bkrc").innerHTML=`🥃 보틀벙커 재고 <b>${list.length}</b>종 <span style="color:var(--sub)">· 트레이더스엔 없는 애호가 셀렉션 · 갱신 ${BKDATA.updated_at?new Date(BKDATA.updated_at).toLocaleDateString("ko-KR"):""}</span>`;
+  document.getElementById("bkgrid").innerHTML=list.length?shown.map(bunkerCard).join(""):`<div class="empty"><div style="font-size:44px">🥃</div><div style="margin-top:12px">결과가 없습니다</div></div>`;
+  document.getElementById("bkmore").innerHTML=list.length>shown.length?`<button class="distbtn on" style="padding:11px 22px;cursor:pointer" onclick="bkShown+=24;renderBunker()">더 보기 (${(list.length-shown.length).toLocaleString()}종)</button>`:"";
+}
 let WDATA=null, wineLoaded=false, wineMode="value", wineVar="", wineBand="";
 const KIND_ICON={"레드":"🍷","화이트":"🥂","스파클링":"🍾","주정강화":"🍷","디저트":"🍯","로제":"🌸"};
 function loadWine(){
@@ -1973,6 +2029,7 @@ function renderBrief(){
   cards.push(`<button class="bcard" onclick="track('brief_click',{k:'fortune'});location.href='/fortune/'"><div class="bk">🥠 오늘의 술 운세</div><div class="bv">포춘쿠키를 깨면 오늘의 한 병이 나옵니다</div><div class="bm">하루 한 번 · 자정 리셋 — 지금 뽑기 →</div></button>`);
   cards.push(`<button class="bcard" onclick="track('brief_click',{k:'age'});switchView('age')"><div class="bk">🥃 싱글몰트 연수별 시세</div><div class="bv">12·15·18·21년, 어디까지 오를까</div><div class="bm">증류소 가격 사다리 + 연수별 최저가 랭킹 →</div></button>`);
   cards.push(`<button class="bcard" onclick="track('brief_click',{k:'wine'});switchView('wine')"><div class="bk">🍷 와인 가성비 甲</div><div class="bv">Vivino 4.0+ 인데 저렴한 와인</div><div class="bm">품종별·가격대별 랭킹으로 실패없는 한 병 →</div></button>`);
+  cards.push(`<button class="bcard" onclick="track('brief_click',{k:'bunker'});switchView('bunker')"><div class="bk">🥃 롯데 보틀벙커</div><div class="bv">트레이더스엔 없는 애호가 위스키</div><div class="bm">싱글몰트 391종·재패니즈·버번 재고 →</div></button>`);
   el.innerHTML=`<div class="rc" style="margin:4px 0 8px">☀️ <b>오늘의 브리핑</b> <span style="font-size:12px">· 매일 바뀝니다</span></div><div class="brief">${cards.join("")}</div>`;
   renderRecent();
 }
