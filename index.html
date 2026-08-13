@@ -614,12 +614,19 @@ function computeStore(p){ // store filter: recompute price/stock for selected st
 
 function fmtInv(n){return n>=10000?(n/10000).toFixed(1).replace(/\.0$/,"")+"만":n.toLocaleString();}  // 재고 수치 읽기 쉽게
 // 🏬 대형마트 간 비교 배지 — 트레이더스 vs 이마트 (둘 다 재고 있을 때)
+const MART_NM={traders:"트레이더스",emart:"이마트",lotte:"보틀벙커"};
 function martBadge(p){
-  if(!p.emart||!p.emart.in_stock||!p.emart.price)return "";
-  const ep=p.emart.price.toLocaleString(), g=p.mart_gap_percent;
-  if(p.mart_cheaper==="traders")return `<div class="ds" style="color:#1F7A44;background:#E7F6EE">🏬 이마트 ${ep}원 · <b>트레이더스가 ${g}%↓ 더 싸요</b></div>`;
-  if(p.mart_cheaper==="emart")return `<div class="ds" style="color:#B0431F;background:#FCEBE5">🏬 <b>이마트가 ${g}%↓ 더 싸요!</b> (이마트 ${ep}원)</div>`;
-  return `<div class="ds" style="color:#8A8177;background:#F0EEEA">🏬 이마트도 ${ep}원 · 같은 가격</div>`;
+  const mp=p.mart_prices;
+  if(!mp||Object.keys(mp).length<2)return "";
+  // 마트별 가격 나열(싼 순) + 최저 마트 강조
+  const arr=Object.entries(mp).sort((a,b)=>a[1]-b[1]);
+  const cheapest=p.mart_cheapest||arr[0][0], g=p.mart_gap_percent;
+  const cheap=cheapest==="traders";  // 트레이더스가 최저면 초록, 아니면 빨강(딴 데가 더 쌈)
+  const others=arr.filter(([k])=>k!=="traders").map(([k,v])=>`${MART_NM[k]} ${v.toLocaleString()}`).join(" · ");
+  const head=cheapest==="traders"
+    ? `<b>여기(트레이더스)가 최저</b> · ${others}`
+    : `<b>${MART_NM[cheapest]}가 ${g}%↓ 더 싸요!</b> · ${others}`;
+  return `<div class="ds" style="color:${cheap?'#1F7A44':'#B0431F'};background:${cheap?'#E7F6EE':'#FCEBE5'}">🏬 ${head}</div>`;
 }
 function card(p){
   const cs=computeStore(p);
@@ -697,7 +704,7 @@ function shareProduct(sku){
 const SPECIAL="🔥특가";
 const isSpecial=p=>p.price_diff_percent!=null&&p.price_diff_percent<=-20&&p.in_stock;
 const MARTCMP="🏬마트비교";
-const isMartCmp=p=>p.emart&&p.emart.in_stock;  // 트레이더스·이마트 둘 다 재고
+const isMartCmp=p=>p.mart_prices&&Object.keys(p.mart_prices).length>=2;  // 2개 이상 마트에 재고(트레이더스·이마트·보틀벙커)
 // 같은 와인이 지점별 다중 SKU로 등록돼 특가에 중복될 때, 매칭된 데일리샷 상품 기준으로 재고 많은 1개만 남김
 function dedupWine(arr){
   const best=new Map();
