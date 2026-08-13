@@ -1718,6 +1718,7 @@ function loadBunker(){
     BKDATA=d;
     const cats=Object.entries(d.cats||{}).sort((a,b)=>b[1]-a[1]).map(x=>x[0]);
     const sel=document.getElementById("bkcat");
+    if(d.special_count){const o=document.createElement("option");o.value="__special__";o.textContent="🔥 데일리샷 특가 ("+d.special_count+")";sel.appendChild(o);}
     cats.forEach(c=>{const o=document.createElement("option");o.value=c;o.textContent=(BK_ICON[c]||"🥃")+" "+c+" ("+d.cats[c]+")";sel.appendChild(o);});
     sel.onchange=()=>{bkShown=24;renderBunker();};
     document.getElementById("bksort").onchange=()=>{bkShown=24;renderBunker();};
@@ -1727,7 +1728,8 @@ function loadBunker(){
 function bunkerFiltered(){
   let list=BKDATA.items.slice();
   const c=document.getElementById("bkcat").value, s=document.getElementById("bksort").value;
-  if(c)list=list.filter(i=>i.cat===c);
+  if(c==="__special__")list=list.filter(i=>i.diff!=null&&i.diff<=-20);
+  else if(c)list=list.filter(i=>i.cat===c);
   const key={stock:i=>-(i.inventory||0),price_asc:i=>i.price||9e9,price_desc:i=>-(i.price||0),name:i=>i.name};
   const f=key[s]||key.stock; list.sort((a,b)=>{const x=f(a),y=f(b);return typeof x==="string"?x.localeCompare(y):x-y;});
   return list;
@@ -1739,7 +1741,8 @@ function bunkerCard(i){
       <span class="catchip">${ic} ${esc(i.cat)}</span>
       <span class="stkchip" style="background:${i.inventory>0?'#C8102E':'#B9AE9E'}">${i.inventory>0?`재고 ${fmtInv(i.inventory)}`:"품절"}</span></div>
     <div class="cbody"><div class="cname">${esc(i.name)}</div>
-      <div class="pr"><span class="price">${won(i.price)}</span>${i.restock?`<span class="newchip">🔄 재입고</span>`:""}</div>
+      <div class="pr"><span class="price">${won(i.price)}</span>${i.restock?`<span class="newchip">🔄 재입고</span>`:""}${i.diff!=null&&i.diff<=-20?`<span class="disc">🔥${Math.abs(Math.round(i.diff))}%↓</span>`:""}</div>
+      ${i.ds_price?`<div class="ds" style="color:${i.diff<=-20?'#C8102E':'#8A8177'};background:${i.diff<=-20?'#FCEBE5':'#F0EEEA'}">${i.diff<=-20?`🔥 데일리샷보다 ${Math.abs(Math.round(i.diff))}% 저렴`:`데일리샷 ${i.ds_price.toLocaleString()}원`}</div>`:""}
       <div class="cfoot"><span class="sc">🥃 롯데 보틀벙커</span><span class="dl">구매처 보기 →</span></div></div></a>`;
 }
 function renderBunker(){
