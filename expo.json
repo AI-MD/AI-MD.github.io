@@ -1,5 +1,5 @@
 {
- "updated_at": "2026-08-05T23:55:00+09:00",
+ "updated_at": "2026-08-25T09:00:00+09:00",
  "items": [
   {
    "name": "서울바앤스피릿쇼",
@@ -11,7 +11,7 @@
    "url": "https://www.barshow.co.kr",
    "ticket_url": null,
    "price_info": "당일권 2.6만원대",
-   "desc": "위스키·스피릿 전문 전시 · 매년 7월(2027 미발표)"
+   "desc": "위스키·스피릿 전문 전시 · 2026년은 7/24~26 코엑스 D홀 개최 종료(2027 미발표)"
   },
   {
    "name": "대한민국 우리술 대축제",
@@ -23,7 +23,7 @@
    "url": "https://thesool.com",
    "ticket_url": null,
    "price_info": null,
-   "desc": "국내 최대 전통주 축제 · 매년 11월(일정 미발표)"
+   "desc": "국내 최대 전통주 축제 · 매년 11월 aT센터(2026 일정 미발표)"
   },
   {
    "name": "대한민국막걸리엑스포 MAXPO",
@@ -44,10 +44,10 @@
    "date_end": null,
    "venue": null,
    "city": "서울",
-   "url": null,
+   "url": "https://www.salon-o.org/",
    "ticket_url": null,
    "price_info": null,
-   "desc": "비노필 주최 내추럴와인 살롱 · 매년 2월경"
+   "desc": "비노필 주최 내추럴와인 살롱 · 2026년은 2/28(제6회) 개최 종료"
   },
   {
    "name": "제주 푸드&와인 페스티벌",
@@ -59,7 +59,7 @@
    "url": "https://jfwf.kr",
    "ticket_url": null,
    "price_info": null,
-   "desc": "갈라디너·와인클래스·무제한 시음 · 매년 5~6월"
+   "desc": "갈라디너·와인클래스·무제한 시음 · 2026년은 5/23~6/13 개최 종료"
   },
   {
    "name": "대구 국제 주류&칵테일 쇼",
@@ -71,7 +71,7 @@
    "url": "https://soolfair.com",
    "ticket_url": null,
    "price_info": null,
-   "desc": "전통주·위스키·칵테일 · 매년 6월"
+   "desc": "전통주·위스키·칵테일 9개관 150부스 · 2026년은 6/26~28 EXCO 개최 종료"
   },
   {
    "name": "대한민국와인축제 (영동)",
@@ -83,7 +83,7 @@
    "url": "https://www.yd21.go.kr/kr/html/sub05/0502040105.html",
    "ticket_url": null,
    "price_info": "무료",
-   "desc": "국산 와인 산지 영동 · 매년 6월·무료"
+   "desc": "국산 와인 산지 영동·무료 · 2026년은 6/11~14(제15회) 개최 종료"
   },
   {
    "name": "센텀 맥주축제",
@@ -107,7 +107,7 @@
    "url": "https://champagne-seoul.com/",
    "ticket_url": null,
    "price_info": null,
-   "desc": "아시아 최대 샴페인 시음회 · 매년 11월(미발표)"
+   "desc": "아시아 최대 샴페인 시음회 · 매년 11월(2026 일정 미발표)"
   },
   {
    "name": "부산국제주류박람회 BILIE 2026",
@@ -192,6 +192,18 @@
    "ticket_url": null,
    "price_info": null,
    "desc": "국내 최장수 주류·와인 대표 전시회(35년+)"
+  },
+  {
+   "name": "수원주류박람회 경기주류관광페스타",
+   "category": "종합주류",
+   "date_start": null,
+   "date_end": null,
+   "venue": "수원메쎄",
+   "city": "수원",
+   "url": "https://www.theglassshow.co.kr/",
+   "ticket_url": null,
+   "price_info": "사전예매(네이버 예약)",
+   "desc": "경기권 주류 종합 박람회 · 2026년은 4/3~5 개최 종료(제4회)"
   }
  ]
 }
